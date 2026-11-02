@@ -473,35 +473,120 @@
     if (!sig) return;
     
     let statusEmoji = sig.result === 'win' ? '✅' : sig.result === 'loss' ? '❌' : '⏳';
-    let text = `${statusEmoji} *${sig.asset} ${sig.direction} SIGNAL* ${statusEmoji}\n\n📊 Category: ${sig.category}\n🎯 Entry: ${sig.entry}\n🛑 Stop Loss: ${sig.sl}\n💰 Take Profit: ${sig.tp}\n\n📝 Analysis:\n${sig.analysis || 'No analysis provided.'}\n\n📓 Track your own trades at:\nhttps://gongolatechlab.github.io/trading-journal/`;
-
-    // Try to share the image file natively
-    if (sig.image_url) {
-      try {
-        const response = await fetch(sig.image_url);
-        const blob = await response.blob();
-        const file = new File([blob], 'chart.jpg', { type: blob.type });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: `${sig.asset} ${sig.direction} Signal`,
-            text: text
-          });
-          return;
-        }
-      } catch (err) {
-        console.log('File sharing failed, falling back to URL', err);
-      }
-      // Fallback: add image URL to the text
-      text += `\n\n📸 Chart: ${sig.image_url}`;
+    
+    // If there is no image, just share text
+    if (!sig.image_url) {
+      let text = `${statusEmoji} *${sig.asset} ${sig.direction} SIGNAL* ${statusEmoji}\n\n🎯 Entry: ${sig.entry}\n🛑 SL: ${sig.sl}\n💰 TP: ${sig.tp}\n\n📝 Analysis:\n${sig.analysis || 'No analysis'}`;
+      if (navigator.share) navigator.share({ title: 'Signal', text: text }).catch(console.error);
+      else navigator.clipboard.writeText(text).then(() => showAlert('Copied!', 'success'));
+      return;
     }
 
-    if (navigator.share) {
-      navigator.share({ title: `${sig.asset} ${sig.direction} Signal`, text: text }).catch(console.error);
-    } else {
-      navigator.clipboard.writeText(text);
-      showAlert('Signal copied to clipboard!', 'success');
+    showAlert("Generating Share Card...", "success");
+
+    try {
+      // 1. Load the image
+      const response = await fetch(sig.image_url);
+      const blob = await response.blob();
+      const img = new Image();
+      const objectURL = URL.createObjectURL(blob);
+      img.src = objectURL;
+      await new Promise(r => { img.onload = r; img.onerror = r; });
+
+      // 2. Setup Canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1350;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      ctx.fillStyle = '#0B0C10';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Header Brand
+      ctx.fillStyle = '#00E5FF';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('GONGOLA ICT HUB', 60, 80);
+
+      // Draw Image
+      const maxW = 960;
+      const maxH = 600;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      if (h > maxH) { w = w * (maxH / h); h = maxH; }
+      const x = (canvas.width - w) / 2;
+      ctx.drawImage(img, x, 120, w, h);
+
+      // Asset & Direction
+      ctx.fillStyle = '#F8FAFC';
+      ctx.font = 'bold 64px sans-serif';
+      ctx.fillText(`${sig.asset} ${sig.direction}`, 60, 820);
+
+      // Levels
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText('ENTRY', 60, 880);
+      ctx.fillText('SL', 400, 880);
+      ctx.fillText('TP', 700, 880);
+
+      ctx.fillStyle = '#F8FAFC';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.fillText(sig.entry, 60, 930);
+      ctx.fillStyle = '#FF3B30';
+      ctx.fillText(sig.sl, 400, 930);
+      ctx.fillStyle = '#00FF66';
+      ctx.fillText(sig.tp, 700, 930);
+
+      // R:R
+      const risk = Math.abs(sig.entry - sig.sl);
+      const reward = Math.abs(sig.tp - sig.entry);
+      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
+      ctx.fillStyle = '#00E5FF';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText(`Expected R:R 1:${rr}`, 60, 990);
+
+      // Analysis Text Wrapper
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '28px sans-serif';
+      const words = (sig.analysis || 'No analysis provided.').split(' ');
+      let line = '';
+      let y = 1060;
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        if (ctx.measureText(testLine).width > 960 && n > 0) {
+          ctx.fillText(line, 60, y);
+          line = words[n] + ' ';
+          y += 40;
+        } else { line = testLine; }
+      }
+      ctx.fillText(line, 60, y);
+
+      // Footer
+      ctx.fillStyle = '#1F2833';
+      ctx.fillRect(0, 1250, canvas.width, 100);
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '24px sans-serif';
+      ctx.fillText('Track your trades at: gongolatechlab.github.io/trading-journal', 60, 1310);
+
+      // 3. Share the generated Canvas
+      canvas.toBlob(async (shareBlob) => {
+        const file = new File([shareBlob], 'signal.jpg', { type: 'image/jpeg' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: `${sig.asset} Signal` });
+        } else {
+          // Fallback if file sharing is blocked
+          const link = document.createElement('a');
+          link.download = `${sig.asset}_signal.jpg`;
+          link.href = URL.createObjectURL(shareBlob);
+          link.click();
+          showAlert('Image downloaded! Share it to WhatsApp.', 'success');
+        }
+      }, 'image/jpeg', 0.9);
+
+    } catch (err) {
+      console.error(err);
+      showAlert("Failed to generate image.", "error");
     }
   }
 
