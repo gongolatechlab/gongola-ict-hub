@@ -91,62 +91,76 @@
       <button type="button" id="close-modal-btn" class="p-2 bg-surface2 rounded-full text-muted hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label>
-        <select id="sig-cat" class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 text-white">
-          <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label>
-        <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono uppercase text-white">
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-2">
-      <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="py-3 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-win"></div> BUY
-      </button>
-      <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="py-3 rounded-lg border border-line bg-bg text-muted font-bold text-sm transition-all flex justify-center items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-loss"></div> SELL
-      </button>
-      <input type="hidden" id="sig-direction" value="BUY">
-    </div>
-
-    <div class="grid grid-cols-3 gap-2">
-      <div>
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Entry</label>
-        <input type="number" id="sig-entry" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
-      </div>
-      <div>
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">SL</label>
-        <input type="number" id="sig-sl" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
-      </div>
-      <div>
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">TP</label>
-        <input type="number" id="sig-tp" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
-      </div>
-    </div>
-
+    <!-- Image Upload First -->
     <div>
-      <label class="block text-[10px] font-mono text-muted uppercase mb-1">Chart Image (AI Analyze)</label>
-      <input type="file" id="sig-image-input" accept="image/*" class="w-full bg-bg border border-line rounded-lg px-3 py-2 text-sm text-muted file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-surface2 file:text-white hover:file:bg-surface transition-all">
+      <label class="block text-[10px] font-mono text-muted uppercase mb-1">Upload Chart (AI Analyzes)</label>
+      <input type="file" id="sig-image-input" accept="image/*" class="w-full bg-bg border border-line rounded-lg px-3 py-3 text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-win file:text-bg hover:file:brightness-110 transition-all cursor-pointer">
       <div id="sig-image-preview-container" class="hidden mt-2 relative rounded-lg overflow-hidden border border-line">
-        <img id="sig-image-preview" class="w-full h-32 object-cover">
+        <img id="sig-image-preview" class="w-full h-40 object-cover">
         <div id="sig-image-loading" class="absolute inset-0 bg-black/70 hidden flex-col items-center justify-center backdrop-blur-sm">
-          <div class="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mb-2"></div>
-          <span class="text-xs font-bold text-accent">AI Analyzing Chart...</span>
+          <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-2"></div>
+          <span class="text-sm font-bold text-accent">AI Reading Chart...</span>
         </div>
       </div>
     </div>
 
-    <div>
-      <label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis / Notes</label>
-      <textarea id="sig-notes" rows="3" placeholder="MSS confirmed on 15m, targeting BSL..." class="w-full bg-bg border border-line rounded-lg px-3 py-2 text-sm text-white"></textarea>
+    <!-- Toggle to show manual fields -->
+    <div class="text-center mt-1">
+      <button type="button" onclick="document.getElementById('manual-fields').classList.toggle('hidden')" class="text-xs text-accent underline hover:text-white transition-colors">Or fill out manually</button>
     </div>
 
-    <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl mt-2 hover:brightness-110 transition-all">Publish Signal</button>
+    <!-- Hidden Fields (Revealed after AI or manual toggle) -->
+    <div id="manual-fields" class="hidden flex flex-col gap-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label>
+          <select id="sig-cat" class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 text-white">
+            <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label>
+          <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono uppercase text-white">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="py-3 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-win"></div> BUY
+        </button>
+        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="py-3 rounded-lg border border-line bg-bg text-muted font-bold text-sm transition-all flex justify-center items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-loss"></div> SELL
+        </button>
+        <input type="hidden" id="sig-direction" value="BUY">
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Entry</label>
+          <input type="number" id="sig-entry" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
+        </div>
+        <div>
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">SL</label>
+          <input type="number" id="sig-sl" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
+        </div>
+        <div>
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">TP</label>
+          <input type="number" id="sig-tp" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis / Notes</label>
+        <textarea id="sig-notes" rows="3" placeholder="..." class="w-full bg-bg border border-line rounded-lg px-3 py-2 text-sm text-white"></textarea>
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <p class="text-[9px] text-muted text-center leading-tight mt-2 px-2">
+      Disclaimer: AI analysis is for educational purposes only. It does not constitute financial advice. Always review setups before executing a trade.
+    </p>
+
+    <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl hover:brightness-110 transition-all">Publish Signal</button>
   </form>
 </dialog>
 
@@ -301,6 +315,7 @@
       document.getElementById('sig-image-preview-container').classList.add('hidden');
       document.getElementById('sig-notes').value = '';
       document.getElementById('sig-notes').disabled = false;
+      document.getElementById('manual-fields').classList.add('hidden');
       modal.showModal();
     }
   }
@@ -404,6 +419,10 @@
           else setSigDir('BUY');
           
           if (data.analysis) notesArea.value = data.analysis.replace(/\*/g, '');
+          
+          // Reveal the form fields after AI fills them
+          document.getElementById('manual-fields').classList.remove('hidden');
+          
         } catch (err) {
           console.error(err);
           notesArea.value = "Error: " + err.message;
