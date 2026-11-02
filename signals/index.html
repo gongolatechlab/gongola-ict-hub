@@ -165,7 +165,7 @@
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       fetchSignals();
     }
-    document.getElementById('open-modal-btn').addEventListener('click', toggleSignalModal);
+    document.getElementById('open-modal-btn').addEventListener('click', checkAdminAccess);
     document.getElementById('close-modal-btn').addEventListener('click', toggleSignalModal);
     document.getElementById('search-input').addEventListener('input', (e) => {
       searchQuery = e.target.value.toUpperCase();
@@ -264,6 +264,16 @@
     const btnText = document.getElementById(`btn-text-${id}`);
     notesDiv.classList.toggle('hidden');
     btnText.innerText = notesDiv.classList.contains('hidden') ? 'View Analysis' : 'Hide Analysis';
+  }
+
+
+  function checkAdminAccess() {
+    const pin = prompt("Enter Admin PIN to post a signal:");
+    if (pin === "1973") {
+      toggleSignalModal();
+    } else if (pin !== null) {
+      showAlert("Unauthorized: Incorrect Admin PIN.", "error");
+    }
   }
 
   function toggleSignalModal() {
