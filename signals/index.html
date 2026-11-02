@@ -294,6 +294,12 @@
       let dateStr = new Date(s.created_at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
       let resultColor = s.result === 'win' ? 'bg-win/20 text-win border-win/50' : s.result === 'loss' ? 'bg-loss/20 text-loss border-loss/50' : 'bg-surface2 text-muted border-line';
       
+      // Calculate RR
+      let rrText = 'R:R 1:--';
+      const risk = Math.abs(s.entry - s.sl);
+      const reward = Math.abs(s.tp - s.entry);
+      if (risk > 0) rrText = 'R:R 1:' + (reward / risk).toFixed(1);
+
       return `
       <div class="sig-card">
         <div class="p-4 border-b border-line flex justify-between items-center">
@@ -324,26 +330,11 @@
             <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
             <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
           </div>
+          
           <div class="text-center mt-1">
-            <span class="text-[10px] font-mono font-bold text-cyan">
-              ${(() => {
-                const risk = Math.abs(s.entry - s.sl);
-                const reward = Math.abs(s.tp - s.entry);
-                if (risk > 0) return 'R:R 1:' + (reward / risk).toFixed(1);
-                return 'R:R 1:--';
-              })()}
-            </span>
+            <span class="text-[10px] font-mono font-bold text-cyan">${rrText}</span>
           </div>
-          <div class="text-center mt-1">
-            <span class="text-[10px] font-mono font-bold text-cyan">
-              ${(() => {
-                const risk = Math.abs(s.entry - s.sl);
-                const reward = Math.abs(s.tp - s.entry);
-                if (risk > 0) return 'R:R 1:' + (reward / risk).toFixed(1);
-                return 'R:R 1:--';
-              })()}
-            </span>
-          </div>
+
           ${s.analysis ? `
             <button onclick="toggleSignalNotes('${s.id}')" class="text-xs font-bold text-accent flex items-center gap-1 w-max"><span id="btn-text-${s.id}">View Analysis</span><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button>
             <div id="notes-${s.id}" class="hidden text-xs text-muted bg-bg p-3 rounded-lg border border-line leading-relaxed">${s.analysis}</div>
@@ -474,7 +465,6 @@
     
     let statusEmoji = sig.result === 'win' ? '✅' : sig.result === 'loss' ? '❌' : '⏳';
     
-    // If there is no image, just share text
     if (!sig.image_url) {
       let text = `${statusEmoji} *${sig.asset} ${sig.direction} SIGNAL* ${statusEmoji}\n\n🎯 Entry: ${sig.entry}\n🛑 SL: ${sig.sl}\n💰 TP: ${sig.tp}\n\n📝 Analysis:\n${sig.analysis || 'No analysis'}`;
       if (navigator.share) navigator.share({ title: 'Signal', text: text }).catch(console.error);
@@ -485,7 +475,6 @@
     showAlert("Generating Share Card...", "success");
 
     try {
-      // 1. Load the image
       const response = await fetch(sig.image_url);
       const blob = await response.blob();
       const img = new Image();
@@ -493,7 +482,6 @@
       img.src = objectURL;
       await new Promise(r => { img.onload = r; img.onerror = r; });
 
-      // 2. Setup Canvas
       const canvas = document.createElement('canvas');
       canvas.width = 1080;
       canvas.height = 1350;
@@ -546,36 +534,43 @@
       ctx.font = 'bold 36px sans-serif';
       ctx.fillText(`Expected R:R 1:${rr}`, 60, 990);
 
-      // Analysis Text Wrapper
+      // Analysis Text Wrapper (Clamped)
       ctx.fillStyle = '#94A3B8';
-      ctx.font = '28px sans-serif';
+      ctx.font = '26px sans-serif';
       const words = (sig.analysis || 'No analysis provided.').split(' ');
       let line = '';
-      let y = 1060;
+      let y = 1050;
+      let truncated = false;
+      
       for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + ' ';
         if (ctx.measureText(testLine).width > 960 && n > 0) {
+          if (y > 1160) { truncated = true; break; }
           ctx.fillText(line, 60, y);
           line = words[n] + ' ';
-          y += 40;
-        } else { line = testLine; }
+          y += 34;
+        } else {
+          line = testLine;
+        }
       }
-      ctx.fillText(line, 60, y);
+      if (!truncated) ctx.fillText(line, 60, y);
+      else ctx.fillText(line + '...', 60, y);
 
       // Footer
       ctx.fillStyle = '#1F2833';
-      ctx.fillRect(0, 1250, canvas.width, 100);
+      ctx.fillRect(0, 1200, canvas.width, 150);
       ctx.fillStyle = '#94A3B8';
-      ctx.font = '24px sans-serif';
-      ctx.fillText('Track your trades at: gongolatechlab.github.io/trading-journal', 60, 1310);
+      ctx.font = '20px sans-serif';
+      ctx.fillText('Track your trades at: gongolatechlab.github.io/trading-journal', 60, 1240);
+      ctx.fillStyle = '#EF4444'; // Red disclaimer
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('DISCLAIMER: Educational purposes only. Not financial advice. Trade at your own risk.', 60, 1280);
 
-      // 3. Share the generated Canvas
       canvas.toBlob(async (shareBlob) => {
         const file = new File([shareBlob], 'signal.jpg', { type: 'image/jpeg' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: `${sig.asset} Signal` });
         } else {
-          // Fallback if file sharing is blocked
           const link = document.createElement('a');
           link.download = `${sig.asset}_signal.jpg`;
           link.href = URL.createObjectURL(shareBlob);
