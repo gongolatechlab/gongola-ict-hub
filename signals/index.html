@@ -421,6 +421,7 @@
           
           if(data.error) throw new Error(data.error);
           
+          // Auto-fill fields
           if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
           if (data.entry && data.entry !== 'number') document.getElementById('sig-entry').value = data.entry;
           if (data.sl && data.sl !== 'number') document.getElementById('sig-sl').value = data.sl;
@@ -429,15 +430,19 @@
           if (data.direction && data.direction.toUpperCase() === 'SELL') setSigDir('SELL');
           else setSigDir('BUY');
           
-          if (data.analysis) notesArea.value = data.analysis.replace(/\*/g, '');
-          
-          // Reveal the form fields after AI fills them
-          document.getElementById('manual-fields').classList.remove('hidden');
+          // Force the analysis text to update
+          if (data.analysis) {
+            notesArea.value = data.analysis.replace(/\*/g, '');
+          } else {
+            notesArea.value = "AI finished, but no analysis text was returned. Raw response: " + text;
+          }
           
         } catch (err) {
           console.error(err);
           notesArea.value = "Error: " + err.message;
         } finally {
+          // Always reveal the fields and stop the spinner
+          document.getElementById('manual-fields').classList.remove('hidden');
           notesArea.disabled = false;
           document.getElementById('sig-image-loading').classList.add('hidden');
           document.getElementById('sig-image-loading').classList.remove('flex');
