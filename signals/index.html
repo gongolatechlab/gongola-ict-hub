@@ -405,13 +405,10 @@
         notesArea.disabled = true;
 
         try {
-          const params = new URLSearchParams();
-          params.append('action', 'analyze_chart');
-          params.append('image', base64Data);
-
           const res = await fetch(AI_ENDPOINT, {
             method: 'POST',
-            body: params
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'analyze_chart', image: base64Data })
           });
           
           const text = await res.text();
