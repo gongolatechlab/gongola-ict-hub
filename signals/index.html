@@ -413,7 +413,15 @@
             method: 'POST',
             body: params
           });
-          const data = await res.json();
+          
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (parseError) {
+            throw new Error("Server returned invalid data. Please check your Apps Script deployment.");
+          }
+          
           if(data.error) throw new Error(data.error);
           
           if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
