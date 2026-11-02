@@ -465,9 +465,9 @@
     showAlert("Sending order to Capital.com...", "success");
 
     try {
-      const res = await fetch('http://127.0.0.1:8000/execute-trade', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbwK5LRx85pi45f_sTTFftJboyyExtm86cD1OeoVFldhU7vW1yJuAKmFlLuBBh3eopp2/exec', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           epic: sig.asset, 
           direction: sig.direction,
