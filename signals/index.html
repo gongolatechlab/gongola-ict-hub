@@ -531,23 +531,20 @@
       if (insertError) throw insertError;
 
       // 3. Success
+      showAlert("Signal published successfully!", "success");
+      toggleSignalModal();
+      fetchSignals();
       toggleSignalModal();
       fetchSignals();
       
     } catch (err) {
       console.error(err);
       showAlert("Failed to post signal: " + err.message, "error");
+    } finally {
+      // Always reset the button, regardless of success or failure
       btn.innerText = "Publish Signal";
       btn.disabled = false;
-      return;
     }
-
-    // Success
-    btn.innerText = "Publish Signal";
-    btn.disabled = false;
-    showAlert("Signal published successfully!", "success");
-    toggleSignalModal();
-    fetchSignals();
   });
 </script>
 
