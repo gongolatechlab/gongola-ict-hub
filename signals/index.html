@@ -95,22 +95,45 @@
       </div>
     </div>
     <div class="text-center mt-1"><button type="button" onclick="document.getElementById('manual-fields').classList.toggle('hidden')" class="text-xs text-accent underline hover:text-white transition-colors">Or fill out manually</button></div>
-    <div id="manual-fields" class="hidden flex flex-col gap-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label><select id="sig-cat" class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 text-white"><option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option></select></div>
-        <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label><input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono uppercase text-white"></div>
+    <div id="manual-fields" class="hidden grid grid-cols-2 gap-3 mt-2">
+      <!-- Tile: Asset -->
+      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label>
+        <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent font-mono text-lg font-bold uppercase text-white outline-none">
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="py-3 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-win"></div> BUY</button>
-        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="py-3 rounded-lg border border-line bg-bg text-muted font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-loss"></div> SELL</button>
+      <!-- Tile: Category -->
+      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label>
+        <select id="sig-cat" class="w-full bg-transparent font-mono text-lg font-bold text-white outline-none appearance-none cursor-pointer">
+          <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+        </select>
+      </div>
+      <!-- Tile: Direction -->
+      <div class="col-span-2 bg-surface2 p-2 rounded-xl border border-line flex gap-2">
+        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-3 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-win"></div> BUY</button>
+        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-3 rounded-lg border border-line bg-bg text-muted font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-loss"></div> SELL</button>
         <input type="hidden" id="sig-direction" value="BUY">
       </div>
-      <div class="grid grid-cols-3 gap-2">
-        <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">Entry</label><input type="number" id="sig-entry" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white"></div>
-        <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">SL</label><input type="number" id="sig-sl" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white"></div>
-        <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">TP</label><input type="number" id="sig-tp" step="any" required class="w-full bg-bg border border-line rounded-lg px-3 py-2.5 font-mono text-white"></div>
+      <!-- Tile: Entry -->
+      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Entry</label>
+        <input type="number" id="sig-entry" step="any" required class="w-full bg-transparent font-mono text-lg font-bold text-white outline-none">
       </div>
-      <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis / Notes</label><textarea id="sig-notes" rows="3" placeholder="..." class="w-full bg-bg border border-line rounded-lg px-3 py-2 text-sm text-white"></textarea></div>
+      <!-- Tile: SL -->
+      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-loss transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Stop Loss</label>
+        <input type="number" id="sig-sl" step="any" required class="w-full bg-transparent font-mono text-lg font-bold text-loss outline-none">
+      </div>
+      <!-- Tile: TP -->
+      <div class="col-span-2 bg-surface2 p-3 rounded-xl border border-line focus-within:border-win transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Take Profit</label>
+        <input type="number" id="sig-tp" step="any" required class="w-full bg-transparent font-mono text-lg font-bold text-win outline-none">
+      </div>
+      <!-- Tile: Notes -->
+      <div class="col-span-2 bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis</label>
+        <textarea id="sig-notes" rows="3" class="w-full bg-transparent text-sm text-white outline-none resize-none"></textarea>
+      </div>
     </div>
     <p class="text-[9px] text-muted text-center leading-tight mt-2 px-2">Disclaimer: AI analysis is for educational purposes only. It does not constitute financial advice.</p>
     <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl hover:brightness-110 transition-all">Publish Signal</button>
@@ -396,6 +419,10 @@
           if(data.error) throw new Error(data.error);
           
           if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
+          if (data.category) {
+            const catSelect = document.getElementById('sig-cat');
+            catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase();
+          }
           if (data.entry) document.getElementById('sig-entry').value = data.entry;
           if (data.sl) document.getElementById('sig-sl').value = data.sl;
           if (data.tp) document.getElementById('sig-tp').value = data.tp;
