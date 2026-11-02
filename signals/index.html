@@ -338,6 +338,7 @@
         <p class="text-[9px] text-muted text-center leading-tight mt-2 px-2">Educational purposes only. Not financial advice. Trade at your own risk.</p>
         <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
           <button onclick="shareSignal('${s.id}')" class="flex-1 py-2 bg-bg text-cyan border border-line rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:border-cyan transition-all">Share</button>
+          ${isAdmin ? `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:brightness-110 transition-all">Execute</button>` : ''}
           ${isAdmin ? `
             <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win transition-all">Win</button>
             <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss transition-all">Loss</button>
@@ -451,6 +452,41 @@
       const { error } = await supabaseClient.from('signals').delete().eq('id', id);
       if (error) return showAlert('Failed to delete signal', 'error');
       fetchSignals();
+    }
+  }
+
+
+  async function executeTrade(id) {
+    const sig = signalsData.find(s => s.id === id);
+    if (!sig) return;
+    
+    if (!confirm(`Execute ${sig.direction} ${sig.asset} on Capital.com DEMO account?`)) return;
+
+    showAlert("Sending order to Capital.com...", "success");
+
+    try {
+      const res = await fetch('http://127.0.0.1:8000/execute-trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          epic: sig.asset, 
+          direction: sig.direction,
+          size: 1.0,
+          stopLevel: sig.sl,
+          profitLevel: sig.tp
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.status === 'success') {
+        showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
+      } else {
+        showAlert("Execution Failed: " + (data.detail?.errorCode || data.detail || 'Unknown error'), "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Connection failed. Is your Termux backend running?", "error");
     }
   }
 
