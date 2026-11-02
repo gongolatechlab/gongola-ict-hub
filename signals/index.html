@@ -405,13 +405,13 @@
         notesArea.disabled = true;
 
         try {
-          const formData = new FormData();
-          formData.append('action', 'analyze_chart');
-          formData.append('image', base64Data);
+          const params = new URLSearchParams();
+          params.append('action', 'analyze_chart');
+          params.append('image', base64Data);
 
           const res = await fetch(AI_ENDPOINT, {
             method: 'POST',
-            body: formData 
+            body: params
           });
           const data = await res.json();
           if(data.error) throw new Error(data.error);
