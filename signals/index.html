@@ -271,7 +271,10 @@
           ` : ''}
         </div>
         
-        <div class="p-3 border-t border-line flex gap-2 bg-surface2">
+        <p class="text-[9px] text-muted text-center leading-tight mt-2 px-2">
+          Educational purposes only. Not financial advice. Trade at your own risk.
+        </p>
+        <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
           <button onclick="shareSignal('${s.id}')" class="flex-1 py-2 bg-bg text-cyan border border-line rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:border-cyan transition-all">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             Share
@@ -402,10 +405,13 @@
         notesArea.disabled = true;
 
         try {
+          const formData = new FormData();
+          formData.append('action', 'analyze_chart');
+          formData.append('image', base64Data);
+
           const res = await fetch(AI_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' }, 
-            body: JSON.stringify({ action: 'analyze_chart', image: base64Data })
+            body: formData 
           });
           const data = await res.json();
           if(data.error) throw new Error(data.error);
