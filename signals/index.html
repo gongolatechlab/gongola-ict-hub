@@ -389,6 +389,7 @@
         try {
           const res = await fetch(AI_ENDPOINT, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain' }, 
             body: JSON.stringify({ action: 'analyze_chart', image: base64Data })
           });
           const data = await res.json();
