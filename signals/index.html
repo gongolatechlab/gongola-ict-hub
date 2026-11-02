@@ -468,13 +468,41 @@
     }
   }
 
-  function shareSignal(id) {
+  async function shareSignal(id) {
     const sig = signalsData.find(s => s.id === id);
     if (!sig) return;
+    
     let statusEmoji = sig.result === 'win' ? '✅' : sig.result === 'loss' ? '❌' : '⏳';
-    const text = `${statusEmoji} *${sig.asset} ${sig.direction} SIGNAL* ${statusEmoji}\n\n📊 Category: ${sig.category}\n🎯 Entry: ${sig.entry}\n🛑 Stop Loss: ${sig.sl}\n💰 Take Profit: ${sig.tp}\n\n📝 Analysis:\n${sig.analysis || 'No analysis provided.'}\n\n📓 Track your own trades at:\nhttps://gongolatechlab.github.io/trading-journal/`;
-    if (navigator.share) navigator.share({ title: `${sig.asset} ${sig.direction} Signal`, text: text }).catch(console.error);
-    else { navigator.clipboard.writeText(text); showAlert('Signal copied to clipboard!', 'success'); }
+    let text = `${statusEmoji} *${sig.asset} ${sig.direction} SIGNAL* ${statusEmoji}\n\n📊 Category: ${sig.category}\n🎯 Entry: ${sig.entry}\n🛑 Stop Loss: ${sig.sl}\n💰 Take Profit: ${sig.tp}\n\n📝 Analysis:\n${sig.analysis || 'No analysis provided.'}\n\n📓 Track your own trades at:\nhttps://gongolatechlab.github.io/trading-journal/`;
+
+    // Try to share the image file natively
+    if (sig.image_url) {
+      try {
+        const response = await fetch(sig.image_url);
+        const blob = await response.blob();
+        const file = new File([blob], 'chart.jpg', { type: blob.type });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${sig.asset} ${sig.direction} Signal`,
+            text: text
+          });
+          return;
+        }
+      } catch (err) {
+        console.log('File sharing failed, falling back to URL', err);
+      }
+      // Fallback: add image URL to the text
+      text += `\n\n📸 Chart: ${sig.image_url}`;
+    }
+
+    if (navigator.share) {
+      navigator.share({ title: `${sig.asset} ${sig.direction} Signal`, text: text }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(text);
+      showAlert('Signal copied to clipboard!', 'success');
+    }
   }
 
   document.getElementById('sig-image-input').addEventListener('change', function(e) {
