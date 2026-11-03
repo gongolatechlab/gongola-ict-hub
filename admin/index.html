@@ -250,8 +250,18 @@
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ epic: sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
       const data = await res.json();
-      if (res.ok && data.status === 'success') showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
-      else showAlert("Execution Failed: " + (data.detail?.errorCode || data.detail || 'Unknown error'), "error");
+      
+      if (data.status === 'success') {
+        showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
+      } else {
+        // Show the exact error from Capital.com
+        let errorMsg = data.detail || 'Unknown error';
+        try {
+          const parsed = JSON.parse(errorMsg);
+          errorMsg = parsed.errorCode || errorMsg;
+        } catch(e) {}
+        showAlert("Execution Failed: " + errorMsg, "error");
+      }
     } catch (err) { showAlert("Connection failed. Check your internet or Apps Script deployment.", "error"); }
   }
 
