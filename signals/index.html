@@ -47,16 +47,6 @@
       </a>
       <div><h1 class="font-bold text-lg leading-tight">Trading Signals</h1><p class="text-[10px] font-mono text-muted uppercase tracking-widest">Gongola ICT Hub</p></div>
     </div>
-    
-    <!-- Admin Button (Default State) -->
-    <button id="admin-toggle-btn" class="px-4 py-2 bg-surface2 border border-line text-text font-bold text-xs rounded-lg hover:border-accent transition-all flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Admin
-    </button>
-    
-    <!-- Post Button (Hidden by default, shown when admin) -->
-    <button id="post-signal-btn" class="hidden px-4 py-2 bg-win text-bg font-bold text-xs rounded-lg shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
-    </button>
   </div>
 </header>
 
@@ -77,108 +67,25 @@
   <div id="signal-list" class="space-y-4"><div class="text-center text-muted text-sm p-8">Loading global signals...</div></div>
 </main>
 
-
-
-<div id="custom-alert" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-  <div class="bg-surface border border-line rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-200" id="alert-box">
-    <div id="alert-icon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center"><svg id="alert-svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"></svg></div>
-    <h3 id="alert-title" class="text-lg font-bold text-white mb-2">Notice</h3>
-    <p id="alert-message" class="text-sm text-muted mb-6"></p>
-    <button onclick="hideAlert()" class="w-full py-3 bg-surface2 border border-line text-white font-bold rounded-xl hover:border-accent transition-colors">Close</button>
-  </div>
-</div>
-
 <script>
   const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
-  const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
-
+  
   let supabaseClient = null;
   let signalsData = [];
   let currentCategory = 'All';
-  let currentSigDir = 'BUY';
   let searchQuery = '';
-  
 
   document.addEventListener('DOMContentLoaded', () => {
     if (window.supabase) {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       fetchSignals();
     }
-    
-    // UI Event Listeners
-    
-    
-    
-    
-    // Search
     document.getElementById('search-input').addEventListener('input', (e) => {
       searchQuery = e.target.value.toUpperCase();
       renderSignals();
     });
-
-    // Live RR Calculation
-    ['sig-entry', 'sig-sl', 'sig-tp'].forEach(id => {
-      document.getElementById(id).addEventListener('input', updateLiveRR);
-    });
-
-    // Live RR Calculation
-    ['sig-entry', 'sig-sl', 'sig-tp'].forEach(id => {
-      document.getElementById(id).addEventListener('input', updateLiveRR);
-    });
-
-    
   });
-
-  
-    
-    const pin = prompt("Enter Admin PIN:");
-    if (pin === "1973") {
-      isAdmin = true;
-      localStorage.setItem('gongola_admin', 'true');
-      showAlert("Admin mode enabled.", "success");
-      
-      renderSignals();
-    } else if (pin !== null) {
-      showAlert("Unauthorized: Incorrect PIN.", "error");
-    }
-  }
-
-   else {
-      adminBtn.classList.remove('hidden');
-      postBtn.classList.add('hidden');
-    }
-  }
-
-  function showAlert(message, type = 'error') {
-    const modal = document.getElementById('custom-alert');
-    const box = document.getElementById('alert-box');
-    const iconDiv = document.getElementById('alert-icon');
-    const iconSvg = document.getElementById('alert-svg');
-    const title = document.getElementById('alert-title');
-    
-    document.getElementById('alert-message').innerText = message;
-    
-    if (type === 'error') {
-      iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-loss/20 text-loss';
-      iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
-      title.innerText = "Error";
-    } else {
-      iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-win/20 text-win';
-      iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>';
-      title.innerText = "Success";
-    }
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => box.classList.remove('scale-95'), 10);
-  }
-
-  function hideAlert() {
-    const modal = document.getElementById('custom-alert');
-    const box = document.getElementById('alert-box');
-    box.classList.add('scale-95');
-    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200);
-  }
 
   async function fetchSignals() {
     const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
@@ -198,7 +105,6 @@
       let dateStr = new Date(s.created_at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
       let resultColor = s.result === 'win' ? 'bg-win/20 text-win border-win/50' : s.result === 'loss' ? 'bg-loss/20 text-loss border-loss/50' : 'bg-surface2 text-muted border-line';
       
-      // Calculate RR
       let rrText = 'R:R 1:--';
       const risk = Math.abs(s.entry - s.sl);
       const reward = Math.abs(s.tp - s.entry);
@@ -214,9 +120,9 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded ${resultColor}">${s.result || 'pending'}</span>
-            
           </div>
         </div>
+        
         ${s.image_url ? `
           <div class="px-4 py-3 border-b border-line bg-surface2 flex justify-center">
              <button onclick="toggleSignalImage('${s.id}')" class="text-xs font-bold text-cyan flex items-center gap-1">
@@ -228,6 +134,7 @@
             <img src="${s.image_url}" alt="Chart" class="w-full h-auto max-h-[60vh] object-contain mx-auto">
           </div>
         ` : ''}
+
         <div class="p-4 space-y-3">
           <div class="sig-grid">
             <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
@@ -259,351 +166,46 @@
   }
 
   function toggleSignalImage(id) {
-    const container = document.getElementById(`img-container-${id}`);
-    const text = document.getElementById(`img-text-${id}`);
-    const icon = document.getElementById(`img-icon-${id}`);
-    if (container.classList.contains('hidden')) {
-      container.classList.remove('hidden');
-      text.innerText = 'Hide Chart';
-      icon.style.transform = 'rotate(180deg)';
-    } else {
-      container.classList.add('hidden');
-      text.innerText = 'View Chart';
-      icon.style.transform = 'rotate(0deg)';
-    }
+    const container = document.getElementById(`img-container-${id}`); const text = document.getElementById(`img-text-${id}`); const icon = document.getElementById(`img-icon-${id}`);
+    if (container.classList.contains('hidden')) { container.classList.remove('hidden'); text.innerText = 'Hide Chart'; icon.style.transform = 'rotate(180deg)'; }
+    else { container.classList.add('hidden'); text.innerText = 'View Chart'; icon.style.transform = 'rotate(0deg)'; }
   }
 
   function toggleSignalNotes(id) {
-    const notesDiv = document.getElementById(`notes-${id}`);
-    const btnText = document.getElementById(`btn-text-${id}`);
+    const notesDiv = document.getElementById(`notes-${id}`); const btnText = document.getElementById(`btn-text-${id}`);
     notesDiv.classList.toggle('hidden');
     btnText.innerText = notesDiv.classList.contains('hidden') ? 'View Analysis' : 'Hide Analysis';
-  }
-
-
-  `;
-        rrEl.className = `text-center text-xs font-mono font-bold mt-1 ${rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss'}`;
-        return;
-      }
-    }
-    rrEl.innerText = 'Expected R:R = 1 : --';
-    rrEl.className = 'text-center text-xs font-mono font-bold text-muted mt-1';
-  }
-
-
-  `;
-        rrEl.className = `text-center text-xs font-mono font-bold mt-1 ${rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss'}`;
-        return;
-      }
-    }
-    rrEl.innerText = 'Expected R:R = 1 : --';
-    rrEl.className = 'text-center text-xs font-mono font-bold text-muted mt-1';
-  }
-
-  
-
-   else {
-      s.className = 'py-3 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2';
-      b.className = 'py-3 rounded-lg border border-line bg-bg text-muted font-bold text-sm transition-all flex justify-center items-center gap-2';
-    }
-  }
-
-   = await supabaseClient.from('signals').update({ result }).eq('id', id);
-    if (error) return showAlert('Failed to update status', 'error');
-    fetchSignals();
-  }
-
-   = await supabaseClient.from('signals').delete().eq('id', id);
-      if (error) return showAlert('Failed to delete signal', 'error');
-      fetchSignals();
-    }
-  }
-
-
-   ${sig.asset} on Capital.com DEMO account?`)) return;
-
-    showAlert("Sending order to Capital.com...", "success");
-
-    try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbwK5LRx85pi45f_sTTFftJboyyExtm86cD1OeoVFldhU7vW1yJuAKmFlLuBBh3eopp2/exec', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          epic: sig.asset, 
-          direction: sig.direction,
-          size: 1.0,
-          stopLevel: sig.sl,
-          profitLevel: sig.tp
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.status === 'success') {
-        showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
-      } else {
-        showAlert("Execution Failed: " + (data.detail?.errorCode || data.detail || 'Unknown error'), "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showAlert("Connection failed. Check your internet or Apps Script deployment.", "error");
-    }
-  }
-
-  async function generateShareCard(sig) {
-    if (!sig.image_url) return null;
-
-    try {
-      const response = await fetch(sig.image_url);
-      const blob = await response.blob();
-      const img = new Image();
-      const objectURL = URL.createObjectURL(blob);
-      img.src = objectURL;
-      await new Promise(r => { img.onload = r; img.onerror = r; });
-
-      const isPortrait = img.height > img.width;
-      
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Brand Colors
-      const bg = '#0B0C10';
-      const surface = '#1F2833';
-      const textMain = '#F8FAFC';
-      const textMuted = '#94A3B8';
-      const green = '#00FF66';
-      const red = '#FF3B30';
-      const cyan = '#00E5FF';
-
-      let canvasW, canvasH, chartW, chartH, chartX, chartY, infoX, infoY, infoW, infoH;
-      const padding = 40;
-
-      if (isPortrait) {
-        // VERTICAL LAYOUT: Chart Left (65%), Info Right (35%)
-        canvasW = 1080;
-        chartW = Math.floor(canvasW * 0.60); // ~650px
-        chartH = Math.floor((img.height / img.width) * chartW);
-        canvasH = chartH + (padding * 2);
-        
-        chartX = padding;
-        chartY = padding;
-        
-        infoX = chartX + chartW + padding;
-        infoY = padding;
-        infoW = canvasW - infoX - padding;
-        infoH = chartH;
-      } else {
-        // HORIZONTAL LAYOUT: Chart Top, Info Bottom
-        canvasW = 1080;
-        chartW = canvasW - (padding * 2);
-        chartH = Math.floor((img.height / img.width) * chartW);
-        
-        infoH = 400; // Fixed height for info section
-        canvasH = chartH + infoH + (padding * 3);
-        
-        chartX = padding;
-        chartY = padding;
-        
-        infoX = padding;
-        infoY = chartY + chartH + padding;
-        infoW = chartW;
-      }
-
-      canvas.width = canvasW;
-      canvas.height = canvasH;
-
-      // 1. Draw Background
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvasW, canvasH);
-
-      // 2. Draw Chart
-      ctx.drawImage(img, chartX, chartY, chartW, chartH);
-      
-      // Border around chart
-      ctx.strokeStyle = surface;
-      ctx.lineWidth = 4;
-      ctx.strokeRect(chartX, chartY, chartW, chartH);
-
-      // 3. Draw Info Section
-      ctx.fillStyle = cyan;
-      ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('GONGOLA ICT HUB', infoX, infoY + (isPortrait ? 30 : 0));
-      
-      let currentY = infoY + (isPortrait ? 80 : 50);
-
-      // Asset Name
-      ctx.fillStyle = textMain;
-      ctx.font = isPortrait ? 'bold 42px sans-serif' : 'bold 64px sans-serif';
-      ctx.fillText(sig.asset, infoX, currentY);
-      
-      // Direction
-      currentY += isPortrait ? 50 : 70;
-      ctx.fillStyle = sig.direction === 'BUY' ? green : red;
-      ctx.font = isPortrait ? 'bold 32px sans-serif' : 'bold 48px sans-serif';
-      ctx.fillText(sig.direction, infoX, currentY);
-
-      // Levels (Entry, SL, TP)
-      currentY += isPortrait ? 60 : 80;
-      ctx.font = isPortrait ? 'bold 16px sans-serif' : 'bold 24px sans-serif';
-      
-      const risk = Math.abs(sig.entry - sig.sl);
-      const reward = Math.abs(sig.tp - sig.entry);
-      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
-
-      if (isPortrait) {
-        // Stacked for vertical
-        ctx.fillStyle = textMuted; ctx.fillText('ENTRY', infoX, currentY);
-        ctx.fillStyle = textMain; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.entry, infoX, currentY + 30);
-        
-        currentY += 70; ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = textMuted; ctx.fillText('STOP LOSS', infoX, currentY);
-        ctx.fillStyle = red; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.sl, infoX, currentY + 30);
-        
-        currentY += 70; ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = textMuted; ctx.fillText('TAKE PROFIT', infoX, currentY);
-        ctx.fillStyle = green; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.tp, infoX, currentY + 30);
-        
-        currentY += 60; ctx.fillStyle = cyan; ctx.font = 'bold 24px sans-serif'; ctx.fillText(`R:R 1:${rr}`, infoX, currentY);
-      } else {
-        // Inline for horizontal
-        const col = infoW / 3;
-        ctx.fillStyle = textMuted;
-        ctx.fillText('ENTRY', infoX, currentY);
-        ctx.fillText('STOP LOSS', infoX + col, currentY);
-        ctx.fillText('TAKE PROFIT', infoX + col * 2, currentY);
-        
-        currentY += 40;
-        ctx.font = 'bold 36px monospace';
-        ctx.fillStyle = textMain; ctx.fillText(sig.entry, infoX, currentY);
-        ctx.fillStyle = red; ctx.fillText(sig.sl, infoX + col, currentY);
-        ctx.fillStyle = green; ctx.fillText(sig.tp, infoX + col * 2, currentY);
-        
-        currentY += 50; ctx.fillStyle = cyan; ctx.font = 'bold 32px sans-serif'; ctx.fillText(`Expected R:R 1:${rr}`, infoX, currentY);
-      }
-
-      // Analysis Text
-      currentY += isPortrait ? 50 : 50;
-      ctx.fillStyle = textMuted;
-      ctx.font = isPortrait ? '16px sans-serif' : '24px sans-serif';
-      const words = (sig.analysis || 'No analysis provided.').split(' ');
-      let line = '';
-      
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        if (ctx.measureText(testLine).width > infoW && n > 0) {
-          ctx.fillText(line, infoX, currentY);
-          line = words[n] + ' ';
-          currentY += isPortrait ? 22 : 34;
-        } else {
-          line = testLine;
-        }
-        // Break if text hits footer
-        if (currentY > canvasH - 120) break;
-      }
-      ctx.fillText(line, infoX, currentY);
-
-      // Footer Disclaimer
-      ctx.fillStyle = surface;
-      ctx.fillRect(0, canvasH - 80, canvasW, 80);
-      ctx.fillStyle = textMuted;
-      ctx.font = '16px sans-serif';
-      ctx.fillText('Track your trades: gongolatechlab.github.io/trading-journal', padding, canvasH - 45);
-      ctx.fillStyle = red;
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText('DISCLAIMER: Educational only. Not financial advice.', padding, canvasH - 20);
-
-      return canvas;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
   }
 
   async function shareSignal(id) {
     const sig = signalsData.find(s => s.id === id);
     if (!sig) return;
-    showAlert("Generating Share Card...", "success");
-    
-    const canvas = await generateShareCard(sig);
-    if (!canvas) {
-      let text = `*${sig.asset} ${sig.direction}*\nEntry: ${sig.entry}\nSL: ${sig.sl}\nTP: ${sig.tp}\n\n${sig.analysis}`;
-      if (navigator.share) navigator.share({ title: 'Signal', text: text }).catch(console.error);
-      return;
-    }
-
-    canvas.toBlob(async (shareBlob) => {
-      const file = new File([shareBlob], 'signal.jpg', { type: 'image/jpeg' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${sig.asset} Signal` });
-      } else {
-        const link = document.createElement('a');
-        link.download = `${sig.asset}_signal.jpg`;
-        link.href = URL.createObjectURL(shareBlob);
-        link.click();
-        showAlert('Image downloaded! Share it to WhatsApp.', 'success');
-      }
-    }, 'image/jpeg', 0.9);
+    if (!sig.image_url) return alert("No image to share.");
+    try {
+      const response = await fetch(sig.image_url);
+      const blob = await response.blob();
+      const img = new Image(); const objectURL = URL.createObjectURL(blob); img.src = objectURL;
+      await new Promise(r => { img.onload = r; img.onerror = r; });
+      const isPortrait = img.height > img.width;
+      const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+      const bg = '#0B0C10'; const surface = '#1F2833'; const textMain = '#F8FAFC'; const textMuted = '#94A3B8'; const green = '#00FF66'; const red = '#FF3B30'; const cyan = '#00E5FF';
+      let canvasW, canvasH, chartW, chartH, chartX, chartY, infoX, infoY, infoW; const padding = 40;
+      if (isPortrait) { canvasW = 1080; chartW = Math.floor(canvasW * 0.60); chartH = Math.floor((img.height / img.width) * chartW); canvasH = chartH + (padding * 2); chartX = padding; chartY = padding; infoX = chartX + chartW + padding; infoY = padding; infoW = canvasW - infoX - padding; } 
+      else { canvasW = 1080; chartW = canvasW - (padding * 2); chartH = Math.floor((img.height / img.width) * chartW); const infoH = 400; canvasH = chartH + infoH + (padding * 3); chartX = padding; chartY = padding; infoX = padding; infoY = chartY + chartH + padding; infoW = chartW; }
+      canvas.width = canvasW; canvas.height = canvasH;
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, canvasW, canvasH); ctx.drawImage(img, chartX, chartY, chartW, chartH); ctx.strokeStyle = surface; ctx.lineWidth = 4; ctx.strokeRect(chartX, chartY, chartW, chartH);
+      ctx.fillStyle = cyan; ctx.font = 'bold 24px sans-serif'; ctx.fillText('GONGOLA ICT HUB', infoX, infoY + (isPortrait ? 30 : 0)); let currentY = infoY + (isPortrait ? 80 : 50);
+      ctx.fillStyle = textMain; ctx.font = isPortrait ? 'bold 42px sans-serif' : 'bold 64px sans-serif'; ctx.fillText(sig.asset, infoX, currentY); currentY += isPortrait ? 50 : 70;
+      ctx.fillStyle = sig.direction === 'BUY' ? green : red; ctx.font = isPortrait ? 'bold 32px sans-serif' : 'bold 48px sans-serif'; ctx.fillText(sig.direction, infoX, currentY); currentY += isPortrait ? 60 : 80;
+      ctx.font = isPortrait ? 'bold 16px sans-serif' : 'bold 24px sans-serif'; const risk = Math.abs(sig.entry - sig.sl); const reward = Math.abs(sig.tp - sig.entry); const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
+      if (isPortrait) { ctx.fillStyle = textMuted; ctx.fillText('ENTRY', infoX, currentY); ctx.fillStyle = textMain; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.entry, infoX, currentY + 30); currentY += 70; ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = textMuted; ctx.fillText('STOP LOSS', infoX, currentY); ctx.fillStyle = red; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.sl, infoX, currentY + 30); currentY += 70; ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = textMuted; ctx.fillText('TAKE PROFIT', infoX, currentY); ctx.fillStyle = green; ctx.font = 'bold 28px monospace'; ctx.fillText(sig.tp, infoX, currentY + 30); currentY += 60; ctx.fillStyle = cyan; ctx.font = 'bold 24px sans-serif'; ctx.fillText(`R:R 1:${rr}`, infoX, currentY); } 
+      else { const col = infoW / 3; ctx.fillStyle = textMuted; ctx.fillText('ENTRY', infoX, currentY); ctx.fillText('STOP LOSS', infoX + col, currentY); ctx.fillText('TAKE PROFIT', infoX + col * 2, currentY); currentY += 40; ctx.font = 'bold 36px monospace'; ctx.fillStyle = textMain; ctx.fillText(sig.entry, infoX, currentY); ctx.fillStyle = red; ctx.fillText(sig.sl, infoX + col, currentY); ctx.fillStyle = green; ctx.fillText(sig.tp, infoX + col * 2, currentY); currentY += 50; ctx.fillStyle = cyan; ctx.font = 'bold 32px sans-serif'; ctx.fillText(`Expected R:R 1:${rr}`, infoX, currentY); }
+      currentY += isPortrait ? 50 : 50; ctx.fillStyle = textMuted; ctx.font = isPortrait ? '16px sans-serif' : '24px sans-serif'; const words = (sig.analysis || 'No analysis provided.').split(' '); let line = '';
+      for (let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; if (ctx.measureText(testLine).width > infoW && n > 0) { ctx.fillText(line, infoX, currentY); line = words[n] + ' '; currentY += isPortrait ? 22 : 34; } else { line = testLine; } if (currentY > canvasH - 120) break; } ctx.fillText(line, infoX, currentY);
+      ctx.fillStyle = surface; ctx.fillRect(0, canvasH - 80, canvasW, 80); ctx.fillStyle = textMuted; ctx.font = '16px sans-serif'; ctx.fillText('Track your trades: gongolatechlab.github.io/trading-journal', padding, canvasH - 45); ctx.fillStyle = red; ctx.font = 'bold 14px sans-serif'; ctx.fillText('DISCLAIMER: Educational only. Not financial advice.', padding, canvasH - 20);
+      canvas.toBlob(async (shareBlob) => { const file = new File([shareBlob], 'signal.jpg', { type: 'image/jpeg' }); if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: `${sig.asset} Signal` }); } else { const link = document.createElement('a'); link.download = `${sig.asset}_signal.jpg`; link.href = URL.createObjectURL(shareBlob); link.click(); alert('Image downloaded!'); } }, 'image/jpeg', 0.9);
+    } catch (err) { console.error(err); alert("Failed to generate image."); }
   }
-
-  document.getElementById('sig-image-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = async function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 800; canvas.height = img.height * (800 / img.width);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const base64Data = canvas.toDataURL('image/jpeg', 0.7);
-
-        document.getElementById('sig-image-preview').src = base64Data;
-        document.getElementById('sig-image-preview-container').classList.remove('hidden');
-        document.getElementById('sig-image-loading').classList.remove('hidden');
-        document.getElementById('sig-image-loading').classList.add('flex');
-        
-        const notesArea = document.getElementById('sig-notes');
-        notesArea.value = "🤖 AI is reading the chart structure...";
-        notesArea.disabled = true;
-
-        try {
-          const res = await fetch(AI_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ action: 'analyze_chart', image: base64Data })
-          });
-          const text = await res.text();
-          let data;
-          try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
-          if(data.error) throw new Error(data.error);
-          
-          if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
-          if (data.category) {
-            const catSelect = document.getElementById('sig-cat');
-            catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase();
-          }
-          if (data.entry) document.getElementById('sig-entry').value = data.entry;
-          if (data.sl) document.getElementById('sig-sl').value = data.sl;
-          if (data.tp) document.getElementById('sig-tp').value = data.tp;
-          setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
-          updateLiveRR();
-          updateLiveRR();
-          
-          notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text was returned.";
-        } catch (err) {
-          notesArea.value = "Error: " + err.message;
-        } finally {
-          notesArea.disabled = false;
-          document.getElementById('manual-fields').classList.remove('hidden');
-          document.getElementById('sig-image-loading').classList.add('hidden');
-          document.getElementById('sig-image-loading').classList.remove('flex');
-        }
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  
 </script>
 </body>
 </html>
