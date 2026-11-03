@@ -62,6 +62,13 @@
     .nav-link { position: relative; }
     .nav-link::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 0; height: 2px; background: #00FF66; transition: width .2s ease; }
     .nav-link:hover::after { width: 100%; }
+  
+    /* === SWIPE ANIMATIONS === */
+    .swipe-lr { opacity: 0; transform: translateX(-60px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .swipe-rl { opacity: 0; transform: translateX(60px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .swipe-lr.active, .swipe-rl.active { opacity: 1; transform: translateX(0); }
+    @media (prefers-reduced-motion: reduce) { .swipe-lr, .swipe-rl { opacity: 1 !important; transform: none !important; transition: none !important; } }
+
   </style>
 </head>
 
@@ -431,6 +438,19 @@
         mobileMenu.classList.toggle('flex');
       });
     }
+
+      
+    // Swipe Animation Observer
+    const swipeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          swipeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    document.querySelectorAll('.swipe-lr, .swipe-rl').forEach(el => swipeObserver.observe(el));
 
       var els = document.querySelectorAll('.reveal');
       if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
