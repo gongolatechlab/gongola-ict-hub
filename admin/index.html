@@ -36,6 +36,7 @@
   input, select, textarea { font-size: 16px !important; }
   .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
 </style>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
 
@@ -337,5 +338,13 @@
     finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
   });
 </script>
+
+<div id="install-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm hidden">
+  <div class="bg-surface border border-line rounded-xl p-4 shadow-2xl flex items-center justify-between gap-4">
+    <div><p class="text-sm font-bold text-white">Install Admin App</p><p class="text-xs text-muted">Add to home screen for easy access.</p></div>
+    <div class="flex gap-2"><button id="close-install" class="text-xs font-bold text-muted px-2">Later</button><button id="install-btn" class="text-xs font-bold bg-accent text-bg px-3 py-1.5 rounded-lg">Install</button></div>
+  </div>
+</div>
+
 </body>
 </html>
