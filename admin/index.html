@@ -183,47 +183,94 @@
   async function fetchSignals() {
     const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
     if (error) return document.getElementById('signal-list').innerHTML = '<div class="text-center text-loss">Failed to load signals.</div>';
-    signalsData = data; renderSignals();
+    
+    const seen = new Map(); const deduped = [];
+    data.forEach(sig => {
+      let sym = sig.asset.toUpperCase();
+      if (sym === 'GOLD' || sym === 'XAUUSD') sym = 'XAUUSD';
+      const key = `${sym}-${sig.direction}-${sig.entry}-${sig.sl}-${sig.tp}-${sig.result}`;
+      if (!seen.has(key)) { seen.set(key, true); deduped.push({ ...sig, displaySymbol: sym, alias: sig.asset === 'GOLD' ? 'XAUUSD' : (sig.asset === 'XAUUSD' ? 'GOLD' : null) }); }
+    });
+
+    signalsData = deduped; renderSignals();
   }
 
   function renderSignals() {
     const list = document.getElementById('signal-list');
     if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
+    
     list.innerHTML = signalsData.map(s => {
-      let dateStr = new Date(s.created_at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-      let resultColor = s.result === 'win' ? 'bg-win/20 text-win border-win/50' : s.result === 'loss' ? 'bg-loss/20 text-loss border-loss/50' : 'bg-surface2 text-muted border-line';
-      let rrText = 'R:R 1:--'; const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
-      if (risk > 0) rrText = 'R:R 1:' + (reward / risk).toFixed(1);
+      const isPending = s.result === 'pending' || !s.result;
+      const statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
+      const statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
+      
+      const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
+      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
+      const rrColor = rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss';
+      
+      const slPts = (s.entry - s.sl).toFixed(1);
+      const tpPts = (s.tp - s.entry).toFixed(1);
+      const aliasTag = s.alias ? `<span class="text-[9px] text-muted ml-1">also ${s.alias}</span>` : '';
+
+      const prices = [s.entry, s.sl, s.tp];
+      const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
+      const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
+      const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
+
       return `
-      <div class="sig-card">
-        <div class="p-4 border-b border-line flex justify-between items-center">
+      <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
+        <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
           <div class="flex items-center gap-3">
-            <span class="text-lg font-bold font-mono">${s.asset}</span>
-            <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
-            <span class="text-[10px] font-mono text-muted">${dateStr}</span>
+            <span class="text-lg font-bold font-mono">${s.displaySymbol}${aliasTag}</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
+            <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded ${resultColor}">${s.result || 'pending'}</span>
+            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${isPending ? 'PENDING' : s.result.toUpperCase()}</span>
             <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
           </div>
         </div>
-        ${s.image_url ? `<div class="px-4 py-3 border-b border-line bg-surface2 flex justify-center"><button onclick="toggleSignalImage('${s.id}')" class="text-xs font-bold text-cyan flex items-center gap-1"><span id="img-text-${s.id}">View Chart</span><svg id="img-icon-${s.id}" class="w-3 h-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button></div><div id="img-container-${s.id}" class="hidden border-b border-line bg-black"><img src="${s.image_url}" alt="Chart" class="w-full h-auto max-h-[60vh] object-contain mx-auto"></div>` : ''}
-        <div class="p-4 space-y-3">
-          <div class="sig-grid">
-            <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
-            <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
-            <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
+        
+        <div class="p-4">
+          <div class="flex justify-between items-center mb-4">
+             <span class="text-[10px] font-mono ${rrColor} bg-bg px-2 py-1 rounded border border-line">R:R 1:${rr}</span>
           </div>
-          <div class="text-center mt-1"><span class="text-[10px] font-mono font-bold text-cyan">${rrText}</span></div>
+
+          <div class="relative h-1.5 bg-bg rounded-full mb-6 mx-2 mt-4">
+            <div class="absolute h-full bg-loss/50 rounded-l-full" style="width: ${leftPin}%; left: 0;"></div>
+            <div class="absolute h-full bg-win/50 rounded-r-full" style="width: ${100 - rightPin}%; left: ${rightPin}%;"></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">Entry</div><div class="text-xs font-mono font-bold text-white">${s.entry}</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">SL</div><div class="text-xs font-mono font-bold text-loss">${s.sl}</div><div class="text-[8px] font-mono text-loss mt-0.5">${slPts} pts</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">TP</div><div class="text-xs font-mono font-bold text-win">${s.tp}</div><div class="text-[8px] font-mono text-win mt-0.5">+${tpPts} pts</div></div>
+          </div>
+
+          <div class="flex border-b border-line mb-3">
+            <button onclick="toggleAdminTab('${s.id}', 'chart', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Chart</button>
+            <button onclick="toggleAdminTab('${s.id}', 'analysis', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Analysis</button>
+          </div>
+          
+          <div id="a-panel-chart-${s.id}" class="hidden mb-3">
+            ${s.image_url ? `<img src="${s.image_url}" alt="Chart" class="w-full rounded-lg border border-line">` : '<p class="text-[10px] text-muted">No chart image.</p>'}
+          </div>
+          <div id="a-panel-analysis-${s.id}" class="hidden mb-3">
+            <p class="text-[11px] text-muted bg-bg p-2 rounded border border-line leading-relaxed">${s.analysis || 'No analysis.'}</p>
+          </div>
         </div>
-        <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
-          <button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-xs font-bold">Execute</button>
-          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win">Win</button>
-          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
+        
+        <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
+          <button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>
+          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
+          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
+          <button onclick="copyAdminTrade('${s.displaySymbol}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, ${rr})" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
         </div>
       </div>`}).join('');
   }
-
   async function updateResult(id, result) {
     const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
     if (error) return showAlert('Failed to update status', 'error');
@@ -236,6 +283,37 @@
       fetchSignals();
     }
   }
+
+  function timeAgo(dateString) {
+    const date = new Date(dateString); const now = new Date(); const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
+  function toggleAdminTab(id, tab, btn) {
+    const chartPanel = document.getElementById(`a-panel-chart-${id}`);
+    const analysisPanel = document.getElementById(`a-panel-analysis-${id}`);
+    const isActive = btn.classList.contains('active');
+    
+    btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    chartPanel.classList.add('hidden'); analysisPanel.classList.add('hidden');
+    
+    if (!isActive) {
+      btn.classList.add('active');
+      if (tab === 'chart') chartPanel.classList.remove('hidden');
+      else analysisPanel.classList.remove('hidden');
+    }
+  }
+
+  function copyAdminTrade(sym, dir, entry, sl, tp, rr) {
+    const text = `${sym} ${dir}\nEntry: ${entry}\nSL: ${sl}\nTP: ${tp}\nR:R 1:${rr}\n\nEducational purposes only. Not financial advice.`;
+    navigator.clipboard.writeText(text).then(() => alert('Trade copied to clipboard!'));
+  }
+
   function toggleSignalImage(id) {
     const container = document.getElementById(`img-container-${id}`); const text = document.getElementById(`img-text-${id}`); const icon = document.getElementById(`img-icon-${id}`);
     if (container.classList.contains('hidden')) { container.classList.remove('hidden'); text.innerText = 'Hide Chart'; icon.style.transform = 'rotate(180deg)'; }
