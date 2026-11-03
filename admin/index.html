@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Admin Panel | Gongola ICT Hub</title>
+<meta name="theme-color" content="#0B0C10">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#0B0C10', surface: '#1F2833', surface2: '#151E26',
+          text: '#eef1fb', muted: '#8d97b8', line: 'rgba(255,255,255,0.1)',
+          win: '#00FF66', loss: '#FF3B30', accent: '#00E5FF'
+        },
+        fontFamily: { display: ['"Space Grotesk"', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] }
+      }
+    }
+  }
+</script>
+<style>
+  ::-webkit-scrollbar { display: none; }
+  body { -ms-overflow-style: none; scrollbar-width: none; background-color: #0B0C10; }
+  .glass { background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(12px); }
+  .sig-card { background: #1F2833; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+  .sig-badge.buy { background: rgba(0,255,102,0.1); color: #00FF66; border: 1px solid rgba(0,255,102,0.3); }
+  .sig-badge.sell { background: rgba(255,59,48,0.1); color: #FF3B30; border: 1px solid rgba(255,59,48,0.3); }
+  .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #151E26; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+  .sig-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8d97b8; text-transform: uppercase; }
+  .sig-val { font-size: 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: white; }
+  input, select, textarea { font-size: 16px !important; }
+  .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
+</style>
+</head>
+<body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
+
+<!-- PIN Gate -->
+<div id="pin-gate" class="fixed inset-0 z-[200] bg-bg flex flex-col items-center justify-center p-6">
+  <div class="bg-surface border border-line rounded-2xl p-8 max-w-sm w-full text-center">
+    <div class="w-16 h-16 bg-surface2 rounded-full flex items-center justify-center mx-auto mb-4 border border-line">
+      <svg class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    </div>
+    <h2 class="text-xl font-bold mb-2">Admin Access</h2>
+    <p class="text-sm text-muted mb-6">Enter your PIN to manage signals.</p>
+    <input type="password" id="admin-pin" placeholder="••••" class="w-full bg-bg border border-line rounded-lg px-4 py-3 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-accent mb-4">
+    <button onclick="checkPin()" class="w-full py-3 bg-accent text-bg font-bold rounded-xl hover:brightness-110">Unlock</button>
+  </div>
+</div>
+
+<!-- Main App (Hidden until PIN entered) -->
+<div id="main-content" class="hidden">
+  <header class="sticky top-0 z-30 glass border-b border-line">
+    <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-loss/20 text-loss flex items-center justify-center font-bold">A</div>
+        <div><h1 class="font-bold text-lg leading-tight">Admin Panel</h1><p class="text-[10px] font-mono text-muted uppercase tracking-widest">Gongola ICT Hub</p></div>
+      </div>
+      <button onclick="toggleSignalModal()" class="px-4 py-2 bg-win text-bg font-bold text-xs rounded-lg shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-4 space-y-4 pb-24">
+    <div id="signal-list" class="space-y-4"><div class="text-center text-muted text-sm p-8">Loading signals...</div></div>
+  </main>
+</div>
+
+<!-- Post Signal Modal -->
+<dialog id="signal-modal" class="bg-surface text-text w-full max-w-lg mt-auto mb-0 md:m-auto rounded-t-2xl md:rounded-2xl border border-line p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm">
+  <form id="signal-form" class="p-5 flex flex-col gap-4 max-h-[90vh] overflow-y-auto pb-safe">
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="text-xl font-bold">Post Signal</h2>
+      <button type="button" id="close-modal-btn" class="p-2 bg-surface2 rounded-full text-muted hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div>
+      <label class="block text-[10px] font-mono text-muted uppercase mb-1">Upload Chart (AI Analyzes)</label>
+      <input type="file" id="sig-image-input" accept="image/*" class="w-full bg-bg border border-line rounded-lg px-3 py-3 text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-win file:text-bg hover:file:brightness-110 transition-all cursor-pointer">
+      <div id="sig-image-preview-container" class="hidden mt-2 relative rounded-lg overflow-hidden border border-line">
+        <img id="sig-image-preview" class="w-full max-h-48 object-contain bg-black">
+        <div id="sig-image-loading" class="absolute inset-0 bg-black/70 hidden flex-col items-center justify-center backdrop-blur-sm">
+          <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-2"></div>
+          <span class="text-sm font-bold text-accent">AI Reading Chart...</span>
+        </div>
+      </div>
+    </div>
+    
+    <div id="manual-fields" class="hidden flex flex-col gap-3 mt-2">
+      <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label>
+          <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent font-mono text-lg font-bold uppercase text-white outline-none">
+        </div>
+        <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label>
+          <select id="sig-cat" class="w-full bg-transparent font-mono text-lg font-bold text-white outline-none appearance-none cursor-pointer">
+            <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="bg-surface2 p-1.5 rounded-xl border border-line flex gap-1">
+        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-win"></div> BUY</button>
+        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-loss"></div> SELL</button>
+        <input type="hidden" id="sig-direction" value="BUY">
+      </div>
+      
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-accent text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">Entry</label><input type="number" id="sig-entry-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-white outline-none text-center" oninput="document.getElementById('sig-entry').value=this.value"></div>
+        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-loss text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">SL</label><input type="number" id="sig-sl-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-loss outline-none text-center" oninput="document.getElementById('sig-sl').value=this.value"></div>
+        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-win text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">TP</label><input type="number" id="sig-tp-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-win outline-none text-center" oninput="document.getElementById('sig-tp').value=this.value"></div>
+      </div>
+      
+      <div id="rr-display" class="text-center text-xs font-mono font-bold text-muted">Expected R:R = 1 : --</div>
+      
+      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
+        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis</label>
+        <textarea id="sig-notes" rows="3" class="w-full bg-transparent text-sm text-white outline-none resize-none"></textarea>
+      </div>
+    </div>
+    <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl mt-2 hover:brightness-110 transition-all">Publish Signal</button>
+  </form>
+</dialog>
+
+<div id="custom-alert" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+  <div class="bg-surface border border-line rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-200" id="alert-box">
+    <div id="alert-icon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center"><svg id="alert-svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"></svg></div>
+    <h3 id="alert-title" class="text-lg font-bold text-white mb-2">Notice</h3>
+    <p id="alert-message" class="text-sm text-muted mb-6"></p>
+    <button onclick="hideAlert()" class="w-full py-3 bg-surface2 border border-line text-white font-bold rounded-xl hover:border-accent transition-colors">Close</button>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
+  const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
+  const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbwK5LRx85pi45f_sTTFftJboyyExtm86cD1OeoVFldhU7vW1yJuAKmFlLuBBh3eopp2/exec";
+
+  let supabaseClient = null;
+  let signalsData = [];
+  let currentSigDir = 'BUY';
+
+  function checkPin() {
+    const pin = document.getElementById('admin-pin').value;
+    if (pin === "1973") {
+      document.getElementById('pin-gate').classList.add('hidden');
+      document.getElementById('main-content').classList.remove('hidden');
+      document.getElementById('admin-app').classList.remove('hidden');
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        fetchSignals();
+      }
+    } else {
+      alert("Incorrect PIN");
+    }
+  }
+
+  document.getElementById('admin-app').classList.remove('hidden');
+
+  function showAlert(message, type = 'error') {
+    const modal = document.getElementById('custom-alert');
+    const box = document.getElementById('alert-box');
+    const iconDiv = document.getElementById('alert-icon');
+    const iconSvg = document.getElementById('alert-svg');
+    const title = document.getElementById('alert-title');
+    document.getElementById('alert-message').innerText = message;
+    if (type === 'error') { iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-loss/20 text-loss'; iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'; title.innerText = "Error"; }
+    else { iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-win/20 text-win'; iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'; title.innerText = "Success"; }
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => box.classList.remove('scale-95'), 10);
+  }
+  function hideAlert() { const modal = document.getElementById('custom-alert'); const box = document.getElementById('alert-box'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
+
+  async function fetchSignals() {
+    const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
+    if (error) return document.getElementById('signal-list').innerHTML = '<div class="text-center text-loss">Failed to load signals.</div>';
+    signalsData = data; renderSignals();
+  }
+
+  function renderSignals() {
+    const list = document.getElementById('signal-list');
+    if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
+    list.innerHTML = signalsData.map(s => {
+      let dateStr = new Date(s.created_at).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+      let resultColor = s.result === 'win' ? 'bg-win/20 text-win border-win/50' : s.result === 'loss' ? 'bg-loss/20 text-loss border-loss/50' : 'bg-surface2 text-muted border-line';
+      let rrText = 'R:R 1:--'; const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
+      if (risk > 0) rrText = 'R:R 1:' + (reward / risk).toFixed(1);
+      return `
+      <div class="sig-card">
+        <div class="p-4 border-b border-line flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-bold font-mono">${s.asset}</span>
+            <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
+            <span class="text-[10px] font-mono text-muted">${dateStr}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded ${resultColor}">${s.result || 'pending'}</span>
+            <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+          </div>
+        </div>
+        ${s.image_url ? `<div class="px-4 py-3 border-b border-line bg-surface2 flex justify-center"><button onclick="toggleSignalImage('${s.id}')" class="text-xs font-bold text-cyan flex items-center gap-1"><span id="img-text-${s.id}">View Chart</span><svg id="img-icon-${s.id}" class="w-3 h-3 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button></div><div id="img-container-${s.id}" class="hidden border-b border-line bg-black"><img src="${s.image_url}" alt="Chart" class="w-full h-auto max-h-[60vh] object-contain mx-auto"></div>` : ''}
+        <div class="p-4 space-y-3">
+          <div class="sig-grid">
+            <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
+            <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
+            <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
+          </div>
+          <div class="text-center mt-1"><span class="text-[10px] font-mono font-bold text-cyan">${rrText}</span></div>
+        </div>
+        <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
+          <button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-xs font-bold">Execute</button>
+          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win">Win</button>
+          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
+        </div>
+      </div>`}).join('');
+  }
+
+  async function updateResult(id, result) {
+    const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
+    if (error) return showAlert('Failed to update status', 'error');
+    fetchSignals();
+  }
+  async function deleteSignal(id) {
+    if (confirm('Delete this signal permanently?')) {
+      const { error } = await supabaseClient.from('signals').delete().eq('id', id);
+      if (error) return showAlert('Failed to delete signal', 'error');
+      fetchSignals();
+    }
+  }
+  function toggleSignalImage(id) {
+    const container = document.getElementById(`img-container-${id}`); const text = document.getElementById(`img-text-${id}`); const icon = document.getElementById(`img-icon-${id}`);
+    if (container.classList.contains('hidden')) { container.classList.remove('hidden'); text.innerText = 'Hide Chart'; icon.style.transform = 'rotate(180deg)'; }
+    else { container.classList.add('hidden'); text.innerText = 'View Chart'; icon.style.transform = 'rotate(0deg)'; }
+  }
+
+  async function executeTrade(id) {
+    const sig = signalsData.find(s => s.id === id);
+    if (!sig) return;
+    if (!confirm(`Execute ${sig.direction} ${sig.asset} on Capital.com DEMO account?`)) return;
+    showAlert("Sending order to Capital.com...", "success");
+    try {
+      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ epic: sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
+      else showAlert("Execution Failed: " + (data.detail?.errorCode || data.detail || 'Unknown error'), "error");
+    } catch (err) { showAlert("Connection failed. Check your internet or Apps Script deployment.", "error"); }
+  }
+
+  function toggleSignalModal() {
+    const modal = document.getElementById('signal-modal');
+    if (modal.open) return modal.close();
+    document.getElementById('signal-form').reset();
+    setSigDir('BUY');
+    document.getElementById('sig-image-preview-container').classList.add('hidden');
+    document.getElementById('manual-fields').classList.add('hidden');
+    modal.showModal();
+  }
+  document.getElementById('close-modal-btn').addEventListener('click', toggleSignalModal);
+
+  function setSigDir(dir) {
+    currentSigDir = dir; document.getElementById('sig-direction').value = dir;
+    const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
+    if (dir === 'BUY') { b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
+    else { s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
+  }
+
+  function updateLiveRR() {
+    const entry = parseFloat(document.getElementById('sig-entry').value); const sl = parseFloat(document.getElementById('sig-sl').value); const tp = parseFloat(document.getElementById('sig-tp').value);
+    const rrEl = document.getElementById('rr-display');
+    if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp)) {
+      const risk = Math.abs(entry - sl); const reward = Math.abs(tp - entry);
+      if (risk > 0) { const rr = (reward / risk).toFixed(1); rrEl.innerText = `Expected R:R = 1 : ${rr}`; rrEl.className = `text-center text-xs font-mono font-bold mt-1 ${rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss'}`; return; }
+    }
+    rrEl.innerText = 'Expected R:R = 1 : --'; rrEl.className = 'text-center text-xs font-mono font-bold text-muted mt-1';
+  }
+  ['sig-entry-display', 'sig-sl-display', 'sig-tp-display'].forEach(id => document.getElementById(id).addEventListener('input', updateLiveRR));
+
+  document.getElementById('sig-image-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = async function() {
+        const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);
+        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const base64Data = canvas.toDataURL('image/jpeg', 0.7);
+        document.getElementById('sig-image-preview').src = base64Data; document.getElementById('sig-image-preview-container').classList.remove('hidden');
+        document.getElementById('sig-image-loading').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('flex');
+        const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart structure..."; notesArea.disabled = true;
+        try {
+          const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
+          const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
+          if(data.error) throw new Error(data.error);
+          if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
+          if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
+          if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
+          if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
+          if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
+          setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
+          updateLiveRR();
+          notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text was returned.";
+        } catch (err) { notesArea.value = "Error: " + err.message; }
+        finally { notesArea.disabled = false; document.getElementById('manual-fields').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('hidden'); document.getElementById('sig-image-loading').classList.remove('flex'); }
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('signal-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn'); btn.innerText = "Publishing..."; btn.disabled = true;
+    const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); const cat = document.getElementById('sig-cat').value;
+    const entry = document.getElementById('sig-entry').value; const sl = document.getElementById('sig-sl').value; const tp = document.getElementById('sig-tp').value;
+    const analysis = document.getElementById('sig-notes').value.trim(); const fileInput = document.getElementById('sig-image-input');
+    let imageUrl = null;
+    try {
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0]; const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+        const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
+        if (uploadError) throw uploadError;
+        const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); imageUrl = publicUrlData.publicUrl;
+      }
+      const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl }]);
+      if (insertError) throw insertError;
+      showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();
+    } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }
+    finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
+  });
+</script>
+</body>
+</html>
