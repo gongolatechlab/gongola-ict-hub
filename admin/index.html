@@ -220,7 +220,7 @@
     list.innerHTML = signalsData.map(s => {
       const isPending = s.result === 'pending' || !s.result;
       
-      const livePos = livePositions.find(p => (s.deal_id && p.position.dealId === s.deal_id) || (!s.deal_id && p.market.epic === s.asset && p.position.direction === s.direction));
+      const livePos = livePositions.find(p => s.deal_id && p.position.dealId === s.deal_id);
       let execBtn = '';
       if (!isPending) {
         execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
@@ -230,7 +230,7 @@
         const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
         execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-surface text-accent border border-accent rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
       } else {
-        execBtn = `${execBtn}`;
+        execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
       }
       const statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
       const statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
