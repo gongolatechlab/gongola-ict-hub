@@ -143,7 +143,9 @@
   const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
   const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
-  const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbwK5LRx85pi45f_sTTFftJboyyExtm86cD1OeoVFldhU7vW1yJuAKmFlLuBBh3eopp2/exec";
+  const EXECUTE_ENDPOINT = "https://script.google.com/a/*/macros/s/AKfycbyDNGb5VOJvIpbblUBd1PQaTiEvtqWc5wjNo8bXY4HCyIAYQLc9FWOA0YXktFEpqxIl/exec";
+  const POSITIONS_ENDPOINT = EXECUTE_ENDPOINT;
+  let livePositions = [];
 
   let supabaseClient = null;
   let signalsData = [];
@@ -158,6 +160,8 @@
       if (window.supabase) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         fetchSignals();
+        fetchPositions();
+        setInterval(fetchPositions, 30000);
       }
     } else {
       alert("Incorrect PIN");
@@ -320,6 +324,19 @@
     else { container.classList.add('hidden'); text.innerText = 'View Chart'; icon.style.transform = 'rotate(0deg)'; }
   }
 
+  async function fetchPositions() {
+    if (!supabaseClient) return;
+    try {
+      const res = await fetch(POSITIONS_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'positions' }) });
+      const data = await res.json();
+      if (data.status === 'success' && data.data.positions) {
+        livePositions = data.data.positions;
+        if (typeof renderSignals === 'function') renderSignals();
+        else if (typeof render === 'function') render();
+      }
+    } catch(e) { console.error("Positions fetch failed", e); }
+  }
+
   async function executeTrade(id) {
     const sig = signalsData.find(s => s.id === id);
     if (!sig) return;
@@ -330,7 +347,13 @@
       const data = await res.json();
       
       if (data.status === 'success') {
-        showAlert("Trade Executed! Deal ID: " + (data.data.dealReference || 'Success'), "success");
+        const dealId = data.data.dealId || data.data.dealReference;
+        if (dealId) {
+          await supabaseClient.from('signals').update({ deal_id: dealId }).eq('id', id);
+          sig.deal_id = dealId;
+        }
+        showAlert("Trade Executed! Deal ID: " + dealId, "success");
+        fetchPositions();
       } else {
         // Show the exact error from Capital.com
         let errorMsg = data.detail || 'Unknown error';
