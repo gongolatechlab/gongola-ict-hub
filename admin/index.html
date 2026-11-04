@@ -205,6 +205,19 @@
     
     list.innerHTML = signalsData.map(s => {
       const isPending = s.result === 'pending' || !s.result;
+      
+      const livePos = livePositions.find(p => (s.deal_id && p.position.dealId === s.deal_id) || (!s.deal_id && p.market.epic === s.asset && p.position.direction === s.direction));
+      let execBtn = '';
+      if (!isPending) {
+        execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
+      } else if (livePos) {
+        const upl = livePos.position.upl || 0;
+        const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
+        const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
+        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-surface text-accent border border-accent rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
+      } else {
+        execBtn = `${execBtn}`;
+      }
       const statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
       const statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
       
@@ -225,7 +238,7 @@
       <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
         <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
           <div class="flex items-center gap-3">
-            <span class="text-lg font-bold font-mono">${s.displaySymbol}${aliasTag}</span>
+            <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
             <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
           </div>
@@ -268,10 +281,10 @@
         </div>
         
         <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
-          <button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>
+          ${execBtn}
           <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
           <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
-          <button onclick="copyAdminTrade('${s.displaySymbol}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, ${rr})" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
+          <button onclick="copyAdminTrade('${s.asset}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, ${rr})" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
         </div>
       </div>`}).join('');
   }
