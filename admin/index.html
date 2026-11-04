@@ -46,6 +46,15 @@ window.onerror = function(msg, url, line, col, error) {
   .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
 </style>
   <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
+</script>
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
 
@@ -409,14 +418,7 @@ window.onerror = function(msg, url, line, col, error) {
       const data = await res.json();
       if (data.status === 'success' && data.data.positions) {
         livePositions = data.data.positions;
-        const dbg = document.getElementById('debug-box');
-        if (dbg) {
-          if (livePositions.length > 0) {
-            dbg.innerText = "LIVE CAPITAL.COM DATA:\n" + JSON.stringify(livePositions[0], null, 2);
-          } else {
-            dbg.innerText = "LIVE CAPITAL.COM DATA: [] (No open trades)";
-          }
-        }
+
         
         const strip = document.getElementById('pl-strip');
         if (strip) {
