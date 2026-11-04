@@ -230,9 +230,8 @@ window.onerror = function(msg, url, line, col, error) {
       const isPending = s.result === 'pending' || !s.result;
       
       const livePos = livePositions.find(p => {
-        if (!p.position) return false;
-        if (s.deal_id && p.position.dealId && String(p.position.dealId).toLowerCase() === String(s.deal_id).toLowerCase()) return true;
-        return p.market && p.market.epic === s.asset && p.position.direction === s.direction;
+        if (!p.position || !s.deal_id) return false;
+        return String(p.position.dealId).toLowerCase() === String(s.deal_id).toLowerCase();
       });
       let execBtn = '';
       if (!isPending) {
