@@ -47,12 +47,7 @@ window.onerror = function(msg, url, line, col, error) {
 </style>
   <link rel="manifest" href="manifest.json">
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        registration.unregister();
-      }
-    });
+  
   }
 </script>
 </head>
@@ -239,34 +234,16 @@ window.onerror = function(msg, url, line, col, error) {
     list.innerHTML = signalsData.map(s => {
       const isPending = s.result === 'pending' || !s.result;
       
-      let livePos = null;
-      // 1. Try exact deal_id match (dealId or workingOrderId)
-      if (s.deal_id) {
-        const targetId = String(s.deal_id).toLowerCase().trim();
-        livePos = livePositions.find(p => {
-          if (!p.position) return false;
-          const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
-          const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
-          return pDeal === targetId || pWork === targetId;
-        });
-      }
-      // 2. Bulletproof Fallback: if exactly ONE open trade exists, match it to ANY pending signal of the same direction
-      if (!livePos && isPending && livePositions.length === 1) {
-        const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
-        if (liveDir === String(s.direction).toUpperCase().trim()) {
-          livePos = livePositions[0];
-        }
-      }
-      // 3. Secondary Fallback: match by Asset + Direction
-      if (!livePos && isPending) {
-        livePos = livePositions.find(p => {
-          if (!p.position) return false;
-          const sameDir = String(p.position.direction).toUpperCase().trim() === String(s.direction).toUpperCase().trim();
-          const posEpic = String(p.market && p.market.epic ? p.market.epic : '').toUpperCase().trim();
-          const sigAsset = String(s.asset || '').toUpperCase().trim();
-          return sameDir && (posEpic.includes(sigAsset) || sigAsset.includes(posEpic) || (posEpic.includes('XAU') && sigAsset.includes('XAU')));
-        });
-      }
+      // FORCED VERSION 18 - NO CACHE
+      let livePos = livePositions.find(p => {
+        if (!p.position) return false;
+        const targetId = s.deal_id ? String(s.deal_id).toLowerCase().trim() : '';
+        const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
+        const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
+        if (targetId && (pDeal === targetId || pWork === targetId)) return true;
+        return false;
+      });
+
       let execBtn = '';
       if (!isPending) {
         execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
