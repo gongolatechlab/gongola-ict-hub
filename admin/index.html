@@ -77,6 +77,7 @@ window.onerror = function(msg, url, line, col, error) {
   </header>
 
   <main class="max-w-3xl mx-auto p-4 space-y-4 pb-24">
+    <div id="debug-box" style="background: #111; color: #0f0; font-family: monospace; font-size: 10px; padding: 10px; border-radius: 8px; border: 1px solid #0f0; overflow-x: auto; white-space: pre-wrap; max-height: 200px;">Waiting for data...</div>
     <div id="pl-strip" class="bg-surface2 border border-line rounded-xl p-3 grid grid-cols-3 gap-2 text-center hidden">
       <div>
         <div class="text-[9px] text-muted uppercase mb-1">Total P/L</div>
@@ -277,6 +278,7 @@ window.onerror = function(msg, url, line, col, error) {
             <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
             <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
+            <span class="text-[8px] font-mono text-red-500">ID: ${s.deal_id || 'none'}</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${isPending ? 'PENDING' : s.result.toUpperCase()}</span>
@@ -383,6 +385,14 @@ window.onerror = function(msg, url, line, col, error) {
       const data = await res.json();
       if (data.status === 'success' && data.data.positions) {
         livePositions = data.data.positions;
+        const dbg = document.getElementById('debug-box');
+        if (dbg) {
+          if (livePositions.length > 0) {
+            dbg.innerText = "LIVE CAPITAL.COM DATA:\n" + JSON.stringify(livePositions[0], null, 2);
+          } else {
+            dbg.innerText = "LIVE CAPITAL.COM DATA: [] (No open trades)";
+          }
+        }
         
         const strip = document.getElementById('pl-strip');
         if (strip) {
