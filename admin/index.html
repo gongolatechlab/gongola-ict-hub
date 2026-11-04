@@ -231,11 +231,16 @@ window.onerror = function(msg, url, line, col, error) {
       const isPending = s.result === 'pending' || !s.result;
       
       let livePos = null;
-      // 1. Try exact deal_id match
       if (s.deal_id) {
-        livePos = livePositions.find(p => p.position && p.position.dealId && String(p.position.dealId).toLowerCase().trim() === String(s.deal_id).toLowerCase().trim());
+        const targetId = String(s.deal_id).toLowerCase().trim();
+        livePos = livePositions.find(p => {
+          if (!p.position) return false;
+          const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
+          const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
+          return pDeal === targetId || pWork === targetId;
+        });
       }
-      // 2. Fallback: Asset + Direction (Bulldozer mode)
+      // Fallback: If still not found and it's pending, try Asset + Direction
       if (!livePos && isPending) {
         livePos = livePositions.find(p => {
           if (!p.position || !p.market) return false;
