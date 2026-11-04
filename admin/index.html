@@ -3,7 +3,10 @@
 <head>
 <script>
 window.onerror = function(msg, url, line, col, error) {
-  document.body.innerHTML = '<div style="padding: 20px; color: red; font-family: monospace; background: white; font-size: 14px; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;">Error: ' + msg + '<br>Line: ' + line + '<br>URL: ' + url + '</div>';
+  var div = document.createElement('div');
+  div.style.cssText = 'padding: 20px; color: red; font-family: monospace; background: white; font-size: 14px; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;';
+  div.innerHTML = 'Error: ' + msg + '<br>Line: ' + line + '<br>URL: ' + url;
+  document.documentElement.appendChild(div);
 };
 </script>
 
