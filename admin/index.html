@@ -365,7 +365,7 @@
     if (!confirm(`Execute ${sig.direction} ${sig.asset} on Capital.com DEMO account?`)) return;
     showAlert("Sending order to Capital.com...", "success");
     try {
-      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
+      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
       const data = await res.json();
       if (data.dealReference) {
         // Save deal reference to Supabase for perfect matching
