@@ -42,8 +42,16 @@
     .hidden { display: none !important; }
     .opacity-70 { opacity: 0.7; }
   </style>
+<script>
+window.onerror = function(msg, url, line, col, error) {
+  var div = document.createElement('div');
+  div.style.cssText = 'padding: 20px; color: red; font-family: monospace; background: white; font-size: 14px; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;';
+  div.innerHTML = 'Error: ' + msg + '<br>Line: ' + line + '<br>URL: ' + url;
+  document.documentElement.appendChild(div);
+};
+</script>
 </head>
-<body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
+<body class="text-text font-display antialiased overflow-x-hidden min-h-screen" id="admin-app">
 
 <!-- PIN Gate -->
 <div id="pin-gate" class="fixed inset-0 z-[200] bg-bg flex flex-col items-center justify-center p-6">
