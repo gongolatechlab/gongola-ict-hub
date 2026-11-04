@@ -367,13 +367,34 @@
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
       const data = await res.json();
-      // Look for dealId first, then dealReference
-      const actualDealId = data.dealId || data.dealReference;
       
-      if (actualDealId) {
-        await supabaseClient.from('signals').update({ deal_id: actualDealId }).eq('id', sig.id);
-        showAlert("Trade Executed! Deal ID: " + actualDealId, "success");
-        syncLiveTrades(); // instantly sync
+      if (data.dealReference || data.dealId) {
+        showAlert("Trade Executed! Syncing deal ID...", "success");
+        
+        // Wait 2 seconds for Capital.com to register the trade, then fetch positions
+        setTimeout(async () => {
+          try {
+            const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
+            const syncData = await syncRes.json();
+            
+            if (syncData.positions) {
+              // Find the newest position matching this asset and direction
+              const matchingPos = syncData.positions.find(p => 
+                (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && 
+                p.position.direction === sig.direction
+              );
+              
+              if (matchingPos) {
+                const realDealId = matchingPos.position.dealId;
+                await supabaseClient.from('signals').update({ deal_id: realDealId }).eq('id', sig.id);
+                showAlert("Linked Deal ID: " + realDealId, "success");
+              } else {
+                showAlert("Trade executed, but could not auto-link deal ID.", "error");
+              }
+            }
+          } catch(e) { console.error(e); }
+          syncLiveTrades(); // Refresh UI
+        }, 2000);
       } else {
         showAlert("Execution Failed: " + JSON.stringify(data), "error");
       }
