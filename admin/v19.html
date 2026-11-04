@@ -1,51 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="dark">
 <head>
-<script>
-window.onerror = function(msg, url, line, col, error) {
-  var div = document.createElement('div');
-  div.style.cssText = 'padding: 20px; color: red; font-family: monospace; background: white; font-size: 14px; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999;';
-  div.innerHTML = 'Error: ' + msg + '<br>Line: ' + line + '<br>URL: ' + url;
-  document.documentElement.appendChild(div);
-};
-</script>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Admin Panel | Gongola ICT Hub</title>
-<meta name="theme-color" content="#0B0C10">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          bg: '#0B0C10', surface: '#1F2833', surface2: '#151E26',
-          text: '#eef1fb', muted: '#8d97b8', line: 'rgba(255,255,255,0.1)',
-          win: '#00FF66', loss: '#FF3B30', accent: '#00E5FF'
-        },
-        fontFamily: { display: ['"Space Grotesk"', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] }
-      }
-    }
-  }
-</script>
-<style>
-  ::-webkit-scrollbar { display: none; }
-  body { -ms-overflow-style: none; scrollbar-width: none; background-color: #0B0C10; }
-  .glass { background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(12px); }
-  .sig-card { background: #1F2833; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-  .sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-  .sig-badge.buy { background: rgba(0,255,102,0.1); color: #00FF66; border: 1px solid rgba(0,255,102,0.3); }
-  .sig-badge.sell { background: rgba(255,59,48,0.1); color: #FF3B30; border: 1px solid rgba(255,59,48,0.3); }
-  .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #151E26; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-  .sig-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8d97b8; text-transform: uppercase; }
-  .sig-val { font-size: 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: white; }
-  input, select, textarea { font-size: 16px !important; }
-  .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
-</style>
-  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin | Gongola ICT Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #0B0C10; --surface: #151E26; --surface2: #1F2937; --border: #2D3748; --text: #F3F4F6; --muted: #9CA3AF; --accent: #00E5FF; --win: #00FF66; --loss: #FF3B30; }
+    body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .bg-bg { background-color: var(--bg); }
+    .bg-surface { background-color: var(--surface); }
+    .bg-surface2 { background-color: var(--surface2); }
+    .border-line { border-color: var(--border); }
+    .text-text { color: var(--text); }
+    .text-muted { color: var(--muted); }
+    .text-accent { color: var(--accent); }
+    .text-win { color: var(--win); }
+    .text-loss { color: var(--loss); }
+    .border-accent { border-color: var(--accent); }
+    .border-win { border-color: var(--win); }
+    .border-loss { border-color: var(--loss); }
+    .bg-accent { background-color: var(--accent); }
+    .bg-win { background-color: var(--win); }
+    .bg-loss { background-color: var(--loss); }
+    .bg-bg\/80 { background-color: rgba(11, 12, 16, 0.8); }
+    .bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.1); }
+    .bg-amber-500\/20 { background-color: rgba(245, 158, 11, 0.2); }
+    .border-amber-500 { border-color: #F59E0B; }
+    .text-amber-500 { color: #F59E0B; }
+    .bg-cyan-400 { background-color: #22D3EE; }
+    .text-cyan-400 { color: #22D3EE; }
+    .shadow-\[0_0_8px_rgba\(34\,211\,238\,0\.8\)\] { box-shadow: 0 0 8px rgba(34, 211, 238, 0.8); }
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .duration-500 { transition-duration: 500ms; }
+    input, select, textarea { font-size: 16px !important; }
+    .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
+    .hidden { display: none !important; }
+    .opacity-70 { opacity: 0.7; }
+  </style>
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
 
@@ -58,358 +54,84 @@ window.onerror = function(msg, url, line, col, error) {
     <h2 class="text-xl font-bold mb-2">Admin Access</h2>
     <p class="text-sm text-muted mb-6">Enter your PIN to manage signals.</p>
     <input type="password" id="admin-pin" placeholder="••••" class="w-full bg-bg border border-line rounded-lg px-4 py-3 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-accent mb-4">
-    <button onclick="checkPin()" class="w-full py-3 bg-accent text-bg font-bold rounded-xl hover:brightness-110">Unlock</button>
+    <button onclick="checkPin()" class="w-full py-3 bg-accent text-bg font-bold rounded-lg hover:opacity-90 transition-opacity">Unlock</button>
   </div>
 </div>
 
-<!-- Main App (Hidden until PIN entered) -->
-<div id="main-content" class="hidden">
-  <header class="sticky top-0 z-30 glass border-b border-line">
-    <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-loss/20 text-loss flex items-center justify-center font-bold">A</div>
-        <div><h1 class="font-bold text-lg leading-tight">Admin Panel</h1><p class="text-[10px] font-mono text-muted uppercase tracking-widest">Gongola ICT Hub</p></div>
-      </div>
-      <button onclick="toggleSignalModal()" class="px-4 py-2 bg-win text-bg font-bold text-xs rounded-lg shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
-      </button>
-    </div>
-  </header>
-
-  <main class="max-w-3xl mx-auto p-4 space-y-4 pb-24">
-    
-    <div id="pl-strip" class="bg-surface2 border border-line rounded-xl p-3 grid grid-cols-3 gap-2 text-center hidden">
-      <div>
-        <div class="text-[9px] text-muted uppercase mb-1">Total P/L</div>
-        <div id="pl-total" class="text-sm font-mono font-bold text-white">$0.00</div>
-      </div>
-      <div>
-        <div class="text-[9px] text-muted uppercase mb-1">Open Trades</div>
-        <div id="pl-count" class="text-sm font-mono font-bold text-white">0</div>
-      </div>
-      <div>
-        <div class="text-[9px] text-muted uppercase mb-1">Last Update</div>
-        <div id="pl-time" class="text-sm font-mono font-bold text-muted">--:--</div>
-      </div>
-    </div>
-    <div id="signal-list" class="space-y-4"><div class="text-center text-muted text-sm p-8">Loading signals...</div></div>
-  </main>
-</div>
-
-<!-- Post Signal Modal -->
-<dialog id="signal-modal" class="bg-surface text-text w-full max-w-lg mt-auto mb-0 md:m-auto rounded-t-2xl md:rounded-2xl border border-line p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm">
-  <form id="signal-form" class="p-5 flex flex-col gap-4 max-h-[90vh] overflow-y-auto pb-safe">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-xl font-bold">Post Signal</h2>
-      <button type="button" id="close-modal-btn" class="p-2 bg-surface2 rounded-full text-muted hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+<!-- Main App -->
+<header class="sticky top-0 z-50 bg-bg/80 backdrop-blur-md border-b border-line px-4 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 bg-surface2 rounded-lg flex items-center justify-center border border-line">
+      <span class="text-accent font-bold text-xl">A</span>
     </div>
     <div>
-      <label class="block text-[10px] font-mono text-muted uppercase mb-1">Upload Chart (AI Analyzes)</label>
-      <input type="file" id="sig-image-input" accept="image/*" class="w-full bg-bg border border-line rounded-lg px-3 py-3 text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-win file:text-bg hover:file:brightness-110 transition-all cursor-pointer">
-      <div id="sig-image-preview-container" class="hidden mt-2 relative rounded-lg overflow-hidden border border-line">
-        <img id="sig-image-preview" class="w-full max-h-48 object-contain bg-black">
-        <div id="sig-image-loading" class="absolute inset-0 bg-black/70 hidden flex-col items-center justify-center backdrop-blur-sm">
-          <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-2"></div>
-          <span class="text-sm font-bold text-accent">AI Reading Chart...</span>
-        </div>
-      </div>
+      <h1 class="text-lg font-bold">Admin Panel <span style="color:red; font-size:14px;">V19-FINAL</span></h1>
+      <p class="text-[10px] text-muted font-mono tracking-wider">GONGOLA ICT HUB</p>
     </div>
-    
-    <div id="manual-fields" class="hidden flex flex-col gap-3 mt-2">
-      <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
-      
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
-          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label>
-          <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent font-mono text-lg font-bold uppercase text-white outline-none">
-        </div>
-        <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
-          <label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label>
-          <select id="sig-cat" class="w-full bg-transparent font-mono text-lg font-bold text-white outline-none appearance-none cursor-pointer">
-            <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="bg-surface2 p-1.5 rounded-xl border border-line flex gap-1">
-        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-win"></div> BUY</button>
-        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-loss"></div> SELL</button>
-        <input type="hidden" id="sig-direction" value="BUY">
-      </div>
-      
-      <div class="grid grid-cols-3 gap-2">
-        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-accent text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">Entry</label><input type="number" id="sig-entry-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-white outline-none text-center" oninput="document.getElementById('sig-entry').value=this.value"></div>
-        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-loss text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">SL</label><input type="number" id="sig-sl-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-loss outline-none text-center" oninput="document.getElementById('sig-sl').value=this.value"></div>
-        <div class="bg-surface2 p-2 rounded-lg border border-line focus-within:border-win text-center transition-colors"><label class="block text-[9px] font-mono text-muted uppercase mb-1">TP</label><input type="number" id="sig-tp-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-win outline-none text-center" oninput="document.getElementById('sig-tp').value=this.value"></div>
-      </div>
-      
-      <div id="rr-display" class="text-center text-xs font-mono font-bold text-muted">Expected R:R = 1 : --</div>
-      
-      <div class="bg-surface2 p-3 rounded-xl border border-line focus-within:border-accent transition-colors">
-        <label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis</label>
-        <textarea id="sig-notes" rows="3" class="w-full bg-transparent text-sm text-white outline-none resize-none"></textarea>
-      </div>
-    </div>
-    <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl mt-2 hover:brightness-110 transition-all">Publish Signal</button>
-  </form>
-</dialog>
-
-<div id="custom-alert" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-  <div class="bg-surface border border-line rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-200" id="alert-box">
-    <div id="alert-icon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center"><svg id="alert-svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"></svg></div>
-    <h3 id="alert-title" class="text-lg font-bold text-white mb-2">Notice</h3>
-    <p id="alert-message" class="text-sm text-muted mb-6"></p>
-    <button onclick="hideAlert()" class="w-full py-3 bg-surface2 border border-line text-white font-bold rounded-xl hover:border-accent transition-colors">Close</button>
   </div>
-</div>
+  <button onclick="toggleSignalModal()" class="bg-win text-bg px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1 hover:opacity-90 transition-opacity">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
+  </button>
+</header>
+
+<main class="max-w-3xl mx-auto p-4 space-y-4 pb-24">
+  <div id="pl-strip" class="bg-surface2 border border-line rounded-xl p-3 grid grid-cols-3 gap-2 text-center hidden">
+    <div>
+      <div class="text-[9px] text-muted uppercase mb-1">Total P/L</div>
+      <div id="pl-total" class="text-sm font-mono font-bold text-white">$0.00</div>
+    </div>
+    <div>
+      <div class="text-[9px] text-muted uppercase mb-1">Open Trades</div>
+      <div id="pl-count" class="text-sm font-mono font-bold text-white">0</div>
+    </div>
+    <div>
+      <div class="text-[9px] text-muted uppercase mb-1">Last Update</div>
+      <div id="pl-time" class="text-sm font-mono font-bold text-muted">--:--</div>
+    </div>
+  </div>
+  <div id="signal-list" class="space-y-4"><div class="text-center text-muted text-sm p-8">Loading signals...</div></div>
+</main>
 
 <script>
   const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
-  const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
   const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbyDNGb5VOJvIpbblUBd1PQaTiEvtqWc5wjNo8bXY4HCyIAYQLc9FWOA0YXktFEpqxIl/exec";
-  const POSITIONS_ENDPOINT = EXECUTE_ENDPOINT;
-  let livePositions = [];
 
   let supabaseClient = null;
   let signalsData = [];
-  let currentSigDir = 'BUY';
+  let livePositions = [];
 
   function checkPin() {
     const pin = document.getElementById('admin-pin').value;
     if (pin === "1973") {
       document.getElementById('pin-gate').classList.add('hidden');
-      document.getElementById('main-content').classList.remove('hidden');
       document.getElementById('admin-app').classList.remove('hidden');
-      if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        fetchSignals();
-        fetchPositions();
-        setInterval(fetchPositions, 30000);
-      }
+      document.getElementById('admin-app').classList.add('block');
+      
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      fetchSignals();
+      fetchPositions();
+      setInterval(fetchPositions, 30000);
     } else {
       alert("Incorrect PIN");
     }
   }
 
-  document.getElementById('admin-app').classList.remove('hidden');
-
-  function showAlert(message, type = 'error') {
-    const modal = document.getElementById('custom-alert');
-    const box = document.getElementById('alert-box');
-    const iconDiv = document.getElementById('alert-icon');
-    const iconSvg = document.getElementById('alert-svg');
-    const title = document.getElementById('alert-title');
-    document.getElementById('alert-message').innerText = message;
-    if (type === 'error') { iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-loss/20 text-loss'; iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>'; title.innerText = "Error"; }
-    else { iconDiv.className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center bg-win/20 text-win'; iconSvg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'; title.innerText = "Success"; }
-    modal.classList.remove('hidden'); modal.classList.add('flex');
-    setTimeout(() => box.classList.remove('scale-95'), 10);
-  }
-  function hideAlert() { const modal = document.getElementById('custom-alert'); const box = document.getElementById('alert-box'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
-
   async function fetchSignals() {
+    if (!supabaseClient) return;
     const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
-    if (error) return document.getElementById('signal-list').innerHTML = '<div class="text-center text-loss">Failed to load signals.</div>';
-    
-    const seen = new Map(); const deduped = [];
-    data.forEach(sig => {
-      let sym = sig.asset.toUpperCase();
-      if (sym === 'GOLD' || sym === 'XAUUSD') sym = 'XAUUSD';
-      const key = `${sym}-${sig.direction}-${sig.entry}-${sig.sl}-${sig.tp}-${sig.result}`;
-      if (!seen.has(key)) { seen.set(key, true); deduped.push({ ...sig, displaySymbol: sym, alias: sig.asset === 'GOLD' ? 'XAUUSD' : (sig.asset === 'XAUUSD' ? 'GOLD' : null) }); }
-    });
-
-    signalsData = deduped; renderSignals();
-  }
-
-  function renderSignals() {
-    const list = document.getElementById('signal-list');
-    if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
-    
-    list.innerHTML = signalsData.map(s => {
-      const isPending = s.result === 'pending' || !s.result;
-      
-      let livePos = null;
-      // 1. Try exact deal_id match (dealId or workingOrderId)
-      if (s.deal_id) {
-        const targetId = String(s.deal_id).toLowerCase().trim();
-        livePos = livePositions.find(p => {
-          if (!p.position) return false;
-          const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
-          const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
-          return pDeal === targetId || pWork === targetId;
-        });
-      }
-      // 2. Bulletproof Fallback: if exactly ONE open trade exists, match it to ANY pending signal of the same direction
-      if (!livePos && isPending && livePositions.length === 1) {
-        const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
-        if (liveDir === String(s.direction).toUpperCase().trim()) {
-          livePos = livePositions[0];
-        }
-      }
-      // 3. Secondary Fallback: match by Asset + Direction
-      if (!livePos && isPending) {
-        livePos = livePositions.find(p => {
-          if (!p.position) return false;
-          const sameDir = String(p.position.direction).toUpperCase().trim() === String(s.direction).toUpperCase().trim();
-          const posEpic = String(p.market && p.market.epic ? p.market.epic : '').toUpperCase().trim();
-          const sigAsset = String(s.asset || '').toUpperCase().trim();
-          return sameDir && (posEpic.includes(sigAsset) || sigAsset.includes(posEpic) || (posEpic.includes('XAU') && sigAsset.includes('XAU')));
-        });
-      }
-      let execBtn = '';
-      if (!isPending) {
-        execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
-      } else if (livePos) {
-        const upl = livePos.position.upl || 0;
-        const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
-        const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
-        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-amber-500/20 text-amber-500 border border-amber-500 rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
-      } else {
-        execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
-      }
-      const statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
-      const statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
-      
-      const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
-      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
-      const rrColor = rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss';
-      
-      const slPts = (s.entry - s.sl).toFixed(1);
-      const tpPts = (s.tp - s.entry).toFixed(1);
-      const aliasTag = s.alias ? `<span class="text-[9px] text-muted ml-1">also ${s.alias}</span>` : '';
-
-      const prices = [s.entry, s.sl, s.tp];
-      const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
-      const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
-      const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
-      
-      let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
-      if (livePos && livePos.market) {
-        currentPrice = livePos.market.bid;
-        pctCurrent = ((currentPrice - min) / range) * 100;
-        pctCurrent = Math.max(0, Math.min(100, pctCurrent));
-        showLivePin = true;
-      }
-      
-      
-
-      return `
-      <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
-        <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
-          <div class="flex items-center gap-3">
-            <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
-            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
-            <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
-            
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${isPending ? 'PENDING' : s.result.toUpperCase()}</span>
-            ${livePos ? `<span class="text-[9px] font-bold px-2 py-1 rounded bg-bg border border-line ${livePos.position.upl >= 0 ? 'text-win' : 'text-loss'}">${livePos.position.upl >= 0 ? '+' : '-'}$${Math.abs(livePos.position.upl).toFixed(2)}</span>` : ''}
-            <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-          </div>
-        </div>
-        
-        <div class="p-4">
-          <div class="flex justify-between items-center mb-4">
-             <span class="text-[10px] font-mono ${rrColor} bg-bg px-2 py-1 rounded border border-line">R:R 1:${rr}</span>
-          </div>
-
-          <div class="relative h-1.5 bg-bg rounded-full mb-6 mx-2 mt-4">
-            <div class="absolute h-full bg-loss/50 rounded-l-full" style="width: ${leftPin}%; left: 0;"></div>
-            <div class="absolute h-full bg-win/50 rounded-r-full" style="width: ${100 - rightPin}%; left: ${rightPin}%;"></div>
-            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
-            <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
-            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
-            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
-            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 mb-4">
-            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">Entry</div><div class="text-xs font-mono font-bold text-white">${s.entry}</div></div>
-            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">SL</div><div class="text-xs font-mono font-bold text-loss">${s.sl}</div><div class="text-[8px] font-mono text-loss mt-0.5">${slPts} pts</div></div>
-            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">TP</div><div class="text-xs font-mono font-bold text-win">${s.tp}</div><div class="text-[8px] font-mono text-win mt-0.5">+${tpPts} pts</div></div>
-          </div>
-
-          <div class="flex border-b border-line mb-3">
-            <button onclick="toggleAdminTab('${s.id}', 'chart', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Chart</button>
-            <button onclick="toggleAdminTab('${s.id}', 'analysis', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Analysis</button>
-          </div>
-          
-          <div id="a-panel-chart-${s.id}" class="hidden mb-3">
-            ${s.image_url ? `<img src="${s.image_url}" alt="Chart" class="w-full rounded-lg border border-line">` : '<p class="text-[10px] text-muted">No chart image.</p>'}
-          </div>
-          <div id="a-panel-analysis-${s.id}" class="hidden mb-3">
-            <p class="text-[11px] text-muted bg-bg p-2 rounded border border-line leading-relaxed">${s.analysis || 'No analysis.'}</p>
-          </div>
-        </div>
-        
-        <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
-          ${execBtn}
-          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
-          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
-          <button onclick="copyAdminTrade('${s.asset}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, ${rr})" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
-        </div>
-      </div>`}).join('');
-  }
-  async function updateResult(id, result) {
-    const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
-    if (error) return showAlert('Failed to update status', 'error');
-    fetchSignals();
-  }
-  async function deleteSignal(id) {
-    if (confirm('Delete this signal permanently?')) {
-      const { error } = await supabaseClient.from('signals').delete().eq('id', id);
-      if (error) return showAlert('Failed to delete signal', 'error');
-      fetchSignals();
-    }
-  }
-
-  function timeAgo(dateString) {
-    const date = new Date(dateString); const now = new Date(); const seconds = Math.floor((now - date) / 1000);
-    if (seconds < 60) return 'just now';
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  }
-
-  function toggleAdminTab(id, tab, btn) {
-    const chartPanel = document.getElementById(`a-panel-chart-${id}`);
-    const analysisPanel = document.getElementById(`a-panel-analysis-${id}`);
-    const isActive = btn.classList.contains('active');
-    
-    btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    chartPanel.classList.add('hidden'); analysisPanel.classList.add('hidden');
-    
-    if (!isActive) {
-      btn.classList.add('active');
-      if (tab === 'chart') chartPanel.classList.remove('hidden');
-      else analysisPanel.classList.remove('hidden');
-    }
-  }
-
-  function copyAdminTrade(sym, dir, entry, sl, tp, rr) {
-    const text = `${sym} ${dir}\nEntry: ${entry}\nSL: ${sl}\nTP: ${tp}\nR:R 1:${rr}\n\nEducational purposes only. Not financial advice.`;
-    navigator.clipboard.writeText(text).then(() => alert('Trade copied to clipboard!'));
-  }
-
-  function toggleSignalImage(id) {
-    const container = document.getElementById(`img-container-${id}`); const text = document.getElementById(`img-text-${id}`); const icon = document.getElementById(`img-icon-${id}`);
-    if (container.classList.contains('hidden')) { container.classList.remove('hidden'); text.innerText = 'Hide Chart'; icon.style.transform = 'rotate(180deg)'; }
-    else { container.classList.add('hidden'); text.innerText = 'View Chart'; icon.style.transform = 'rotate(0deg)'; }
+    if (error) { console.error(error); return; }
+    signalsData = data;
+    renderSignals();
   }
 
   async function fetchPositions() {
     if (!supabaseClient) return;
     try {
-      const res = await fetch(POSITIONS_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'positions' }) });
+      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'positions' }) });
       const data = await res.json();
       if (data.status === 'success' && data.data.positions) {
         livePositions = data.data.positions;
-
         
         const strip = document.getElementById('pl-strip');
         if (strip) {
@@ -428,21 +150,145 @@ window.onerror = function(msg, url, line, col, error) {
             strip.classList.add('hidden');
           }
         }
+        renderSignals();
+      }
+    } catch(e) { console.error("Positions fetch failed", e); }
+  }
 
-        if (typeof renderSignals === 'function') renderSignals();
-        else if (typeof render === 'function') render();
+  function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  function renderSignals() {
+    const list = document.getElementById('signal-list');
+    if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
+
+    list.innerHTML = signalsData.map(s => {
+      const isPending = s.result === 'pending' || !s.result;
+      
+      // Bulletproof matching
+      let livePos = livePositions.find(p => {
+        if (!p.position) return false;
+        const targetId = s.deal_id ? String(s.deal_id).toLowerCase().trim() : '';
+        const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
+        const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
+        if (targetId && (pDeal === targetId || pWork === targetId)) return true;
+        return false;
+      });
+      
+      // Fallback: if exactly 1 open trade, match pending direction
+      if (!livePos && isPending && livePositions.length === 1) {
+        const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
+        if (liveDir === String(s.direction).toUpperCase().trim()) livePos = livePositions[0];
       }
-    } catch(e) {
-      console.error("Positions fetch failed", e);
-      const strip = document.getElementById('pl-strip');
-      if (strip) {
-        strip.classList.remove('hidden');
-        document.getElementById('pl-total').innerText = "Error";
-        document.getElementById('pl-total').className = "text-sm font-mono font-bold text-loss";
-        document.getElementById('pl-count').innerText = "-";
-        document.getElementById('pl-time').innerText = "Failed";
+
+      let actualStatus = isPending ? 'PENDING' : s.result.toUpperCase();
+      let statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
+      let statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
+      
+      if (livePos) {
+        actualStatus = 'OPEN';
+        statusColor = 'border-amber-500';
+        statusBg = 'bg-amber-500/10 text-amber-500';
       }
-    }
+
+      let execBtn = '';
+      if (!isPending) {
+        execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
+      } else if (livePos) {
+        const upl = livePos.position.upl || 0;
+        const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
+        const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
+        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-amber-500/20 text-amber-500 border border-amber-500 rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
+      } else {
+        execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
+      }
+
+      const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
+      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
+      const rrColor = rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss';
+
+      const slPts = (s.entry - s.sl).toFixed(1);
+      const tpPts = (s.tp - s.entry).toFixed(1);
+      const aliasTag = s.alias ? `<span class="text-[9px] text-muted ml-1">also ${s.alias}</span>` : '';
+
+      const prices = [s.entry, s.sl, s.tp];
+      const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
+      const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
+      const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
+      
+      let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
+      if (livePos && livePos.market) {
+        currentPrice = livePos.market.bid;
+        pctCurrent = ((currentPrice - min) / range) * 100;
+        pctCurrent = Math.max(0, Math.min(100, pctCurrent));
+        showLivePin = true;
+      }
+
+      return `
+      <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending && !livePos ? 'opacity-70' : ''}">
+        <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
+            <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${livePos ? `<span class="text-[9px] font-bold px-2 py-1 rounded bg-bg border border-line ${livePos.position.upl >= 0 ? 'text-win' : 'text-loss'}">${livePos.position.upl >= 0 ? '+' : '-'}$${Math.abs(livePos.position.upl).toFixed(2)}</span>` : ''}
+            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${actualStatus}</span>
+            <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+          </div>
+        </div>
+
+        <div class="p-4">
+          <div class="flex justify-between items-center mb-4">
+             <span class="text-[10px] font-mono ${rrColor} bg-bg px-2 py-1 rounded border border-line">R:R 1:${rr}</span>
+          </div>
+
+          <div class="relative h-1.5 bg-bg rounded-full mb-6 mx-2 mt-4">
+            <div class="absolute h-full bg-loss/50 rounded-l-full" style="width: ${leftPin}%; left: 0;"></div>
+            <div class="absolute h-full bg-win/50 rounded-r-full" style="width: ${100 - rightPin}%; left: ${rightPin}%;"></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
+            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">Entry</div><div class="text-xs font-mono font-bold text-white">${s.entry}</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">SL</div><div class="text-xs font-mono font-bold text-loss">${s.sl}</div><div class="text-[8px] font-mono text-loss mt-0.5">${slPts} pts</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">TP</div><div class="text-xs font-mono font-bold text-win">${s.tp}</div><div class="text-[8px] font-mono text-win mt-0.5">+${tpPts} pts</div></div>
+          </div>
+
+          <div class="flex border-b border-line mb-3">
+            <button onclick="toggleAdminTab('${s.id}', 'chart', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Chart</button>
+            <button onclick="toggleAdminTab('${s.id}', 'analysis', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Analysis</button>
+          </div>
+
+          <div id="a-panel-chart-${s.id}" class="hidden mb-3">
+            ${s.image_url ? `<img src="${s.image_url}" alt="Chart" class="w-full rounded-lg border border-line">` : '<p class="text-[10px] text-muted">No chart image.</p>'}
+          </div>
+          <div id="a-panel-analysis-${s.id}" class="hidden mb-3">
+            <p class="text-[11px] text-muted bg-bg p-2 rounded border border-line leading-relaxed">${s.analysis || 'No analysis.'}</p>
+          </div>
+        </div>
+
+        <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
+          ${execBtn}
+          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
+          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
+          <button onclick="copyAdminTrade('${s.asset}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, '${rr}')" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
+        </div>
+      </div>`}).join('');
   }
 
   async function executeTrade(id) {
@@ -453,7 +299,6 @@ window.onerror = function(msg, url, line, col, error) {
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ epic: sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
       const data = await res.json();
-      
       if (data.status === 'success') {
         const dealId = data.data.dealId || data.data.dealReference;
         if (dealId) {
@@ -463,107 +308,61 @@ window.onerror = function(msg, url, line, col, error) {
         showAlert("Trade Executed! Deal ID: " + dealId, "success");
         fetchPositions();
       } else {
-        // Show the exact error from Capital.com
         let errorMsg = data.detail || 'Unknown error';
-        try {
-          const parsed = JSON.parse(errorMsg);
-          errorMsg = parsed.errorCode || errorMsg;
-        } catch(e) {}
+        try { const parsed = JSON.parse(errorMsg); errorMsg = parsed.errorCode || errorMsg; } catch(e) {}
         showAlert("Execution Failed: " + errorMsg, "error");
       }
-    } catch (err) { showAlert("Connection failed. Check your internet or Apps Script deployment.", "error"); }
+    } catch (err) { showAlert("Connection failed.", "error"); }
   }
 
-  function toggleSignalModal() {
-    const modal = document.getElementById('signal-modal');
-    if (modal.open) return modal.close();
-    document.getElementById('signal-form').reset();
-    setSigDir('BUY');
-    document.getElementById('sig-image-preview-container').classList.add('hidden');
-    document.getElementById('manual-fields').classList.add('hidden');
-    modal.showModal();
-  }
-  document.getElementById('close-modal-btn').addEventListener('click', toggleSignalModal);
-
-  function setSigDir(dir) {
-    currentSigDir = dir; document.getElementById('sig-direction').value = dir;
-    const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
-    if (dir === 'BUY') { b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
-    else { s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
+  async function updateResult(id, result) {
+    const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
+    if (error) return showAlert('Failed to update status', 'error');
+    const sig = signalsData.find(s => s.id === id);
+    if (sig) sig.result = result;
+    renderSignals();
   }
 
-  function updateLiveRR() {
-    const entry = parseFloat(document.getElementById('sig-entry').value); const sl = parseFloat(document.getElementById('sig-sl').value); const tp = parseFloat(document.getElementById('sig-tp').value);
-    const rrEl = document.getElementById('rr-display');
-    if (!isNaN(entry) && !isNaN(sl) && !isNaN(tp)) {
-      const risk = Math.abs(entry - sl); const reward = Math.abs(tp - entry);
-      if (risk > 0) { const rr = (reward / risk).toFixed(1); rrEl.innerText = `Expected R:R = 1 : ${rr}`; rrEl.className = `text-center text-xs font-mono font-bold mt-1 ${rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss'}`; return; }
+  async function deleteSignal(id) {
+    if (!confirm("Delete this signal permanently?")) return;
+    const { error } = await supabaseClient.from('signals').delete().eq('id', id);
+    if (error) return showAlert('Failed to delete', 'error');
+    signalsData = signalsData.filter(s => s.id !== id);
+    renderSignals();
+  }
+
+  function toggleAdminTab(id, tab, btn) {
+    const target = document.getElementById('a-panel-' + tab + '-' + id);
+    if (!target) return;
+    const wasOpen = !target.classList.contains('hidden');
+    ['chart', 'analysis'].forEach(t => {
+      const el = document.getElementById('a-panel-' + t + '-' + id);
+      if (el) el.classList.add('hidden');
+    });
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('text-white', 'border-accent');
+      b.classList.add('text-muted', 'border-transparent');
+    });
+    if (!wasOpen) {
+      target.classList.remove('hidden');
+      btn.classList.remove('text-muted', 'border-transparent');
+      btn.classList.add('text-white', 'border-accent');
     }
-    rrEl.innerText = 'Expected R:R = 1 : --'; rrEl.className = 'text-center text-xs font-mono font-bold text-muted mt-1';
   }
-  ['sig-entry-display', 'sig-sl-display', 'sig-tp-display'].forEach(id => document.getElementById(id).addEventListener('input', updateLiveRR));
 
-  document.getElementById('sig-image-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = async function() {
-        const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);
-        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const base64Data = canvas.toDataURL('image/jpeg', 0.7);
-        document.getElementById('sig-image-preview').src = base64Data; document.getElementById('sig-image-preview-container').classList.remove('hidden');
-        document.getElementById('sig-image-loading').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('flex');
-        const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart structure..."; notesArea.disabled = true;
-        try {
-          const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
-          const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
-          if(data.error) throw new Error(data.error);
-          if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
-          if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
-          if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
-          if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
-          if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
-          setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
-          updateLiveRR();
-          notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text was returned.";
-        } catch (err) { notesArea.value = "Error: " + err.message; }
-        finally { notesArea.disabled = false; document.getElementById('manual-fields').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('hidden'); document.getElementById('sig-image-loading').classList.remove('flex'); }
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
+  function copyAdminTrade(symbol, direction, entry, sl, tp, rr) {
+    var text = direction + ' ' + symbol + '\n' + 'Entry: ' + entry + '\n' + 'SL: ' + sl + '\n' + 'TP: ' + tp + '\n' + 'R:R 1:' + rr;
+    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert(text)); }
+    else { alert(text); }
+  }
 
-  document.getElementById('signal-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn'); btn.innerText = "Publishing..."; btn.disabled = true;
-    const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); const cat = document.getElementById('sig-cat').value;
-    const entry = document.getElementById('sig-entry').value; const sl = document.getElementById('sig-sl').value; const tp = document.getElementById('sig-tp').value;
-    const analysis = document.getElementById('sig-notes').value.trim(); const fileInput = document.getElementById('sig-image-input');
-    let imageUrl = null;
-    try {
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0]; const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
-        const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); imageUrl = publicUrlData.publicUrl;
-      }
-      const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl }]);
-      if (insertError) throw insertError;
-      showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();
-    } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }
-    finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
-  });
+  function showAlert(msg, type) {
+    alert(msg);
+  }
+
+  function toggleSignalModal() { alert("Post Signal modal coming soon."); }
+
 </script>
-
-<div id="install-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm hidden">
-  <div class="bg-surface border border-line rounded-xl p-4 shadow-2xl flex items-center justify-between gap-4">
-    <div><p class="text-sm font-bold text-white">Install Admin App</p><p class="text-xs text-muted">Add to home screen for easy access.</p></div>
-    <div class="flex gap-2"><button id="close-install" class="text-xs font-bold text-muted px-2">Later</button><button id="install-btn" class="text-xs font-bold bg-accent text-bg px-3 py-1.5 rounded-lg">Install</button></div>
-  </div>
-</div>
-
 </body>
 </html>
