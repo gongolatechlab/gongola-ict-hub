@@ -166,7 +166,7 @@ window.onerror = function(msg, url, line, col, error) {
   const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
   const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
-  const EXECUTE_ENDPOINT = "https://script.google.com/a/*/macros/s/AKfycbyDNGb5VOJvIpbblUBd1PQaTiEvtqWc5wjNo8bXY4HCyIAYQLc9FWOA0YXktFEpqxIl/exec";
+  const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbyDNGb5VOJvIpbblUBd1PQaTiEvtqWc5wjNo8bXY4HCyIAYQLc9FWOA0YXktFEpqxIl/exec";
   const POSITIONS_ENDPOINT = EXECUTE_ENDPOINT;
   let livePositions = [];
 
@@ -406,7 +406,17 @@ window.onerror = function(msg, url, line, col, error) {
         if (typeof renderSignals === 'function') renderSignals();
         else if (typeof render === 'function') render();
       }
-    } catch(e) { console.error("Positions fetch failed", e); }
+    } catch(e) {
+      console.error("Positions fetch failed", e);
+      const strip = document.getElementById('pl-strip');
+      if (strip) {
+        strip.classList.remove('hidden');
+        document.getElementById('pl-total').innerText = "Error";
+        document.getElementById('pl-total').className = "text-sm font-mono font-bold text-loss";
+        document.getElementById('pl-count').innerText = "-";
+        document.getElementById('pl-time').innerText = "Failed";
+      }
+    }
   }
 
   async function executeTrade(id) {

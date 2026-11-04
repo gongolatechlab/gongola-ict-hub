@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ict-hub-v6';
+const CACHE_NAME = 'ict-hub-v7';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(clients.claim()));
 self.addEventListener('fetch', e => {
