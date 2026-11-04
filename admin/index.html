@@ -68,6 +68,20 @@
   </header>
 
   <main class="max-w-3xl mx-auto p-4 space-y-4 pb-24">
+    <div id="pl-strip" class="bg-surface2 border border-line rounded-xl p-3 grid grid-cols-3 gap-2 text-center hidden">
+      <div>
+        <div class="text-[9px] text-muted uppercase mb-1">Total P/L</div>
+        <div id="pl-total" class="text-sm font-mono font-bold text-white">$0.00</div>
+      </div>
+      <div>
+        <div class="text-[9px] text-muted uppercase mb-1">Open Trades</div>
+        <div id="pl-count" class="text-sm font-mono font-bold text-white">0</div>
+      </div>
+      <div>
+        <div class="text-[9px] text-muted uppercase mb-1">Last Update</div>
+        <div id="pl-time" class="text-sm font-mono font-bold text-muted">--:--</div>
+      </div>
+    </div>
     <div id="signal-list" class="space-y-4"><div class="text-center text-muted text-sm p-8">Loading signals...</div></div>
   </main>
 </div>
@@ -344,6 +358,25 @@
       const data = await res.json();
       if (data.status === 'success' && data.data.positions) {
         livePositions = data.data.positions;
+        
+        const strip = document.getElementById('pl-strip');
+        if (strip) {
+          if (livePositions.length > 0) {
+            strip.classList.remove('hidden');
+            let totalUpl = 0;
+            livePositions.forEach(p => { totalUpl += (p.position.upl || 0); });
+            
+            const totalEl = document.getElementById('pl-total');
+            totalEl.innerText = (totalUpl >= 0 ? '+$' : '-$') + Math.abs(totalUpl).toFixed(2);
+            totalEl.className = 'text-sm font-mono font-bold ' + (totalUpl >= 0 ? 'text-win' : 'text-loss');
+            
+            document.getElementById('pl-count').innerText = livePositions.length;
+            document.getElementById('pl-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          } else {
+            strip.classList.add('hidden');
+          }
+        }
+
         if (typeof renderSignals === 'function') renderSignals();
         else if (typeof render === 'function') render();
       }
