@@ -269,13 +269,7 @@ window.onerror = function(msg, url, line, col, error) {
         showLivePin = true;
       }
       
-      let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
-      if (livePos && livePos.market) {
-        currentPrice = livePos.market.bid;
-        pctCurrent = ((currentPrice - min) / range) * 100;
-        pctCurrent = Math.max(0, Math.min(100, pctCurrent));
-        showLivePin = true;
-      }
+      
 
       return `
       <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
