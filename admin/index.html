@@ -202,14 +202,33 @@
 
   function getLiveTradeForSignal(s, used) {
     used = used || new Set();
+    // 1. Strict deal_id match
     if (s.deal_id) {
       const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));
       if (m) return m;
     }
-    if (liveTrades.length === 1 && (s.result === 'pending' || !s.result)) {
-      if (liveTrades[0].position.direction === s.direction && !used.has(liveTrades[0].position.dealId)) return liveTrades[0];
-    }
-    return liveTrades.find(p => ((p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD')) && p.position.direction === s.direction) && !used.has(p.position.dealId));
+    // 2. Strict Price Matching (Entry & SL & TP must align closely)
+    const getNum = (val) => parseFloat(String(val).replace(/[^0-9.-]+/g,""));
+    const sEntry = getNum(s.entry), sSL = getNum(s.sl), sTP = getNum(s.tp);
+    
+    return liveTrades.find(p => {
+      if (used.has(p.position.dealId)) return false;
+      const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));
+      if (!epicMatch || p.position.direction !== s.direction) return false;
+      
+      // If the database has saved prices, ensure they match the live trade's levels
+      const pLevel = p.position.level || p.position.openLevel;
+      if (!pLevel || !sEntry) return false;
+      
+      const pSL = p.position.stopLevel;
+      const pTP = p.position.profitLevel;
+      
+      const priceMatch = Math.abs(pLevel - sEntry) < 0.5;
+      const slMatch = !pSL || !sSL || Math.abs(pSL - sSL) < 0.5;
+      const tpMatch = !pTP || !sTP || Math.abs(pTP - sTP) < 0.5;
+      
+      return priceMatch && slMatch && tpMatch;
+    });
   }
 
   function renderSignals() {
