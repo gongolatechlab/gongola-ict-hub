@@ -410,8 +410,13 @@
         const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart structure..."; notesArea.disabled = true;
         try {
           const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
-          const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
-          if(data.error) throw new Error(data.error);
+          const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response: " + text); }
+          console.log("RAW AI RESPONSE:", text);
+          if(data.error) {
+            const errMsg = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+            throw new Error("AI Error: " + errMsg);
+          }
+          if(!data.analysis && !data.asset) throw new Error("AI returned empty result. Raw: " + text.substring(0, 300));
           if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
           if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
           if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
