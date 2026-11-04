@@ -367,12 +367,12 @@
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
       const data = await res.json();
-      // Apps Script returns dealId (position ID) and dealReference (confirmation)
-      const actualDealId = data.dealId || data.dealReference || (data.position && data.position.dealId);
+      // Look for dealId first, then dealReference
+      const actualDealId = data.dealId || data.dealReference;
       
-      if (actualDealId || data.dealReference) {
-        await supabaseClient.from('signals').update({ deal_id: actualDealId || data.dealReference }).eq('id', sig.id);
-        showAlert("Trade Executed! Deal ID: " + (actualDealId || data.dealReference), "success");
+      if (actualDealId) {
+        await supabaseClient.from('signals').update({ deal_id: actualDealId }).eq('id', sig.id);
+        showAlert("Trade Executed! Deal ID: " + actualDealId, "success");
         syncLiveTrades(); // instantly sync
       } else {
         showAlert("Execution Failed: " + JSON.stringify(data), "error");
