@@ -199,28 +199,26 @@
     document.getElementById('strip-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   }
 
-  function getLiveTradeForSignal(s) {
-    // 1. Try to match by deal_id (if saved in Supabase)
+  function getLiveTradeForSignal(s, used) {
+    used = used || new Set();
     if (s.deal_id) {
-      const exactMatch = liveTrades.find(p => p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id);
-      if (exactMatch) return exactMatch;
+      const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));
+      if (m) return m;
     }
-    // 2. Bulletproof fallback: If there is exactly 1 open trade and this signal is pending, match them.
     if (liveTrades.length === 1 && (s.result === 'pending' || !s.result)) {
-      if (liveTrades[0].position.direction === s.direction) {
-        return liveTrades[0];
-      }
+      if (liveTrades[0].position.direction === s.direction && !used.has(liveTrades[0].position.dealId)) return liveTrades[0];
     }
-    // 3. Try matching by epic/asset and direction
-    return liveTrades.find(p => (p.market.epic === s.asset || p.market.epic === 'GOLD' && s.asset === 'XAUUSD') && p.position.direction === s.direction);
+    return liveTrades.find(p => ((p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD')) && p.position.direction === s.direction) && !used.has(p.position.dealId));
   }
 
   function renderSignals() {
     const list = document.getElementById('signal-list');
     if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
     
+    const usedDealIds = new Set();
     list.innerHTML = signalsData.map(s => {
-      const live = getLiveTradeForSignal(s);
+      const live = getLiveTradeForSignal(s, usedDealIds);
+      if (live && live.position && live.position.dealId) usedDealIds.add(live.position.dealId);
       const isLive = !!live;
       const livePnl = isLive ? parseFloat(live.position.upl) : 0;
       
@@ -240,22 +238,26 @@
         statusBadge = `<span class="sig-badge bg-surface2 text-muted border border-line">PENDING</span>`;
       }
 
-      // Price Bar calculations
-      const prices = [s.entry, s.sl, s.tp, live ? parseFloat(live.market.bid) : null].filter(p => p !== null);
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      const range = max - min || 1;
-      const pctSL = ((s.sl - min) / range) * 100;
-      const pctEntry = ((s.entry - min) / range) * 100;
-      const pctTP = ((s.tp - min) / range) * 100;
-      const pctLive = live ? ((parseFloat(live.market.bid) - min) / range) * 100 : null;
+      // Price Bar calculations (fixed range from entry/SL/TP; live pin clamped)
+      const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
+      const fixedPrices = [slN, entryN, tpN].filter(Number.isFinite);
+      const min = Math.min(...fixedPrices);
+      const max = Math.max(...fixedPrices);
+      const range = (max - min) || 1;
+      const pctSL = ((slN - min) / range) * 100;
+      const pctEntry = ((entryN - min) / range) * 100;
+      const pctTP = ((tpN - min) / range) * 100;
+      const liveBid = live ? parseFloat(live.market.bid) : null;
+      let pctLive = (liveBid !== null && Number.isFinite(liveBid)) ? ((liveBid - min) / range) * 100 : null;
+      if (pctLive !== null) pctLive = Math.max(0, Math.min(100, pctLive));
 
       const leftPin = Math.min(pctSL, pctTP);
       const rightPin = Math.max(pctSL, pctTP);
 
       let dynamicBtn = '';
       if (isLive) {
-        dynamicBtn = `<button onclick="syncLiveTrades()" class="flex-1 py-2 bg-open text-bg rounded-lg text-xs font-bold">Open ${livePnl > 0 ? '+' : ''}$${livePnl.toFixed(2)}</button>`;
+        const dId = (live.position && live.position.dealId) ? live.position.dealId : '';
+        dynamicBtn = `<button onclick="closeTrade('${s.id}','${dId}')" class="flex-1 py-2 bg-loss text-bg rounded-lg text-xs font-bold">Close ${livePnl > 0 ? '+' : ''}$${livePnl.toFixed(2)}</button>`;
       } else if (s.result === 'win' || s.result === 'loss') {
         dynamicBtn = `<button class="flex-1 py-2 bg-surface2 text-muted border border-line rounded-lg text-xs font-bold" disabled>Closed</button>`;
       } else {
@@ -306,6 +308,22 @@
           <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
         </div>
       </div>`}).join('');
+  }
+
+  async function closeTrade(signalId, dealId) {
+    if (!dealId) return showAlert("No deal ID for this position.", "error");
+    if (!confirm('Close this live position on Capital.com?')) return;
+    showAlert("Closing position...", "success");
+    try {
+      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });
+      const data = await res.json();
+      if (data.success || data.dealReference || data.dealId) {
+        showAlert("Position closed.", "success");
+        syncLiveTrades();
+      } else {
+        showAlert("Close failed: " + JSON.stringify(data), "error");
+      }
+    } catch (err) { showAlert("Connection failed.", "error"); }
   }
 
   async function updateResult(id, result) {
