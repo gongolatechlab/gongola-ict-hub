@@ -46,10 +46,6 @@ window.onerror = function(msg, url, line, col, error) {
   .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
 </style>
   <link rel="manifest" href="manifest.json">
-<script>
-  
-  }
-</script>
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
 
@@ -228,131 +224,135 @@ window.onerror = function(msg, url, line, col, error) {
   }
 
   function renderSignals() {
-      const list = document.getElementById('signal-list');
-      if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
-
-      list.innerHTML = signalsData.map(s => {
-        const isPending = s.result === 'pending' || !s.result;
-        
-        // BULLETPROOF MATCHING
-        let livePos = livePositions.find(p => {
+    const list = document.getElementById('signal-list');
+    if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
+    
+    list.innerHTML = signalsData.map(s => {
+      const isPending = s.result === 'pending' || !s.result;
+      
+      let livePos = null;
+      // 1. Try exact deal_id match (dealId or workingOrderId)
+      if (s.deal_id) {
+        const targetId = String(s.deal_id).toLowerCase().trim();
+        livePos = livePositions.find(p => {
           if (!p.position) return false;
-          const targetId = s.deal_id ? String(s.deal_id).toLowerCase().trim() : '';
           const pDeal = p.position.dealId ? String(p.position.dealId).toLowerCase().trim() : '';
           const pWork = p.position.workingOrderId ? String(p.position.workingOrderId).toLowerCase().trim() : '';
-          if (targetId && (pDeal === targetId || pWork === targetId)) return true;
-          return false;
+          return pDeal === targetId || pWork === targetId;
         });
+      }
+      // 2. Bulletproof Fallback: if exactly ONE open trade exists, match it to ANY pending signal of the same direction
+      if (!livePos && isPending && livePositions.length === 1) {
+        const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
+        if (liveDir === String(s.direction).toUpperCase().trim()) {
+          livePos = livePositions[0];
+        }
+      }
+      // 3. Secondary Fallback: match by Asset + Direction
+      if (!livePos && isPending) {
+        livePos = livePositions.find(p => {
+          if (!p.position) return false;
+          const sameDir = String(p.position.direction).toUpperCase().trim() === String(s.direction).toUpperCase().trim();
+          const posEpic = String(p.market && p.market.epic ? p.market.epic : '').toUpperCase().trim();
+          const sigAsset = String(s.asset || '').toUpperCase().trim();
+          return sameDir && (posEpic.includes(sigAsset) || sigAsset.includes(posEpic) || (posEpic.includes('XAU') && sigAsset.includes('XAU')));
+        });
+      }
+      let execBtn = '';
+      if (!isPending) {
+        execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
+      } else if (livePos) {
+        const upl = livePos.position.upl || 0;
+        const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
+        const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
+        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-amber-500/20 text-amber-500 border border-amber-500 rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
+      } else {
+        execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
+      }
+      const statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
+      const statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
+      
+      const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
+      const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
+      const rrColor = rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss';
+      
+      const slPts = (s.entry - s.sl).toFixed(1);
+      const tpPts = (s.tp - s.entry).toFixed(1);
+      const aliasTag = s.alias ? `<span class="text-[9px] text-muted ml-1">also ${s.alias}</span>` : '';
+
+      const prices = [s.entry, s.sl, s.tp];
+      const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
+      const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
+      const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
+      
+      let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
+      if (livePos && livePos.market) {
+        currentPrice = livePos.market.bid;
+        pctCurrent = ((currentPrice - min) / range) * 100;
+        pctCurrent = Math.max(0, Math.min(100, pctCurrent));
+        showLivePin = true;
+      }
+      
+      
+
+      return `
+      <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
+        <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
+            <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
+            
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${isPending ? 'PENDING' : s.result.toUpperCase()}</span>
+            ${livePos ? `<span class="text-[9px] font-bold px-2 py-1 rounded bg-bg border border-line ${livePos.position.upl >= 0 ? 'text-win' : 'text-loss'}">${livePos.position.upl >= 0 ? '+' : '-'}$${Math.abs(livePos.position.upl).toFixed(2)}</span>` : ''}
+            <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+          </div>
+        </div>
         
-        // Fallback: If exactly 1 open trade, match pending direction
-        if (!livePos && isPending && livePositions.length === 1) {
-          const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
-          if (liveDir === String(s.direction).toUpperCase().trim()) livePos = livePositions[0];
-        }
-
-        // Status UI
-        let actualStatus = isPending ? 'PENDING' : s.result.toUpperCase();
-        let statusColor = isPending ? 'border-accent' : s.result === 'win' ? 'border-win' : 'border-loss';
-        let statusBg = isPending ? 'bg-accent/10 text-accent' : s.result === 'win' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss';
-        
-        if (livePos) {
-          actualStatus = 'OPEN';
-          statusColor = 'border-amber-500';
-          statusBg = 'bg-amber-500/10 text-amber-500';
-        }
-
-        // Button UI
-        let execBtn = '';
-        if (!isPending) {
-          execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
-        } else if (livePos) {
-          const upl = livePos.position.upl || 0;
-          const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
-          const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
-          execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-amber-500/20 text-amber-500 border border-amber-500 rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
-        } else {
-          execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
-        }
-
-        const risk = Math.abs(s.entry - s.sl); const reward = Math.abs(s.tp - s.entry);
-        const rr = risk > 0 ? (reward / risk).toFixed(1) : '--';
-        const rrColor = rr >= 1.5 ? 'text-win' : rr >= 1 ? 'text-yellow-400' : 'text-loss';
-
-        const slPts = (s.entry - s.sl).toFixed(1);
-        const tpPts = (s.tp - s.entry).toFixed(1);
-        const aliasTag = s.alias ? `<span class="text-[9px] text-muted ml-1">also ${s.alias}</span>` : '';
-
-        const prices = [s.entry, s.sl, s.tp];
-        const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
-        const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
-        const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
-        
-        let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
-        if (livePos && livePos.market) {
-          currentPrice = livePos.market.bid;
-          pctCurrent = ((currentPrice - min) / range) * 100;
-          pctCurrent = Math.max(0, Math.min(100, pctCurrent));
-          showLivePin = true;
-        }
-
-        return `
-        <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending && !livePos ? 'opacity-70' : ''}">
-          <div class="p-4 border-b border-line flex justify-between items-center bg-surface2">
-            <div class="flex items-center gap-3">
-              <span class="text-lg font-bold font-mono">${s.asset}${aliasTag}</span>
-              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
-              <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              ${livePos ? `<span class="text-[9px] font-bold px-2 py-1 rounded bg-bg border border-line ${livePos.position.upl >= 0 ? 'text-win' : 'text-loss'}">${livePos.position.upl >= 0 ? '+' : '-'}$${Math.abs(livePos.position.upl).toFixed(2)}</span>` : ''}
-              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${actualStatus}</span>
-              <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-            </div>
+        <div class="p-4">
+          <div class="flex justify-between items-center mb-4">
+             <span class="text-[10px] font-mono ${rrColor} bg-bg px-2 py-1 rounded border border-line">R:R 1:${rr}</span>
           </div>
 
-          <div class="p-4">
-            <div class="flex justify-between items-center mb-4">
-               <span class="text-[10px] font-mono ${rrColor} bg-bg px-2 py-1 rounded border border-line">R:R 1:${rr}</span>
-            </div>
-
-            <div class="relative h-1.5 bg-bg rounded-full mb-6 mx-2 mt-4">
-              <div class="absolute h-full bg-loss/50 rounded-l-full" style="width: ${leftPin}%; left: 0;"></div>
-              <div class="absolute h-full bg-win/50 rounded-r-full" style="width: ${100 - rightPin}%; left: ${rightPin}%;"></div>
-              <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
-              <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
-              <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
-              ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
-            </div>
-
-            <div class="grid grid-cols-3 gap-2 mb-4">
-              <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">Entry</div><div class="text-xs font-mono font-bold text-white">${s.entry}</div></div>
-              <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">SL</div><div class="text-xs font-mono font-bold text-loss">${s.sl}</div><div class="text-[8px] font-mono text-loss mt-0.5">${slPts} pts</div></div>
-              <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">TP</div><div class="text-xs font-mono font-bold text-win">${s.tp}</div><div class="text-[8px] font-mono text-win mt-0.5">+${tpPts} pts</div></div>
-            </div>
-
-            <div class="flex border-b border-line mb-3">
-              <button onclick="toggleAdminTab('${s.id}', 'chart', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Chart</button>
-              <button onclick="toggleAdminTab('${s.id}', 'analysis', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Analysis</button>
-            </div>
-
-            <div id="a-panel-chart-${s.id}" class="hidden mb-3">
-              ${s.image_url ? `<img src="${s.image_url}" alt="Chart" class="w-full rounded-lg border border-line">` : '<p class="text-[10px] text-muted">No chart image.</p>'}
-            </div>
-            <div id="a-panel-analysis-${s.id}" class="hidden mb-3">
-              <p class="text-[11px] text-muted bg-bg p-2 rounded border border-line leading-relaxed">${s.analysis || 'No analysis.'}</p>
-            </div>
+          <div class="relative h-1.5 bg-bg rounded-full mb-6 mx-2 mt-4">
+            <div class="absolute h-full bg-loss/50 rounded-l-full" style="width: ${leftPin}%; left: 0;"></div>
+            <div class="absolute h-full bg-win/50 rounded-r-full" style="width: ${100 - rightPin}%; left: ${rightPin}%;"></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
+            <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
+            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
+            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
           </div>
 
-          <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
-            ${execBtn}
-            <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
-            <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
-            <button onclick="copyAdminTrade('${s.asset}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, '${rr}')" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">Entry</div><div class="text-xs font-mono font-bold text-white">${s.entry}</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">SL</div><div class="text-xs font-mono font-bold text-loss">${s.sl}</div><div class="text-[8px] font-mono text-loss mt-0.5">${slPts} pts</div></div>
+            <div class="bg-bg rounded-lg border border-line p-2 text-center"><div class="text-[9px] text-muted uppercase mb-1">TP</div><div class="text-xs font-mono font-bold text-win">${s.tp}</div><div class="text-[8px] font-mono text-win mt-0.5">+${tpPts} pts</div></div>
           </div>
-        </div>`}).join('');
-    }
 
-  
+          <div class="flex border-b border-line mb-3">
+            <button onclick="toggleAdminTab('${s.id}', 'chart', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Chart</button>
+            <button onclick="toggleAdminTab('${s.id}', 'analysis', this)" class="tab-btn flex-1 py-2 text-[11px] font-bold text-muted border-b-2 border-transparent hover:text-white transition-all">Analysis</button>
+          </div>
+          
+          <div id="a-panel-chart-${s.id}" class="hidden mb-3">
+            ${s.image_url ? `<img src="${s.image_url}" alt="Chart" class="w-full rounded-lg border border-line">` : '<p class="text-[10px] text-muted">No chart image.</p>'}
+          </div>
+          <div id="a-panel-analysis-${s.id}" class="hidden mb-3">
+            <p class="text-[11px] text-muted bg-bg p-2 rounded border border-line leading-relaxed">${s.analysis || 'No analysis.'}</p>
+          </div>
+        </div>
+        
+        <div class="p-3 border-t border-line flex flex-wrap gap-2 bg-surface2 mt-2">
+          ${execBtn}
+          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-win hover:border-win min-w-[70px]">Win</button>
+          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-loss hover:border-loss min-w-[70px]">Loss</button>
+          <button onclick="copyAdminTrade('${s.asset}', '${s.direction}', ${s.entry}, ${s.sl}, ${s.tp}, ${rr})" class="py-2 px-3 bg-bg border border-line rounded-lg text-[10px] font-bold text-muted hover:text-white hover:border-accent">Copy</button>
+        </div>
+      </div>`}).join('');
+  }
   async function updateResult(id, result) {
     const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
     if (error) return showAlert('Failed to update status', 'error');
