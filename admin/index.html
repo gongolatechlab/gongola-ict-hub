@@ -231,6 +231,7 @@ window.onerror = function(msg, url, line, col, error) {
       const isPending = s.result === 'pending' || !s.result;
       
       let livePos = null;
+      // 1. Try exact deal_id match (dealId or workingOrderId)
       if (s.deal_id) {
         const targetId = String(s.deal_id).toLowerCase().trim();
         livePos = livePositions.find(p => {
@@ -240,14 +241,21 @@ window.onerror = function(msg, url, line, col, error) {
           return pDeal === targetId || pWork === targetId;
         });
       }
-      // Fallback: If still not found and it's pending, try Asset + Direction
+      // 2. Bulletproof Fallback: if exactly ONE open trade exists, match it to ANY pending signal of the same direction
+      if (!livePos && isPending && livePositions.length === 1) {
+        const liveDir = String(livePositions[0].position.direction).toUpperCase().trim();
+        if (liveDir === String(s.direction).toUpperCase().trim()) {
+          livePos = livePositions[0];
+        }
+      }
+      // 3. Secondary Fallback: match by Asset + Direction
       if (!livePos && isPending) {
         livePos = livePositions.find(p => {
-          if (!p.position || !p.market) return false;
+          if (!p.position) return false;
           const sameDir = String(p.position.direction).toUpperCase().trim() === String(s.direction).toUpperCase().trim();
-          const posEpic = String(p.market.epic || '').toUpperCase().trim();
+          const posEpic = String(p.market && p.market.epic ? p.market.epic : '').toUpperCase().trim();
           const sigAsset = String(s.asset || '').toUpperCase().trim();
-          return sameDir && (posEpic === sigAsset || posEpic.includes('XAU') || sigAsset.includes('XAU'));
+          return sameDir && (posEpic.includes(sigAsset) || sigAsset.includes(posEpic) || (posEpic.includes('XAU') && sigAsset.includes('XAU')));
         });
       }
       let execBtn = '';
