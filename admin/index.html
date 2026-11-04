@@ -220,7 +220,7 @@
     list.innerHTML = signalsData.map(s => {
       const isPending = s.result === 'pending' || !s.result;
       
-      const livePos = livePositions.find(p => s.deal_id && p.position.dealId === s.deal_id);
+      const livePos = livePositions.find(p => s.deal_id && p.position && p.position.dealId && String(p.position.dealId).toLowerCase() === String(s.deal_id).toLowerCase());
       let execBtn = '';
       if (!isPending) {
         execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
@@ -228,7 +228,7 @@
         const upl = livePos.position.upl || 0;
         const uplColor = upl >= 0 ? 'text-win' : 'text-loss';
         const uplText = upl >= 0 ? `+$${upl.toFixed(2)}` : `-$${Math.abs(upl).toFixed(2)}`;
-        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-surface text-accent border border-accent rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
+        execBtn = `<button onclick="fetchPositions()" class="flex-1 py-2 bg-amber-500/20 text-amber-500 border border-amber-500 rounded-lg text-[10px] font-bold min-w-[70px] flex justify-center gap-1 items-center">Open <span class="${uplColor}">${uplText}</span></button>`;
       } else {
         execBtn = `<button onclick="executeTrade('${s.id}')" class="flex-1 py-2 bg-win text-bg rounded-lg text-[10px] font-bold min-w-[70px]">Execute</button>`;
       }
@@ -247,6 +247,14 @@
       const min = Math.min(...prices); const max = Math.max(...prices); const range = max - min || 1;
       const pctSL = ((s.sl - min) / range) * 100; const pctEntry = ((s.entry - min) / range) * 100; const pctTP = ((s.tp - min) / range) * 100;
       const leftPin = Math.min(pctSL, pctTP); const rightPin = Math.max(pctSL, pctTP);
+      
+      let pctCurrent = 0; let currentPrice = 0; let showLivePin = false;
+      if (livePos && livePos.market) {
+        currentPrice = livePos.market.bid;
+        pctCurrent = ((currentPrice - min) / range) * 100;
+        pctCurrent = Math.max(0, Math.min(100, pctCurrent));
+        showLivePin = true;
+      }
 
       return `
       <div class="sig-card border border-line rounded-xl overflow-hidden mb-3 border-l-4 ${statusColor} ${!isPending ? 'opacity-70' : ''}">
@@ -273,6 +281,7 @@
             <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctSL}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">SL</span></div>
             <div class="absolute w-0.5 h-3 -top-1 bg-accent -translate-x-1/2 z-10" style="left: ${pctEntry}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-accent font-bold">ENTRY</span></div>
             <div class="absolute w-0.5 h-3 -top-1 bg-white -translate-x-1/2" style="left: ${pctTP}%;"><span class="absolute -top-4 -translate-x-1/2 text-[8px] text-muted font-bold">TP</span></div>
+            ${showLivePin ? `<div class="absolute w-0.5 h-4 -top-1.5 bg-cyan-400 -translate-x-1/2 z-20 shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-all duration-500" style="left: ${pctCurrent}%;"><span class="absolute -top-5 -translate-x-1/2 text-[9px] text-cyan-400 font-bold whitespace-nowrap bg-bg/80 px-1 rounded">${currentPrice}</span></div>` : ''}
           </div>
 
           <div class="grid grid-cols-3 gap-2 mb-4">
