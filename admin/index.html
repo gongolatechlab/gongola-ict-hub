@@ -232,8 +232,13 @@ window.onerror = function(msg, url, line, col, error) {
       
       const livePos = livePositions.find(p => {
         if (!p.position || !s.deal_id) return false;
-        return String(p.position.dealId).toLowerCase() === String(s.deal_id).toLowerCase();
+        return String(p.position.dealId).trim().toLowerCase() === String(s.deal_id).trim().toLowerCase();
       });
+      let debugMsg = '';
+      if (s.deal_id) {
+        const liveIds = livePositions.map(p => p.position ? String(p.position.dealId).trim() : 'none');
+        debugMsg = `Match: ${livePos ? 'YES' : 'NO'} | Live: ${liveIds.join(', ')}`;
+      }
       let execBtn = '';
       if (!isPending) {
         execBtn = '<button disabled class="flex-1 py-2 bg-surface2 text-muted rounded-lg text-[10px] font-bold min-w-[70px] border border-line">Closed</button>';
@@ -279,6 +284,7 @@ window.onerror = function(msg, url, line, col, error) {
             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${s.direction === 'BUY' ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}">${s.direction}</span>
             <span class="text-[10px] font-mono text-muted" title="${new Date(s.created_at).toLocaleString()}">${timeAgo(s.created_at)}</span>
             <span class="text-[8px] font-mono text-red-500">ID: ${s.deal_id || 'none'}</span>
+            <span class="text-[8px] font-mono text-yellow-500 block">${debugMsg}</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded ${statusBg}">${isPending ? 'PENDING' : s.result.toUpperCase()}</span>
