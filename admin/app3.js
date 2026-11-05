@@ -292,26 +292,73 @@ function switchTab(id, tab) {
 async function executeTrade(id) {
   const sig = signalsData.find(s => s.id === id);
   if (!sig) return;
-  if (!confirm(`Execute ${sig.direction} ${sig.asset}?`)) return;
-  try {
-    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
-    const data = await res.json();
-    if (data.dealReference || data.dealId) {
-      setTimeout(async () => {
-        const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
-        const syncData = await syncRes.json();
-        if (syncData.positions) {
-          const matchingPos = syncData.positions.find(p => (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && p.position.direction === sig.direction);
-          if (matchingPos) {
-            await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);
-          }
-        }
-        syncLiveTrades();
-      }, 2000);
-    }
-  } catch (err) { alert("Execution failed: " + err.message); }
-}
 
+  // Show custom Lot Size Modal
+  let lotModal = document.getElementById('lot-size-modal');
+  if (!lotModal) {
+    lotModal = document.createElement('div');
+    lotModal.id = 'lot-size-modal';
+    lotModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(lotModal);
+  }
+
+  lotModal.innerHTML = `
+    <div style="background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; width:100%; max-width:340px; text-align:center;">
+      <h2 style="color:#fff; font-size:18px; margin-bottom:8px;">Execute Trade</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">${sig.direction} ${sig.asset}</p>
+      
+      <label style="display:block; text-align:left; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Lot Size</label>
+      <input type="number" id="lot-size-input" step="0.01" value="1.0" style="width:100%; background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px; color:#fff; font-size:18px; font-weight:bold; font-family:var(--mono); text-align:center; outline:none; margin-bottom:20px;">
+      
+      <div style="display:flex; gap:10px;">
+        <button onclick="document.getElementById('lot-size-modal').remove()" style="flex:1; padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Cancel</button>
+        <button id="confirm-lot-btn" style="flex:1; padding:14px; background:var(--green); border:none; border-radius:12px; color:#000; font-weight:bold; font-size:14px;">Confirm</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('confirm-lot-btn').onclick = async () => {
+    const lotSize = parseFloat(document.getElementById('lot-size-input').value);
+    if (!lotSize || lotSize <= 0) return alert("Please enter a valid lot size.");
+    
+    lotModal.remove();
+
+    try {
+      const res = await fetch(EXECUTE_ENDPOINT, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify({ 
+          action: 'execute_trade', 
+          epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, 
+          direction: sig.direction, 
+          size: lotSize, 
+          stopLevel: sig.sl, 
+          profitLevel: sig.tp 
+        }) 
+      });
+      
+      const data = await res.json();
+      
+      if (data.dealReference || data.dealId) {
+        setTimeout(async () => {
+          const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
+          const syncData = await syncRes.json();
+          if (syncData.positions) {
+            const matchingPos = syncData.positions.find(p => (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && p.position.direction === sig.direction);
+            if (matchingPos) {
+              await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);
+            }
+          }
+          syncLiveTrades();
+        }, 2000);
+      } else {
+        alert("Execution Failed: " + JSON.stringify(data));
+      }
+    } catch (err) { 
+      alert("Execution failed: " + err.message); 
+    }
+  };
+}
 async function closeTrade(signalId, dealId) {
   if (!dealId) return alert("No deal ID.");
   if (!confirm('Close position?')) return;
