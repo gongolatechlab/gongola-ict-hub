@@ -166,7 +166,7 @@ function renderSignals() {
       </div>
       
       <div class="body">
-        <div class="bar-wrap" style="padding-top: 30px; padding-bottom: 20px;">
+        <div class="bar-wrap" style="padding-top: 24px; padding-bottom: 10px;">
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
@@ -192,7 +192,7 @@ function renderSignals() {
           </div>
         </div>
 
-        <div style="display:flex; margin-bottom:12px; border-bottom:1px solid var(--line); margin-top:16px;">
+        <div style="display:flex; margin-bottom:8px; border-bottom:1px solid var(--line); margin-top:8px;">
           <button class="tab-btn" onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent; display:flex; align-items:center; justify-content:center; gap:6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Chart
           </button>
