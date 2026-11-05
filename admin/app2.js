@@ -293,19 +293,29 @@ function hideAlert() { document.getElementById('custom-alert')?.close(); }
 function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
   if (!modal) return;
-  if (modal.style.display === 'block') {
+  
+  // Check if it's currently open (either via dialog or style)
+  const isOpen = modal.hasAttribute('open') || modal.style.display === 'block';
+  
+  if (isOpen) {
+    // Close it both ways to be safe
+    if (typeof modal.close === 'function') modal.close();
+    modal.removeAttribute('open');
     modal.style.display = 'none';
     return;
   }
+
+  // Open it
   document.getElementById('signal-form').reset();
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').classList.add('hidden');
   document.getElementById('manual-fields').classList.add('hidden');
   
   if (typeof modal.showModal === 'function') {
-    modal.showModal();
+    try { modal.showModal(); } catch(e) { modal.style.display = 'block'; modal.setAttribute('open', ''); }
   } else {
     modal.style.display = 'block';
+    modal.setAttribute('open', '');
   }
 }
 
