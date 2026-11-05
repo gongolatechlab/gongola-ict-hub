@@ -110,8 +110,7 @@ function getLiveTradeForSignal(s, used) {
 function renderSignals() {
   const list = document.getElementById('signal-list');
   if (!list) return;
-  if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
-
+  
   const usedDealIds = new Set();
   list.innerHTML = signalsData.map(s => {
     const live = getLiveTradeForSignal(s, usedDealIds);
@@ -119,23 +118,25 @@ function renderSignals() {
     const isLive = !!live;
     const livePnl = isLive ? parseFloat(live.position.upl) : 0;
 
-    let statusBadge = '';
-    if (isLive) {
-      statusBadge = `<span class="sig-badge bg-open/20 text-open border border-open/50 flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-open animate-pulse"></div> OPEN</span>`;
-    } else if (s.result === 'win') {
-      statusBadge = `<span class="sig-badge bg-win/20 text-win border border-win/50">WIN</span>`;
-    } else if (s.result === 'loss') {
-      statusBadge = `<span class="sig-badge bg-loss/20 text-loss border border-loss/50">LOSS</span>`;
-    } else {
-      statusBadge = `<span class="sig-badge bg-surface2 text-muted border border-line">PENDING</span>`;
-    }
+    const isClosed = s.result === 'win' || s.result === 'loss';
+    const statusClass = isLive ? 'open' : isClosed ? 'closed' : 'pending';
+    const badgeHtml = isLive 
+      ? '<span class="badge open"><i></i>OPEN</span>' 
+      : isClosed 
+        ? '<span class="badge closed">CLOSED</span>' 
+        : '<span class="badge pending"><i></i>WAITING</span>';
+
+    const displayPnl = isLive ? livePnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null);
+    const pnlHtml = displayPnl !== null 
+      ? `<b class="num ${displayPnl >= 0 ? 'pos' : 'neg'}">${displayPnl >= 0 ? '+' : '-'}$${Math.abs(displayPnl).toFixed(2)}</b>` 
+      : `<b class="num" style="color:var(--muted)">—</b>`;
 
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
     let rrDisplay = '—';
     if (Number.isFinite(slN) && Number.isFinite(entryN) && Number.isFinite(tpN)) {
       const risk = Math.abs(entryN - slN);
       const reward = Math.abs(tpN - entryN);
-      if (risk > 0) rrDisplay = '1:' + (reward / risk).toFixed(1);
+      if (risk > 0) rrDisplay = '1 → ' + (reward / risk).toFixed(1);
     }
 
     const fixedPrices = [slN, entryN, tpN].filter(Number.isFinite);
@@ -150,28 +151,31 @@ function renderSignals() {
     const leftPin = Math.min(pctSL, pctTP);
     const rightPin = Math.max(pctSL, pctTP);
 
+    const time = new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const directionText = s.direction === 'BUY' ? 'price expected to rise' : 'price expected to fall';
+
     return `
-    <div class="sig-card flex flex-col bg-surface border border-line rounded-xl overflow-hidden mb-3">
-      <!-- Collapsible Header -->
-      <div class="flex justify-between items-center p-4 cursor-pointer hover:bg-surface2/50 transition-colors" onclick="document.getElementById('card-body-${s.id}').classList.toggle('hidden')">
-        <div class="flex items-center gap-3">
-          <span class="text-xl font-bold font-mono text-white">${s.asset}</span>
-          <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
-          <span class="text-xs text-muted font-mono">${new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+    <article class="card ${statusClass}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
+      <div class="head">
+        <div class="h-left">
+          <div class="pair">${s.asset}<span class="side ${s.direction.toLowerCase()}">${s.direction}</span></div>
+          <div class="meta">${time} · ${directionText}</div>
         </div>
-        <div class="flex items-center gap-3">
-          ${isLive ? `<span class="text-sm font-mono font-bold ${livePnl >= 0 ? 'text-win' : 'text-loss'}">${livePnl > 0 ? '+' : ''}$${livePnl.toFixed(2)}</span>` : ''}
-          ${statusBadge}
-          <span class="text-sm font-mono text-muted font-bold">RR ${rrDisplay}</span>
-          <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        <div class="h-right">
+          <div class="pl">${pnlHtml}${badgeHtml}</div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
-
-      <!-- Collapsible Body -->
-      <div id="card-body-${s.id}" class="hidden">
+      
+      <div class="body">
+        <div class="facts">
+          <div class="fact"><label>Entry</label><b class="num">${s.entry}</b></div>
+          <div class="fact"><label>Risk→Reward</label><b class="num">${rrDisplay}</b></div>
+          <div class="fact"><label>Size</label><b class="num">1×</b></div>
+        </div>
         
-        <!-- Price Bar -->
-        <div class="px-4 pt-4 pb-2 border-t border-line">
+        <div class="bar-wrap">
+          <div class="bar-top"><span class="s">✗ STOP</span><span class="e">ENTRY</span><span class="t">TARGET ✓</span></div>
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
@@ -180,42 +184,40 @@ function renderSignals() {
             <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
             ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
           </div>
-          <div class="flex justify-between text-xs font-mono text-muted mt-2">
-            <span>${s.sl}</span>
-            <span>${s.entry}</span>
-            <span>${s.tp}</span>
+          <div class="bar-bot num">
+            <span><em>Loss at</em>${s.sl}</span>
+            <span><em>Start</em>${s.entry}</span>
+            <span><em>Win at</em>${s.tp}</span>
           </div>
         </div>
 
-        <!-- Chart & Analysis Grid -->
-        <div class="grid grid-cols-2 border-t border-line">
-          <div onclick="openImage('${s.image_url}')" class="p-4 bg-surface2/30 border-r border-line flex flex-col items-center justify-center cursor-pointer hover:bg-surface2/60 transition-colors h-32">
-            <svg class="w-6 h-6 text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span class="text-sm font-bold text-muted">Chart</span>
-          </div>
-          <div onclick="openAnalysis('${s.id}')" class="p-4 bg-surface2/30 flex flex-col items-center justify-center cursor-pointer hover:bg-surface2/60 transition-colors h-32">
-            <svg class="w-6 h-6 text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span class="text-sm font-bold text-muted">Analysis</span>
-          </div>
+        <div class="tools">
+          <button class="tool" onclick="event.stopPropagation(); openImage('${s.image_url}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg>
+            <span><b>Chart</b><small>See the setup</small></span>
+          </button>
+          <button class="tool" onclick="event.stopPropagation(); openAnalysis('${s.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+            <span><b>Analysis</b><small>Why this trade</small></span>
+          </button>
         </div>
 
-        <!-- Actions -->
-        <div class="p-3 border-t border-line flex gap-2 bg-surface">
+        <div class="actions">
           ${isLive ? `
-            <button onclick="closeTrade('${s.id}','${live.position.dealId}')" class="flex-1 py-3 bg-loss text-white font-bold rounded-lg hover:brightness-110">Close</button>
-            <button onclick="alert('Scale Out feature coming soon!')" class="flex-1 py-3 bg-[#0B0C10] text-white font-bold rounded-lg border border-line hover:border-accent">Scale Out</button>
-            <button onclick="alert('Share feature coming soon!')" class="flex-1 py-3 bg-[#0B0C10] text-white font-bold rounded-lg border border-line hover:border-accent">Share</button>
-          ` : s.result === 'win' || s.result === 'loss' ? `
-            <button class="flex-1 py-3 bg-surface2 text-muted border border-line rounded-lg font-bold cursor-not-allowed" disabled>Closed</button>
+            <button class="act danger" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">Close trade</button>
+            <button class="act warn" onclick="event.stopPropagation(); alert('Coming soon')">Take partial profit</button>
+            <button class="act ghost" onclick="event.stopPropagation(); alert('Coming soon')">Send to channel</button>
+          ` : isClosed ? `
+            <button class="act ghost" style="grid-column: span 3;">Closed (${s.result.toUpperCase()})</button>
           ` : `
-            <button onclick="executeTrade('${s.id}')" class="flex-1 py-3 bg-win text-bg font-bold rounded-lg hover:brightness-110">Execute</button>
-            <button onclick="alert('Scale Out only available for live trades.')" class="flex-1 py-3 bg-[#0B0C10] text-white font-bold rounded-lg border border-line hover:border-accent">Scale Out</button>
-            <button onclick="alert('Share feature coming soon!')" class="flex-1 py-3 bg-[#0B0C10] text-white font-bold rounded-lg border border-line hover:border-accent">Share</button>
+            <button class="act danger" style="background:var(--green); color:#000; border-color:var(--green);" onclick="event.stopPropagation(); executeTrade('${s.id}')">Execute</button>
+            <button class="act warn" onclick="event.stopPropagation(); deleteSignal('${s.id}')">Delete</button>
+            <button class="act ghost" onclick="event.stopPropagation(); alert('Coming soon')">Send to channel</button>
           `}
         </div>
       </div>
-    </div>`;
-  }).join('');
+    </article>`;
+  }).join('') || '<div class="empty"><b>Nothing here yet</b>Tap “Post Signal” to add a trade.</div>';
 }
 async function executeTrade(id) {
   const sig = signalsData.find(s => s.id === id);
