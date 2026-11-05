@@ -357,11 +357,18 @@ function setSigDir(dir) {
 // --- INIT & LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  fetchAccountBalance();
+  // Load signals and live trades FIRST
   fetchSignals();
-  syncLiveTrades();
+  syncLiveTrades().then(() => {
+    // AFTER trades are loaded, get the balance
+    fetchAccountBalance();
+  });
+  
   if (syncInterval) clearInterval(syncInterval);
-  syncInterval = setInterval(() => { fetchSignals(); syncLiveTrades(); }, 60000);
+  syncInterval = setInterval(() => { 
+    fetchSignals(); 
+    syncLiveTrades().then(() => fetchAccountBalance());
+  }, 60000);
 
   // Bind Post Button
   const postBtn = document.getElementById('btnPost');
