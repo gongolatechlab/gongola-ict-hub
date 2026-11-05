@@ -148,10 +148,10 @@ function renderSignals() {
     <article class="card ${statusClass}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
       <div class="head">
         <div class="h-left">
-          <div class="pair">
-            ${assetIcon}${s.asset}
-            <span class="side ${s.direction.toLowerCase()}">${s.direction}</span>
-            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 8px;">${rrDisplay}</span>
+          <div class="pair" style="display:flex; align-items:center; flex-wrap:nowrap;">
+            <span style="display:flex; align-items:center;">${assetIcon}${s.asset}</span>
+            <span class="side ${s.direction.toLowerCase()}" style="margin-left:8px; flex-shrink:0;">${s.direction}</span>
+            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 8px; white-space:nowrap;">${rrDisplay}</span>
           </div>
           <div class="meta">${time} · ${directionText}</div>
         </div>
