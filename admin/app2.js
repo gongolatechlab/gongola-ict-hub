@@ -293,12 +293,20 @@ function hideAlert() { document.getElementById('custom-alert')?.close(); }
 function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
   if (!modal) return;
-  if (modal.open) return modal.close();
+  if (modal.style.display === 'block') {
+    modal.style.display = 'none';
+    return;
+  }
   document.getElementById('signal-form').reset();
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').classList.add('hidden');
   document.getElementById('manual-fields').classList.add('hidden');
-  modal.showModal();
+  
+  if (typeof modal.showModal === 'function') {
+    modal.showModal();
+  } else {
+    modal.style.display = 'block';
+  }
 }
 
 function setSigDir(dir) {
