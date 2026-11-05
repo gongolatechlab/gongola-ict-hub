@@ -48,7 +48,7 @@
   .pin.live::after { content: ''; position: absolute; top: -2px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #00E5FF; animation: pulse 1.5s infinite; }
 </style>
 </head>
-<body class="text-text font-display antialiased overflow-x-hidden min-h-screen hidden" id="admin-app">
+<body class="text-text font-display antialiased overflow-x-hidden min-h-screen" id="admin-app">
 
 <!-- PIN Gate -->
 <div id="pin-gate" class="fixed inset-0 z-[200] bg-bg flex flex-col items-center justify-center p-6">
@@ -147,7 +147,7 @@
     if (document.getElementById('admin-pin').value === "1973") {
       document.getElementById('pin-gate').classList.add('hidden');
       document.getElementById('main-content').classList.remove('hidden');
-      document.getElementById('admin-app').classList.remove('hidden');
+      
       if (window.supabase) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         fetchSignals();
@@ -157,7 +157,7 @@
       alert("Incorrect PIN");
     }
   }
-  document.getElementById('admin-app').classList.remove('hidden');
+  
 
   function showAlert(message, type = 'error') {
     const modal = document.getElementById('custom-alert'); const box = document.getElementById('alert-box'); const iconDiv = document.getElementById('alert-icon'); const iconSvg = document.getElementById('alert-svg'); const title = document.getElementById('alert-title');
