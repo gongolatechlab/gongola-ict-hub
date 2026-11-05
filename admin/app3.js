@@ -110,9 +110,21 @@ function renderSignals() {
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
     let rrDisplay = '—';
     if (Number.isFinite(slN) && Number.isFinite(entryN) && Number.isFinite(tpN)) {
-      const risk = Math.abs(entryN - slN);
-      const reward = Math.abs(tpN - entryN);
-      if (risk > 0) rrDisplay = '1 → ' + (reward / risk).toFixed(1);
+      let risk = 0;
+      let reward = 0;
+      
+      if (s.direction === 'BUY') {
+        risk = entryN - slN; // For a BUY, SL is below Entry
+        reward = tpN - entryN; // TP is above Entry
+      } else {
+        risk = slN - entryN; // For a SELL, SL is above Entry
+        reward = entryN - tpN; // TP is below Entry
+      }
+      
+      // Only calculate RR if the risk and reward are positive numbers
+      if (risk > 0 && reward > 0) {
+        rrDisplay = '1 → ' + (reward / risk).toFixed(1);
+      }
     }
 
     const fixedPrices = [slN, entryN, tpN].filter(Number.isFinite);
@@ -338,7 +350,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName);
           imageUrl = publicUrlData.publicUrl;
         }
-        const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
+        // Read direction directly from the hidden input to avoid variable sync issues
+        const finalDir = document.getElementById('sig-direction').value || currentSigDir;
+        const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: finalDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
         if (insertError) throw insertError;
         toggleSignalModal();
         fetchSignals();
