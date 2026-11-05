@@ -234,7 +234,7 @@ function renderSignals() {
             <button class="act danger" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Close
             </button>
-            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); alert('Scale Out coming soon')">
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); openScaleOutModal('${s.id}', '${live.position.dealId}', ${live.position.size}, '${live.position.direction}', '${live.market.epic}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Scale Out
             </button>
             <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); alert('Share coming soon')">
@@ -688,5 +688,62 @@ async function openAccountInfo() {
   } catch (err) {
     if (loadingMsg) loadingMsg.remove();
     alert("Failed to fetch account info: " + err.message);
+  }
+}
+
+async function openScaleOutModal(signalId, dealId, currentSize, direction, epic) {
+  let modal = document.getElementById('scale-out-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'scale-out-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+
+  const size25 = (currentSize * 0.25).toFixed(2);
+  const size50 = (currentSize * 0.50).toFixed(2);
+  const size75 = (currentSize * 0.75).toFixed(2);
+  const isTooSmall = currentSize <= 0.01;
+
+  modal.innerHTML = `
+    <div style="background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; width:100%; max-width:340px;">
+      <h2 style="color:#fff; font-size:18px; margin-bottom:4px;">Scale Out</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Current Size: <b>${currentSize} Lots</b></p>
+      
+      ${isTooSmall ? `
+        <div style="background:rgba(255,176,32,0.1); border:1px solid var(--amber); border-radius:12px; padding:12px; margin-bottom:16px;">
+          <p style="color:var(--amber); font-size:12px; line-height:1.4;">⚠️ This trade is too small to split. Capital.com requires a minimum of 0.01 lots.</p>
+        </div>
+      ` : ''}
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <button onclick="executePartialClose('${dealId}', ${size25}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">25%<br><span style="font-size:10px; color:var(--muted); font-weight:normal;">${size25} lots</span></button>
+        <button onclick="executePartialClose('${dealId}', ${size50}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">50%<br><span style="font-size:10px; color:var(--muted); font-weight:normal;">${size50} lots</span></button>
+        <button onclick="executePartialClose('${dealId}', ${size75}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">75%<br><span style="font-size:10px; color:var(--muted); font-weight:normal;">${size75} lots</span></button>
+        <button onclick="closeTrade('${signalId}', '${dealId}')" style="padding:14px; background:var(--red); border:1px solid var(--red); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Close All<br><span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:normal;">${currentSize} lots</span></button>
+      </div>
+
+      <button onclick="document.getElementById('scale-out-modal').remove()" style="width:100%; padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Cancel</button>
+    </div>
+  `;
+}
+
+async function executePartialClose(dealId, size, direction, epic) {
+  document.getElementById('scale-out-modal').remove();
+  alert("Closing " + size + " lots...");
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { 
+      method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
+      body: JSON.stringify({ action: 'partial_close', dealId: dealId, size: size, direction: direction, epic: epic }) 
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("Successfully closed " + size + " lots.");
+      syncLiveTrades();
+    } else {
+      alert("Failed to scale out: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    alert("Error: " + err.message);
   }
 }
