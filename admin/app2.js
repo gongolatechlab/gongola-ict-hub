@@ -288,7 +288,7 @@ function showAlert(message, type = 'error') {
   if (typeof modal.showModal === "function") { modal.showModal(); } else { modal.style.display = "block"; }
 }
 
-function hideAlert() { document.getElementById('custom-alert')?.close(); }
+  const modal = document.getElementById("custom-alert"); if (modal) { if (typeof modal.close === "function") { modal.close(); } else { modal.style.display = "none"; modal.removeAttribute("open"); } }
 
 function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
