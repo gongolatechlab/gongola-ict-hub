@@ -126,6 +126,15 @@ function renderSignals() {
     }
 
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
+    
+    // Calculate Dynamic RR
+    let rrDisplay = '—';
+    if (Number.isFinite(slN) && Number.isFinite(entryN) && Number.isFinite(tpN)) {
+      const risk = Math.abs(entryN - slN);
+      const reward = Math.abs(tpN - entryN);
+      if (risk > 0) rrDisplay = '1:' + (reward / risk).toFixed(1);
+    }
+
     const fixedPrices = [slN, entryN, tpN].filter(Number.isFinite);
     const min = Math.min(...fixedPrices); const max = Math.max(...fixedPrices);
     const range = (max - min) || 1;
@@ -153,7 +162,7 @@ function renderSignals() {
         <div class="flex items-center gap-3">
           <span class="text-lg font-bold font-mono">${s.asset}</span>
           <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
-          <span class="text-[10px] font-mono text-muted bg-bg px-1.5 py-0.5 rounded border border-line">RR ${s.rr || '—'}</span>
+          <span class="text-[10px] font-mono text-muted bg-bg px-1.5 py-0.5 rounded border border-line">RR ${rrDisplay}</span>
         </div>
         <div class="flex items-center gap-2">
           ${livePnlBadge}
@@ -175,8 +184,8 @@ function renderSignals() {
             <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
             <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
           </div>
+          ${s.image_url ? `<div class="mt-4 pt-4 border-t border-line"><div class="sig-label mb-1">Chart</div><img src="${s.image_url}" class="w-full rounded-lg border border-line object-contain max-h-64"></div>` : ''}
           ${s.analysis ? `<div class="mt-4 pt-4 border-t border-line"><div class="sig-label mb-1">Analysis</div><div class="text-sm text-text/80 leading-relaxed">${s.analysis.replace(/\*/g, '')}</div></div>` : ''}
-          ${s.image_url ? `<div class="mt-4"><img src="${s.image_url}" class="w-full rounded-lg border border-line object-contain max-h-64"></div>` : ''}
         </div>
         <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
           ${dynamicBtn}
