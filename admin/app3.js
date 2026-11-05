@@ -49,8 +49,13 @@ async function fetchSignals() {
     if (error) throw new Error(error.message);
     signalsData = data || [];
     renderSignals();
+    if (list && list.innerHTML.includes('DB Error')) list.innerHTML = ''; // Clear old errors
   } catch (err) {
-    if (list) list.innerHTML = '<div class="text-center text-loss p-4">DB Error: ' + err.message + '</div>';
+    // Only show the error if the list is empty (first load failure)
+    if (list && list.innerHTML.trim() === '' && list.innerHTML.includes('DB Error') === false) {
+      list.innerHTML = '<div class="text-center text-loss p-4">DB Error: ' + err.message + '</div>';
+    }
+    // If data already loaded, silently ignore (background sync failure)
   }
 }
 
@@ -197,16 +202,22 @@ function renderSignals() {
           </div>
         </div>
 
-        <div style="display:flex; margin-bottom:12px; border-bottom:1px solid var(--line);">
-          <button id="tab-chart-${s.id}" onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" style="flex:1; padding:10px; background:none; border:none; color:var(--amber); font-weight:bold; border-bottom:2px solid var(--amber);">Chart</button>
-          <button id="tab-analysis-${s.id}" onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Analysis</button>
+        <!-- Collapsible Content Tabs -->
+        <div style="display:none;" id="extra-content-${s.id}">
+          <div style="display:flex; margin-bottom:12px; border-bottom:1px solid var(--line);">
+            <button onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--amber); font-weight:bold; border-bottom:2px solid var(--amber);">Chart</button>
+            <button onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" id="tab-analysis-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Analysis</button>
+          </div>
+          <div id="content-chart-${s.id}" style="display:block;">
+            <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'">
+          </div>
+          <div id="content-analysis-${s.id}" style="display:none; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
+            ${s.analysis || 'No analysis.'}
+          </div>
         </div>
-        <div id="content-chart-${s.id}" style="display:block;">
-          <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'">
-        </div>
-        <div id="content-analysis-${s.id}" style="display:none; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
-          ${s.analysis || 'No analysis.'}
-        </div>
+
+        <!-- Show/Hide toggle button -->
+        <button onclick="event.stopPropagation(); toggleExtraContent('${s.id}')" style="width:100%; padding:10px; margin-top:8px; background:var(--card2); border:1px solid var(--line); border-radius:10px; color:var(--muted); font-weight:bold;">Show Chart & Analysis</button>
 
         <div class="actions">
           ${isLive ? `
@@ -538,5 +549,12 @@ function switchTab(id, tab) {
     chartBtn.style.borderBottom = '2px solid transparent';
     chartContent.style.display = 'none';
     analysisContent.style.display = 'block';
+  }
+}
+
+function toggleExtraContent(id) {
+  const el = document.getElementById('extra-content-' + id);
+  if (el) {
+    el.style.display = (el.style.display === 'none') ? 'block' : 'none';
   }
 }
