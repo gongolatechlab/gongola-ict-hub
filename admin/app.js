@@ -27,10 +27,6 @@ const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
       alert('Incorrect PIN');
     }
   }
-    } else {
-      alert("Incorrect PIN");
-    }
-  }
   
 
   function showAlert(message, type = 'error') {
