@@ -154,7 +154,12 @@ function renderSignals() {
     <article class="card ${isLive ? 'open' : isClosed ? 'closed' : 'pending'}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
       <div class="head">
         <div class="h-left">
-          <div class="pair">${s.asset}<span class="side ${s.direction.toLowerCase()}">${s.direction}</span></div>
+          <div class="pair">
+            ${s.asset}
+            <span class="side ${s.direction.toLowerCase()}">${s.direction}</span>
+            ${isLive ? `<span class="text-sm font-mono" style="color:#00E5FF; margin-left: 4px;">${liveBid}</span>` : ''}
+            <span style="font-size: 10px; background: var(--bg2); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; color: var(--muted); margin-left: 4px;">RR ${rrDisplay}</span>
+          </div>
           <div class="meta">${time} · ${directionText}</div>
         </div>
         <div class="h-right">
@@ -188,10 +193,9 @@ function renderSignals() {
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">ENTRY</span>
             </div>
             
-            <!-- Live Pin -->
+            <!-- Live Pin (No text, just the glow) -->
             ${pctLive !== null ? `
               <div class="pin live" style="left: ${pctLive}%;">
-                <span class="pin-label" style="color: #00E5FF; top: -25px; font-weight: bold; font-size: 11px;">${liveBid}</span>
                 <span class="pin-label" style="color: #00E5FF; top: 14px; font-size: 9px;">LIVE</span>
               </div>
             ` : ''}
