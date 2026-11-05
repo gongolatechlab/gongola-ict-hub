@@ -1,16 +1,14 @@
 # Gongola ICT Hub - Dev Notes
 
-## Debugging History & Solutions
-1. **Double Body Tags:** Caused blank white screens. Fixed by ensuring only one `<body>` tag exists.
-2. **Unclosed Script Tags:** Caused raw JS text to render on screen. Fixed by ensuring `<script>` and `</script>` counts match.
-3. **Duplicate Pin Logic:** Caused SyntaxErrors that blocked the Unlock button. Fixed by isolating the `checkPin()` logic.
-4. **Service Worker Cache:** Kept serving broken HTML. Fixed by temporarily disabling/renaming `sw.js` or using Incognito mode.
-5. **Live Trade Matching:** Fixed by strictly matching via `deal_id` and checking Entry/SL/TP prices to prevent phantom trades.
-6. **Live Bar Clamping:** Fixed the cyan live pin by calculating the range strictly from Entry/SL/TP and clamping to 0-100%.
-7. **Auto-Sync on Login:** Fixed the app to fetch both Supabase signals and Capital.com trades simultaneously on login.
-
 ## Architecture
-- **Frontend:** Vanilla JS (`app.js`), HTML (`index.html`), CSS (`style.css`).
-- **Backend:** Google Apps Script (AI Analysis & Capital.com execution).
-- **Database:** Supabase (`signals` table, `charts` bucket).
+- Frontend: HTML (index.html), CSS (inline in index.html), Vanilla JS (app3.js).
+- Backend: Google Apps Script (AI Analysis & Capital.com execution).
+- Database: Supabase (`signals` table, `charts` bucket).
 
+## Known Fixes
+1. **Direction Bug (Mirroring):** Fixed by ensuring `setSigDir()` updates the hidden `sig-direction` input, and the submit handler reads directly from that input.
+2. **Duplicate Submission:** Fixed by using `onsubmit` directly on the form instead of adding multiple `DOMContentLoaded` listeners.
+3. **Live Trade Matching:** Relaxed price matching tolerance to 5.0 points to accommodate Capital.com slippage.
+4. **Filters:** Filters now check the actual CSS classes (`open`, `pending`, `closed`) on the cards.
+5. **Tabs:** Chart/Analysis tabs are collapsible and toggle on click.
+6. **Account Info:** Tapping the Total P/L card opens a modal showing Capital.com balance.
