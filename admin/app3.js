@@ -207,7 +207,7 @@ function renderSignals() {
           <button onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--amber); font-weight:bold; border-bottom:2px solid var(--amber);">Chart</button>
           <button onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" id="tab-analysis-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Analysis</button>
         </div>
-        <div id="content-chart-${s.id}" style="display:block;">
+        <div id="content-chart-${s.id}" style="display:none;">
           <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'text-align:center;padding:20px;color:var(--muted);\'>No chart available</div>';">
         </div>
         <div id="content-analysis-${s.id}" style="display:none; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
