@@ -117,6 +117,39 @@ input,select{font:inherit;color:inherit}
 .act.danger{background:var(--red);border-color:var(--red);color:#fff}
 .act.warn{color:var(--amber);border-color:rgba(255,176,32,.4);background:var(--amber-bg)}
 </style>
+
+<style>
+/* Premium UI Overrides */
+.summary { gap: 10px; margin-bottom: 10px; }
+.stat { 
+  position: relative; overflow: hidden; border-radius: 16px; padding: 12px; 
+  background: linear-gradient(180deg, rgba(20,27,36,0.9) 0%, rgba(10,14,19,0.9) 100%);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.stat label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.stat .val { font-size: 22px; font-weight: 700; font-family: var(--mono); color: #fff; }
+.stat .sub { font-size: 11px; font-family: var(--mono); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+/* Gradients */
+.stat.balance::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(34,211,238,0.1)); pointer-events: none; }
+.stat.open::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(59,130,246,0.1)); pointer-events: none; }
+.stat.waiting::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(255,176,32,0.1)); pointer-events: none; }
+.stat.winrate::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(168,85,247,0.1)); pointer-events: none; }
+
+/* Filter Chips */
+.chip { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); border-radius: 99px; color: rgba(255,255,255,0.6); }
+.chip.on { border-color: var(--green); color: var(--green); background: rgba(25,230,140,0.05); box-shadow: 0 0 10px rgba(25,230,140,0.2); }
+
+/* Trade Cards */
+.card { border-radius: 18px; background: linear-gradient(180deg, rgba(26,35,47,0.8) 0%, rgba(15,21,28,0.9) 100%); border: 1px solid rgba(255,255,255,0.05); }
+.card.open::before { background: var(--green); box-shadow: 2px 0 15px rgba(25,230,140,0.4); }
+.card.pending::before { background: var(--amber); box-shadow: 2px 0 15px rgba(255,176,32,0.4); }
+.card.closed::before { background: rgba(255,255,255,0.2); }
+
+/* Tab Active state */
+.tab-btn.active { color: var(--green) !important; border-bottom-color: var(--green) !important; }
+</style>
+
 </head>
 <body>
 
@@ -133,16 +166,16 @@ input,select{font:inherit;color:inherit}
 
 <main class="wrap">
   <section class="summary" id="summary">
-    <div class="stat main" style="cursor:pointer;" onclick="openAccountInfo()">
-      <label>Balance</label>
-      <b id="ui-balance" class="num" style="font-size: 20px;">$0.00</b>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+    <div class="stat balance" style="cursor:pointer;" onclick="openAccountInfo()">
+      <label>⚖️ BALANCE</label>
+      <div class="val" id="ui-balance">$0.00</div>
+      <div class="sub" style="color: var(--muted);">
         P/L: <span id="ui-total-pl" class="num">$0.00</span>
       </div>
     </div>
-    <div class="stat"><label>Open</label><b id="ui-open" class="num">0</b></div>
-    <div class="stat"><label>Waiting</label><b id="ui-pending" class="num">0</b></div>
-    <div class="stat"><label>Win rate</label><b id="ui-winrate" class="num">0%</b></div>
+    <div class="stat open"><label>🚀 OPEN</label><div class="val" id="ui-open">0</div></div>
+    <div class="stat waiting"><label>⏳ WAITING</label><div class="val" id="ui-pending">0</div></div>
+    <div class="stat winrate"><label>🏆 WIN RATE</label><div class="val" id="ui-winrate">0%</div></div>
   </section>
   
   <div class="sub-row">
