@@ -295,6 +295,8 @@ function toggleSignalModal() {
   if (!modal) return;
   if (modal.style.display === 'flex') { modal.style.display = 'none'; return; }
   document.getElementById('signal-form').reset();
+  // Force reset to BUY on open
+  document.getElementById('sig-direction').value = 'BUY';
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').style.display = 'none';
   document.getElementById('manual-fields').style.display = 'none';
@@ -302,15 +304,32 @@ function toggleSignalModal() {
 }
 
 function setSigDir(dir) {
+  // 1. Update the global variable
   currentSigDir = dir;
-  const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
+  
+  // 2. Force update the hidden input (the actual source of truth for submission)
+  const hiddenInput = document.getElementById('sig-direction');
+  if (hiddenInput) hiddenInput.value = dir;
+
+  // 3. Update UI
+  const b = document.getElementById('sig-btn-buy');
+  const s = document.getElementById('sig-btn-sell');
   if (!b || !s) return;
+  
   if (dir === 'BUY') {
-    b.style.border = '1px solid var(--green)'; b.style.background = 'rgba(25,230,140,0.1)'; b.style.color = 'var(--green)';
-    s.style.border = '1px solid transparent'; s.style.background = 'transparent'; s.style.color = 'var(--muted)';
+    b.style.border = '1px solid var(--green)';
+    b.style.background = 'rgba(25,230,140,0.1)';
+    b.style.color = 'var(--green)';
+    s.style.border = '1px solid transparent';
+    s.style.background = 'transparent';
+    s.style.color = 'var(--muted)';
   } else {
-    s.style.border = '1px solid var(--red)'; s.style.background = 'rgba(255,90,79,0.1)'; s.style.color = 'var(--red)';
-    b.style.border = '1px solid transparent'; b.style.background = 'transparent'; b.style.color = 'var(--muted)';
+    s.style.border = '1px solid var(--red)';
+    s.style.background = 'rgba(255,90,79,0.1)';
+    s.style.color = 'var(--red)';
+    b.style.border = '1px solid transparent';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
   }
 }
 
@@ -350,8 +369,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName);
           imageUrl = publicUrlData.publicUrl;
         }
-        // Read direction directly from the hidden input to avoid variable sync issues
-        const finalDir = document.getElementById('sig-direction').value || currentSigDir;
+        // Read direction directly from the hidden input
+        const finalDir = document.getElementById('sig-direction').value;
         const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: finalDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
         if (insertError) throw insertError;
         toggleSignalModal();
