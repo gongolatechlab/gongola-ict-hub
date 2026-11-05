@@ -62,23 +62,31 @@ async function syncLiveTrades() {
 // --- MATCHING LOGIC ---
 function getLiveTradeForSignal(s, used) {
   used = used || new Set();
+  
+  // 1. Exact match by deal_id (Best case)
   if (s.deal_id) {
     const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));
     if (m) return m;
   }
+  
+  // 2. Fallback match: Asset and Direction (Looser matching for unlinked trades)
   const getNum = (val) => parseFloat(String(val).replace(/[^0-9.-]+/g,""));
-  const sEntry = getNum(s.entry), sSL = getNum(s.sl), sTP = getNum(s.tp);
+  const sEntry = getNum(s.entry);
+  
   return liveTrades.find(p => {
     if (used.has(p.position.dealId)) return false;
+    // Check asset match (handle GOLD vs XAUUSD)
     const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));
     if (!epicMatch || p.position.direction !== s.direction) return false;
+    
+    // If we don't have an entry price in the signal, just match by asset+direction
+    if (!sEntry || !Number.isFinite(sEntry)) return true;
+
+    // If we do have a price, check within a wider range (e.g., 5.0 points)
     const pLevel = p.position.level || p.position.openLevel;
-    if (!pLevel || !sEntry) return false;
-    const pSL = p.position.stopLevel; const pTP = p.position.profitLevel;
-    const priceMatch = Math.abs(pLevel - sEntry) < 0.5;
-    const slMatch = !pSL || !sSL || Math.abs(pSL - sSL) < 0.5;
-    const tpMatch = !pTP || !sTP || Math.abs(pTP - sTP) < 0.5;
-    return priceMatch && slMatch && tpMatch;
+    if (!pLevel) return true; 
+    
+    return Math.abs(pLevel - sEntry) < 5.0; // Widened from 0.5 to 5.0
   });
 }
 
