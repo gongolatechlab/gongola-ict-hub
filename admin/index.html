@@ -333,13 +333,23 @@
   async function closeTrade(signalId, dealId) {
     if (!dealId) return showAlert("No deal ID for this position.", "error");
     if (!confirm('Close this live position on Capital.com?')) return;
+    
+    // Find the trade P/L before closing to determine Win/Loss
+    const live = liveTrades.find(p => p.position.dealId === dealId);
+    const pnl = live ? parseFloat(live.position.upl) : 0;
+    const finalResult = pnl >= 0 ? 'win' : 'loss';
+    
     showAlert("Closing position...", "success");
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });
       const data = await res.json();
+      
       if (data.success || data.dealReference || data.dealId) {
-        showAlert("Position closed.", "success");
+        // Update database: set Win/Loss and remove deal_id so it doesn't duplicate
+        await supabaseClient.from('signals').update({ result: finalResult, deal_id: null }).eq('id', signalId);
+        showAlert("Position closed. Marked as " + finalResult.toUpperCase() + ".", "success");
         syncLiveTrades();
+        fetchSignals(); // Refresh the UI
       } else {
         showAlert("Close failed: " + JSON.stringify(data), "error");
       }
