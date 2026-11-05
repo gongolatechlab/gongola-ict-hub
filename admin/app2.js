@@ -1,3 +1,8 @@
+window.toggleCardDetails = function(id) {
+  const el = document.getElementById("card-details-" + id);
+  if (el) el.classList.toggle("hidden");
+};
+
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
 const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
@@ -156,46 +161,6 @@ function renderSignals() {
 
     const livePnlBadge = isLive ? `<span class="text-[10px] font-mono font-bold px-2 py-1 rounded ${livePnl >= 0 ? 'text-win bg-win/10' : 'text-loss bg-loss/10'}">${livePnl > 0 ? '+' : ''}$${livePnl.toFixed(2)}</span>` : '';
 
-    return `
-    <div class="sig-card">
-      <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-surface2/50 transition-colors" onclick="document.getElementById('card-details-${s.id}').classList.toggle('hidden')">
-        <div class="flex items-center gap-3">
-          <span class="text-lg font-bold font-mono">${s.asset}</span>
-          <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
-          <span class="text-[10px] font-mono text-muted bg-bg px-1.5 py-0.5 rounded border border-line">RR ${rrDisplay}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          ${livePnlBadge}
-          ${statusBadge}
-          <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-        </div>
-      </div>
-      <div id="card-details-${s.id}" class="hidden">
-        <div class="px-4 mt-2"><div class="price-track">
-          <div class="zone-sl" style="width: ${leftPin}%;"></div><div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
-          <div class="pin" style="left: ${pctSL}%;"><span class="pin-label">SL</span></div>
-          <div class="pin entry" style="left: ${pctEntry}%;"><span class="pin-label">ENTRY</span></div>
-          <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
-          ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
-        </div></div>
-        <div class="p-4">
-          <div class="sig-grid">
-            <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
-            <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
-            <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
-          </div>
-          ${s.image_url ? `<div class="mt-4 pt-4 border-t border-line"><div class="sig-label mb-1">Chart</div><img src="${s.image_url}" class="w-full rounded-lg border border-line object-contain max-h-64"></div>` : ''}
-          ${s.analysis ? `<div class="mt-4 pt-4 border-t border-line"><div class="sig-label mb-1">Analysis</div><div class="text-sm text-text/80 leading-relaxed">${s.analysis.replace(/\*/g, '')}</div></div>` : ''}
-        </div>
-        <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
-          ${dynamicBtn}
-          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win">Win</button>
-          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
-          <button onclick="deleteSignal('${s.id}')" class="px-3 py-2 bg-bg border border-line rounded-lg text-muted hover:text-loss hover:border-loss flex items-center justify-center"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
 }
 
 async function executeTrade(id) {
