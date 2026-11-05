@@ -188,7 +188,7 @@ function renderSignals() {
       </div>
       
       <div class="body">
-        <div class="bar-wrap" style="padding-top: 24px; padding-bottom: 10px;">
+        <div class="bar-wrap" style="padding-top: 14px; padding-bottom: 0px;">
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
@@ -214,7 +214,7 @@ function renderSignals() {
           </div>
         </div>
 
-        <div style="display:flex; margin-bottom:8px; border-bottom:1px solid var(--line); margin-top:8px;">
+        <div style="display:flex; margin-bottom:14px; border-bottom:1px solid var(--line); margin-top:14px;">
           <button class="tab-btn" onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent; display:flex; align-items:center; justify-content:center; gap:6px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Chart
           </button>
@@ -222,14 +222,14 @@ function renderSignals() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> Analysis
           </button>
         </div>
-        <div id="content-chart-${s.id}" style="display:none;">
+        <div id="content-chart-${s.id}" style="display:none; margin-bottom:14px;">
           <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'">
         </div>
-        <div id="content-analysis-${s.id}" style="display:none; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
+        <div id="content-analysis-${s.id}" style="display:none; margin-bottom:14px; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
           ${s.analysis || 'No analysis.'}
         </div>
 
-        <div class="actions" style="margin-top:16px; display:flex; gap:8px;">
+        <div class="actions" style="margin-top:14px; display:flex; gap:8px;">
           ${isLive ? `
             <button class="act danger" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Close
