@@ -91,6 +91,7 @@ async function syncLiveTrades() {
       updateLiveStrip();
       renderSignals();
     }
+    } 
   } catch (err) { 
     showUniversalError("Sync failed: " + err.message); 
   } finally { 
