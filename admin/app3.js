@@ -441,3 +441,49 @@ function openAnalysis(id) {
   if (!sig || !sig.analysis) return alert("No analysis available.");
   alert(sig.analysis.replace(/\*/g, ''));
 }
+
+// --- ACCOUNT INFO ---
+async function openAccountInfo() {
+  showUniversalError("Fetching Account Info...");
+  
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'text/plain' }, 
+      body: JSON.stringify({ action: 'get_account' }) 
+    });
+    const data = await res.json();
+    
+    // Remove the "Fetching..." error modal
+    const modal = document.getElementById('universal-error-modal');
+    if (modal) modal.remove();
+
+    if (data.accounts && data.accounts.length > 0) {
+      const acc = data.accounts[0];
+      let html = '<h2>Account Info</h2><br>';
+      html += `<p><b>Balance:</b> ${acc.balance.balance} ${acc.currency}</p>`;
+      html += `<p><b>Available:</b> ${acc.balance.available} ${acc.currency}</p>`;
+      html += `<p><b>Profit/Loss:</b> ${acc.balance.profitLoss} ${acc.currency}</p>`;
+      html += `<p><b>Deposits:</b> ${acc.balance.deposit}</p>`;
+      
+      if (acc.balance.pnl) {
+        html += `<p><b>Today's P/L:</b> ${acc.balance.pnl} ${acc.currency}</p>`;
+      }
+
+      showUniversalError(html);
+    } else {
+      showUniversalError("No account data received. " + JSON.stringify(data));
+    }
+  } catch (err) {
+    showUniversalError("Failed to fetch account info: " + err.message);
+  }
+}
+
+// Bind the Total P/L card to open account info
+document.addEventListener('DOMContentLoaded', () => {
+  const plCard = document.querySelector('.stat.main');
+  if (plCard) {
+    plCard.style.cursor = 'pointer';
+    plCard.onclick = openAccountInfo;
+  }
+});
