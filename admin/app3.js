@@ -131,7 +131,7 @@ function renderSignals() {
       
       // Only calculate RR if the risk and reward are positive numbers
       if (risk > 0 && reward > 0) {
-        rrDisplay = '1 → ' + (reward / risk).toFixed(1);
+        rrDisplay = 'RR 1:' + (reward / risk).toFixed(1);
       }
     }
 
@@ -195,11 +195,9 @@ function renderSignals() {
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">ENTRY</span>
             </div>
             
-            <!-- Live Pin (Text at top) -->
+            <!-- Live Pin (Glow only, no text) -->
             ${pctLive !== null ? `
-              <div class="pin live" style="left: ${pctLive}%;">
-                <span class="pin-label" style="color: #00E5FF; top: -25px; font-weight: bold; font-size: 9px;">LIVE</span>
-              </div>
+              <div class="pin live" style="left: ${pctLive}%;"></div>
             ` : ''}
           </div>
         </div>
