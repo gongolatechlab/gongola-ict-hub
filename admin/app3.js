@@ -565,3 +565,106 @@ function switchTab(id, tab) {
   }
 }
 
+
+// --- FILE UPLOAD & AI HANDLER ---
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('sig-image-input');
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = async function() {
+          const canvas = document.createElement('canvas'); 
+          canvas.width = 800; 
+          canvas.height = img.height * (800 / img.width);
+          const ctx = canvas.getContext('2d'); 
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const base64Data = canvas.toDataURL('image/jpeg', 0.7);
+          
+          const preview = document.getElementById('sig-image-preview');
+          const container = document.getElementById('sig-image-preview-container');
+          const loading = document.getElementById('sig-image-loading');
+          
+          if (preview) preview.src = base64Data; 
+          if (container) container.style.display = 'block';
+          if (loading) { loading.style.display = 'flex'; loading.classList.remove('hidden'); }
+          
+          const notesArea = document.getElementById('sig-notes'); 
+          if (notesArea) { notesArea.value = "🤖 AI is reading the chart..."; notesArea.disabled = true; }
+          
+          try {
+            const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
+            const text = await res.text(); 
+            let data; 
+            try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
+            if(data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+            
+            if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
+            if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
+            if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
+            if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
+            if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
+            setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
+            if (notesArea) notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text returned.";
+          } catch (err) { 
+            if (notesArea) notesArea.value = "Error: " + err.message; 
+          } finally { 
+            if (notesArea) notesArea.disabled = false; 
+            const manualFields = document.getElementById('manual-fields');
+            if (manualFields) manualFields.style.display = 'flex'; 
+            if (loading) { loading.style.display = 'none'; loading.classList.add('hidden'); } 
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+// --- SIGNAL SUBMIT HANDLER ---
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('signal-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn'); 
+      btn.innerText = "Publishing..."; btn.disabled = true;
+      
+      const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); 
+      const cat = document.getElementById('sig-cat').value;
+      const entry = document.getElementById('sig-entry').value; 
+      const sl = document.getElementById('sig-sl').value; 
+      const tp = document.getElementById('sig-tp').value;
+      const analysis = document.getElementById('sig-notes').value.trim(); 
+      const fileInput = document.getElementById('sig-image-input');
+      
+      let imageUrl = null;
+      try {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0]; 
+          const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+          const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
+          if (uploadError) throw uploadError;
+          const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); 
+          imageUrl = publicUrlData.publicUrl;
+        }
+        
+        const { error: insertError } = await supabaseClient.from('signals').insert([{ 
+          asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' 
+        }]);
+        if (insertError) throw insertError;
+        
+        showAlert("Signal published successfully!", "success"); 
+        toggleSignalModal(); 
+        fetchSignals();
+      } catch (err) { 
+        showAlert("Failed to post signal: " + err.message, "error"); 
+      } finally { 
+        btn.innerText = "Publish Signal"; btn.disabled = false; 
+      }
+    });
+  }
+});
