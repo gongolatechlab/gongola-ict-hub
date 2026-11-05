@@ -31,34 +31,6 @@ function showUniversalError(msg) {
 window.onerror = function(msg, url, line) { showUniversalError("JS ERROR: " + msg + "\nLine: " + line + "\nFile: " + url); };
 window.addEventListener('unhandledrejection', function(e) { showUniversalError("PROMISE: " + (e.reason ? e.reason.message || e.reason : "Unknown")); });
 
-// --- LOGIN ---
-window.checkPin = function() {
-  if (document.getElementById('admin-pin').value === "1973") {
-    document.getElementById('pin-gate').style.display = 'none';
-    document.getElementById('main-content').classList.remove('hidden');
-    
-    if (!window.supabase) {
-      showUniversalError("Supabase library not loaded. Check internet.");
-      return;
-    }
-    
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Load data immediately
-    fetchSignals();
-    syncLiveTrades();
-    
-    // Auto-sync every 60 seconds
-    if (syncInterval) clearInterval(syncInterval);
-    syncInterval = setInterval(() => {
-      syncLiveTrades();
-      fetchSignals();
-    }, 60000);
-    
-  } else {
-    alert("Incorrect PIN");
-  }
-};
 
 // --- FETCH SIGNALS ---
 async function fetchSignals() {
@@ -392,4 +364,25 @@ document.addEventListener('DOMContentLoaded', () => {
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     });
   }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.supabase) {
+    showUniversalError("Supabase library not loaded. Check internet.");
+    return;
+  }
+  
+  // Initialize Supabase
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // Load data immediately
+  fetchSignals();
+  syncLiveTrades();
+  
+  // Auto-sync every 60 seconds
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(() => {
+    syncLiveTrades();
+    fetchSignals();
+  }, 60000);
 });
