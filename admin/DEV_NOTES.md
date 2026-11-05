@@ -1,14 +1,15 @@
 # Gongola ICT Hub - Dev Notes
 
-## Architecture
-- Frontend: HTML (index.html), CSS (inline in index.html), Vanilla JS (app3.js).
-- Backend: Google Apps Script (AI Analysis & Capital.com execution).
-- Database: Supabase (`signals` table, `charts` bucket).
+## TODO For Next Session
+1. Fix Closed P/L Bug: `close_position` needs to return actual P/L to Supabase, not hardcode -100/+100.
+2. Fix GitHub Push: Merge `fix-ui-update` into `main` when GitHub servers recover.
+3. Build Public Signals Page.
 
-## Known Fixes
-1. **Direction Bug (Mirroring):** Fixed by ensuring `setSigDir()` updates the hidden `sig-direction` input, and the submit handler reads directly from that input.
-2. **Duplicate Submission:** Fixed by using `onsubmit` directly on the form instead of adding multiple `DOMContentLoaded` listeners.
-3. **Live Trade Matching:** Relaxed price matching tolerance to 5.0 points to accommodate Capital.com slippage.
-4. **Filters:** Filters now check the actual CSS classes (`open`, `pending`, `closed`) on the cards.
-5. **Tabs:** Chart/Analysis tabs are collapsible and toggle on click.
-6. **Account Info:** Tapping the Total P/L card opens a modal showing Capital.com balance.
+## Completed Features
+- 2-Card Top Layout (Balance + Win Rate)
+- Premium SVG icons on all cards, tabs, and buttons
+- Tight header padding (5px top / 2px bottom)
+- Custom Alert Modal (replaced browser alerts)
+- Scale Out Modal (25/50/75/Close All) with correct PUT /positions logic
+- Trade Execution Lot Size prompt
+- AI Analysis mapped to Custom Indicator Legend (OB, FVG, DOL, Killzones)
