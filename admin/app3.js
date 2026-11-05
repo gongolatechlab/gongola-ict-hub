@@ -157,13 +157,15 @@ function renderSignals() {
           <div class="pair">
             ${s.asset}
             <span class="side ${s.direction.toLowerCase()}">${s.direction}</span>
-            ${isLive ? `<span class="text-sm font-mono" style="color:#00E5FF; margin-left: 4px;">${liveBid}</span>` : ''}
-            <span style="font-size: 10px; background: var(--bg2); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; color: var(--muted); margin-left: 4px;">RR ${rrDisplay}</span>
+            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 4px;">${rrDisplay}</span>
           </div>
           <div class="meta">${time} · ${directionText}</div>
         </div>
         <div class="h-right">
-          <div class="pl">${pnlHtml}${badgeHtml}</div>
+          <div class="pl">
+            ${isLive ? `<span style="font-size: 12px; font-family: var(--mono); color: #00E5FF; display: block; margin-bottom: 2px;">${liveBid}</span>` : ''}
+            ${pnlHtml}${badgeHtml}
+          </div>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
@@ -193,10 +195,10 @@ function renderSignals() {
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">ENTRY</span>
             </div>
             
-            <!-- Live Pin (No text, just the glow) -->
+            <!-- Live Pin (Text at top) -->
             ${pctLive !== null ? `
               <div class="pin live" style="left: ${pctLive}%;">
-                <span class="pin-label" style="color: #00E5FF; top: 14px; font-size: 9px;">LIVE</span>
+                <span class="pin-label" style="color: #00E5FF; top: -25px; font-weight: bold; font-size: 9px;">LIVE</span>
               </div>
             ` : ''}
           </div>
