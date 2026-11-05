@@ -547,9 +547,3 @@ function switchTab(id, tab) {
   }
 }
 
-function toggleExtraContent(id) {
-  const el = document.getElementById('extra-content-' + id);
-  if (el) {
-    el.style.display = (el.style.display === 'none') ? 'block' : 'none';
-  }
-}
