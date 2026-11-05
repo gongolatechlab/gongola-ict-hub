@@ -442,10 +442,24 @@ function openAnalysis(id) {
   alert(sig.analysis.replace(/\*/g, ''));
 }
 
+
+// Bind the Total P/L card to open account info
+document.addEventListener('DOMContentLoaded', () => {
+  const plCard = document.querySelector('.stat.main');
+  if (plCard) {
+    plCard.style.cursor = 'pointer';
+    plCard.onclick = openAccountInfo;
+  }
+});
+
 // --- ACCOUNT INFO ---
 async function openAccountInfo() {
-  showUniversalError("Fetching Account Info...");
-  
+  const loadingMsg = document.createElement('div');
+  loadingMsg.id = 'acc-loading';
+  loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#141b24;border:1px solid #243040;color:#fff;padding:15px 25px;border-radius:12px;z-index:99999;font-weight:bold;';
+  loadingMsg.innerText = 'Fetching Account Info...';
+  document.body.appendChild(loadingMsg);
+
   try {
     const res = await fetch(EXECUTE_ENDPOINT, { 
       method: 'POST', 
@@ -453,33 +467,56 @@ async function openAccountInfo() {
       body: JSON.stringify({ action: 'get_account' }) 
     });
     const data = await res.json();
-    
-    // Remove the "Fetching..." error modal
-    const modal = document.getElementById('universal-error-modal');
-    if (modal) modal.remove();
+    loadingMsg.remove();
 
     if (data.accounts && data.accounts.length > 0) {
       const acc = data.accounts[0];
-      let html = '<h2>Account Info</h2><br>';
-      html += `<p><b>Balance:</b> ${acc.balance.balance} ${acc.currency}</p>`;
-      html += `<p><b>Available:</b> ${acc.balance.available} ${acc.currency}</p>`;
-      html += `<p><b>Profit/Loss:</b> ${acc.balance.profitLoss} ${acc.currency}</p>`;
-      html += `<p><b>Deposits:</b> ${acc.balance.deposit}</p>`;
+      const bal = acc.balance;
       
-      if (acc.balance.pnl) {
-        html += `<p><b>Today's P/L:</b> ${acc.balance.pnl} ${acc.currency}</p>`;
+      let modal = document.getElementById('account-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'account-modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+        document.body.appendChild(modal);
       }
+      
+      modal.innerHTML = `
+        <div style="background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:400px;color:#fff;font-family:var(--sans);">
+          <h2 style="font-size:20px;margin-bottom:20px;">Account Info</h2>
+          
+          <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:10px;">
+            <p style="font-size:12px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Balance</p>
+            <p style="font-size:24px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.balance).toFixed(2)}</p>
+          </div>
 
-      showUniversalError(html);
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Available</p>
+              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.available).toFixed(2)}</p>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Profit / Loss</p>
+              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);color:${parseFloat(bal.profitLoss) >= 0 ? 'var(--green)' : 'var(--red)'}">
+                ${parseFloat(bal.profitLoss) >= 0 ? '+' : ''}$${parseFloat(bal.profitLoss).toFixed(2)}
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <button onclick="document.getElementById('account-modal').remove()" style="width:100%;padding:14px;background:var(--card2);border:1px solid var(--line);border-radius:12px;color:#fff;font-weight:bold;font-size:16px;">Close</button>
+          </div>
+        </div>
+      `;
     } else {
-      showUniversalError("No account data received. " + JSON.stringify(data));
+      alert("No account data received. " + JSON.stringify(data));
     }
   } catch (err) {
-    showUniversalError("Failed to fetch account info: " + err.message);
+    if (loadingMsg) loadingMsg.remove();
+    alert("Failed to fetch account info: " + err.message);
   }
 }
 
-// Bind the Total P/L card to open account info
 document.addEventListener('DOMContentLoaded', () => {
   const plCard = document.querySelector('.stat.main');
   if (plCard) {
