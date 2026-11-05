@@ -105,6 +105,7 @@ function renderSignals() {
 
     const isClosed = s.result === 'win' || s.result === 'loss';
     const statusClass = isLive ? 'open' : isClosed ? 'closed' : 'pending';
+    
     const badgeHtml = isLive 
       ? '<span class="badge open"><i></i>OPEN</span>' 
       : isClosed 
@@ -113,27 +114,15 @@ function renderSignals() {
 
     const displayPnl = isLive ? livePnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null);
     const pnlHtml = displayPnl !== null 
-      ? `<b class="num ${displayPnl >= 0 ? 'pos' : 'neg'}">${displayPnl >= 0 ? '+' : '-'}$${Math.abs(displayPnl).toFixed(2)}</b>` 
-      : `<b class="num" style="color:var(--muted)">—</b>`;
+      ? `<span style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
+      : '';
 
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
-    let rrDisplay = '—';
+    let rrDisplay = '';
     if (Number.isFinite(slN) && Number.isFinite(entryN) && Number.isFinite(tpN)) {
-      let risk = 0;
-      let reward = 0;
-      
-      if (s.direction === 'BUY') {
-        risk = entryN - slN; // For a BUY, SL is below Entry
-        reward = tpN - entryN; // TP is above Entry
-      } else {
-        risk = slN - entryN; // For a SELL, SL is above Entry
-        reward = entryN - tpN; // TP is below Entry
-      }
-      
-      // Only calculate RR if the risk and reward are positive numbers
-      if (risk > 0 && reward > 0) {
-        rrDisplay = 'RR 1:' + (reward / risk).toFixed(1);
-      }
+      const risk = Math.abs(entryN - slN);
+      const reward = Math.abs(tpN - entryN);
+      if (risk > 0) rrDisplay = 'RR 1:' + (reward / risk).toFixed(1);
     }
 
     const fixedPrices = [slN, entryN, tpN].filter(Number.isFinite);
@@ -150,53 +139,53 @@ function renderSignals() {
 
     const time = new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     const directionText = s.direction === 'BUY' ? 'price expected to rise' : 'price expected to fall';
+    
+    const isGold = s.asset.includes('XAU') || s.asset.includes('GOLD');
+    const isSilver = s.asset.includes('XAG') || s.asset.includes('SILVER');
+    const assetIcon = isGold ? '<span style="font-size:18px; margin-right:4px;">🪙</span>' : isSilver ? '<span style="font-size:18px; margin-right:4px;">🥈</span>' : '';
 
     return `
-    <article class="card ${isLive ? 'open' : isClosed ? 'closed' : 'pending'}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
+    <article class="card ${statusClass}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
       <div class="head">
         <div class="h-left">
           <div class="pair">
-            ${s.asset}
+            ${assetIcon}${s.asset}
             <span class="side ${s.direction.toLowerCase()}">${s.direction}</span>
-            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 4px;">${rrDisplay}</span>
+            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 8px;">${rrDisplay}</span>
           </div>
           <div class="meta">${time} · ${directionText}</div>
         </div>
-        <div class="h-right">
-          <div class="pl">
-            ${isLive ? `<span style="font-size: 12px; font-family: var(--mono); color: #00E5FF; display: block; margin-bottom: 2px;">${liveBid}</span>` : ''}
-            ${pnlHtml}${badgeHtml}
+        <div class="h-right" style="display:flex; align-items:flex-start; gap:8px;">
+          <div class="pl" style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            ${isLive ? `<span style="font-size: 13px; font-family: var(--mono); color: #00E5FF;">${liveBid}</span>` : ''}
+            ${pnlHtml}
+            ${badgeHtml}
           </div>
-          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:4px;"><path d="M6 9l6 6 6-6"/></svg>
         </div>
       </div>
       
       <div class="body">
-        
         <div class="bar-wrap" style="padding-top: 30px; padding-bottom: 20px;">
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
             
-            <!-- SL Pin -->
             <div class="pin" style="left: ${pctSL}%;">
               <span class="pin-label" style="top: -25px;">${s.sl}</span>
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">SL</span>
             </div>
             
-            <!-- TP Pin -->
             <div class="pin" style="left: ${pctTP}%;">
               <span class="pin-label" style="top: -25px;">${s.tp}</span>
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">TP</span>
             </div>
 
-            <!-- Entry Pin -->
             <div class="pin entry" style="left: ${pctEntry}%;">
               <span class="pin-label" style="top: -25px; color: #fff;">${s.entry}</span>
               <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">ENTRY</span>
             </div>
             
-            <!-- Live Pin (Glow only, no text) -->
             ${pctLive !== null ? `
               <div class="pin live" style="left: ${pctLive}%;"></div>
             ` : ''}
@@ -204,8 +193,12 @@ function renderSignals() {
         </div>
 
         <div style="display:flex; margin-bottom:12px; border-bottom:1px solid var(--line); margin-top:16px;">
-          <button onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Chart</button>
-          <button onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" id="tab-analysis-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Analysis</button>
+          <button class="tab-btn" onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" id="tab-chart-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle;"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg> Chart
+          </button>
+          <button class="tab-btn" onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" id="tab-analysis-${s.id}" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle;"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> Analysis
+          </button>
         </div>
         <div id="content-chart-${s.id}" style="display:none;">
           <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'">
@@ -214,17 +207,29 @@ function renderSignals() {
           ${s.analysis || 'No analysis.'}
         </div>
 
-        <div class="actions" style="margin-top:16px;">
+        <div class="actions" style="margin-top:16px; display:flex; gap:8px;">
           ${isLive ? `
-            <button class="act danger" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">Close</button>
-            <button class="act ghost" onclick="event.stopPropagation(); alert('Scale Out coming soon')">Scale Out</button>
-            <button class="act ghost" onclick="event.stopPropagation(); alert('Share coming soon')">Share</button>
+            <button class="act danger" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg> Close
+            </button>
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); alert('Scale Out coming soon')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Scale Out
+            </button>
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); alert('Share coming soon')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
+            </button>
           ` : isClosed ? `
-            <button class="act ghost" style="grid-column: span 3;">Closed (${s.result.toUpperCase()})</button>
+            <button class="act ghost" style="flex:1;">Closed (${s.result.toUpperCase()})</button>
           ` : `
-            <button class="act danger" style="background:var(--green); color:#000; border-color:var(--green);" onclick="event.stopPropagation(); executeTrade('${s.id}')">Execute</button>
-            <button class="act ghost" style="color:var(--red); border-color:rgba(255,90,79,.3);" onclick="event.stopPropagation(); deleteSignal('${s.id}')">Delete</button>
-            <button class="act ghost" onclick="event.stopPropagation(); alert('Share coming soon')">Share</button>
+            <button class="act danger" style="flex:1; background:var(--green); color:#000; border-color:var(--green); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); executeTrade('${s.id}')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg> Execute
+            </button>
+            <button class="act ghost" style="flex:1; color:var(--red); border-color:rgba(255,90,79,.3); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); deleteSignal('${s.id}')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Delete
+            </button>
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); alert('Share coming soon')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
+            </button>
           `}
         </div>
       </div>
@@ -233,8 +238,6 @@ function renderSignals() {
   updateSummaryStats();
   applyFilter(currentFilter);
 }
-
-// --- TABS ---
 function switchTab(id, tab) {
   const chartBtn = document.getElementById('tab-chart-' + id);
   const analysisBtn = document.getElementById('tab-analysis-' + id);
