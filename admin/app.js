@@ -40,11 +40,18 @@ const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   function hideAlert() { const modal = document.getElementById('custom-alert'); const box = document.getElementById('alert-box'); box.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 200); }
 
   async function fetchSignals() {
+    if (typeof supabaseClient === "undefined" || supabaseClient === null) {
+      document.getElementById("signal-list").innerHTML = "<div class="text-center text-loss p-4">Database not ready. Please refresh.</div>";
+      return;
+    }
     try {
-      const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
-    if (error) return document.getElementById('signal-list').innerHTML = '<div class="text-center text-loss">Failed to load signals.</div>';
-    signalsData = data; 
-    renderSignals();
+      const { data, error } = await supabaseClient.from("signals").select("*").order("created_at", { ascending: false });
+      if (error) throw new Error(error.message);
+      signalsData = data || [];
+      renderSignals();
+    } catch (err) {
+      document.getElementById("signal-list").innerHTML = "<div class="text-center text-loss p-4">DB ERROR: " + err.message + "</div>";
+    }
   }
 
   async function syncLiveTrades() {
