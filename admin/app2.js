@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
         if (insertError) throw insertError;
         showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();
-      } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }
+      } catch (err) { showUniversalError("PUBLISH ERROR: " + err.message); }
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     });
   }
