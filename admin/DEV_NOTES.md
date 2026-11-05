@@ -7,6 +7,7 @@
 4. **Service Worker Cache:** Kept serving broken HTML. Fixed by temporarily disabling/renaming `sw.js` or using Incognito mode.
 5. **Live Trade Matching:** Fixed by strictly matching via `deal_id` and checking Entry/SL/TP prices to prevent phantom trades.
 6. **Live Bar Clamping:** Fixed the cyan live pin by calculating the range strictly from Entry/SL/TP and clamping to 0-100%.
+7. **Auto-Sync on Login:** Fixed the app to fetch both Supabase signals and Capital.com trades simultaneously on login.
 
 ## Architecture
 - **Frontend:** Vanilla JS (`app.js`), HTML (`index.html`), CSS (`style.css`).
