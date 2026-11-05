@@ -175,7 +175,7 @@ function renderSignals() {
         </div>
         
         <div class="bar-wrap">
-          <div class="bar-top"><span class="s">✗ STOP</span><span class="e">ENTRY</span><span class="t">TARGET ✓</span></div>
+          <!-- Bar top removed, using price-track labels instead -->
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
@@ -211,7 +211,7 @@ function renderSignals() {
             <button class="act ghost" style="grid-column: span 3;">Closed (${s.result.toUpperCase()})</button>
           ` : `
             <button class="act danger" style="background:var(--green); color:#000; border-color:var(--green);" onclick="event.stopPropagation(); executeTrade('${s.id}')">Execute</button>
-            <button class="act warn" onclick="event.stopPropagation(); deleteSignal('${s.id}')">Delete</button>
+            <button class="act ghost" style="color:var(--red); border-color:rgba(255,90,79,.3);" onclick="event.stopPropagation(); deleteSignal('${s.id}')">Delete</button>
             <button class="act ghost" onclick="event.stopPropagation(); alert('Coming soon')">Send to channel</button>
           `}
         </div>
