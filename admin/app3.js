@@ -185,9 +185,15 @@ function renderSignals() {
             ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
           </div>
           <div class="bar-bot num">
-            <span><em>Loss at</em>${s.sl}</span>
-            <span><em>Start</em>${s.entry}</span>
-            <span><em>Win at</em>${s.tp}</span>
+            ${s.direction === 'BUY' ? `
+              <span><em>SL</em>${s.sl}</span>
+              <span><em>Entry</em>${s.entry}</span>
+              <span><em>TP</em>${s.tp}</span>
+            ` : `
+              <span><em>TP</em>${s.tp}</span>
+              <span><em>Entry</em>${s.entry}</span>
+              <span><em>SL</em>${s.sl}</span>
+            `}
           </div>
         </div>
 
