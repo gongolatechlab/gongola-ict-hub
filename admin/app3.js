@@ -211,8 +211,8 @@ function renderSignals() {
         <div class="actions">
           ${isLive ? `
             <button class="act danger" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">Close</button>
-            <button class="act ghost" onclick="event.stopPropagation(); alert('Coming soon')">Scale Out</button>
-            <button class="act ghost" onclick="event.stopPropagation(); alert('Coming soon')">Share</button>
+            <button class="act ghost" onclick="event.stopPropagation(); alert('Scale Out coming soon!')">Scale Out</button>
+            <button class="act ghost" onclick="event.stopPropagation(); alert('Share coming soon!')">Share</button>
           ` : isClosed ? `
             <button class="act ghost" style="grid-column: span 3;">Closed (${s.result.toUpperCase()})</button>
           ` : `
