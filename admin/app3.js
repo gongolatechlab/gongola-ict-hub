@@ -530,6 +530,24 @@ function switchTab(id, tab) {
   
   if (!chartBtn) return;
 
+  const isChartVisible = chartContent.style.display === 'block';
+  const isAnalysisVisible = analysisContent.style.display === 'block';
+
+  // Toggle off if clicking the active tab
+  if (tab === 'chart' && isChartVisible) {
+    chartContent.style.display = 'none';
+    chartBtn.style.color = 'var(--muted)';
+    chartBtn.style.borderBottom = '2px solid transparent';
+    return;
+  }
+  if (tab === 'analysis' && isAnalysisVisible) {
+    analysisContent.style.display = 'none';
+    analysisBtn.style.color = 'var(--muted)';
+    analysisBtn.style.borderBottom = '2px solid transparent';
+    return;
+  }
+
+  // Otherwise switch
   if (tab === 'chart') {
     chartBtn.style.color = 'var(--amber)';
     chartBtn.style.borderBottom = '2px solid var(--amber)';
