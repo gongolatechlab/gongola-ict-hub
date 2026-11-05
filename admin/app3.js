@@ -327,14 +327,25 @@ function toggleSignalModal() {
 }
 
 function setSigDir(dir) {
-  currentSigDir = dir; document.getElementById('sig-direction').value = dir;
+  currentSigDir = dir; 
+  document.getElementById('sig-direction').value = dir;
   const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
+  if (!b || !s) return;
+  
   if (dir === 'BUY') { 
-    b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; 
-    s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+    b.style.border = '1px solid var(--green)';
+    b.style.background = 'rgba(25,230,140,0.1)';
+    b.style.color = 'var(--green)';
+    s.style.border = '1px solid transparent';
+    s.style.background = 'transparent';
+    s.style.color = 'var(--muted)';
   } else { 
-    s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; 
-    b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+    s.style.border = '1px solid var(--red)';
+    s.style.background = 'rgba(255,90,79,0.1)';
+    s.style.color = 'var(--red)';
+    b.style.border = '1px solid transparent';
+    b.style.background = 'transparent';
+    b.style.color = 'var(--muted)';
   }
 }
 
@@ -624,47 +635,4 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// --- SIGNAL SUBMIT HANDLER ---
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('signal-form');
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submit-btn'); 
-      btn.innerText = "Publishing..."; btn.disabled = true;
-      
-      const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); 
-      const cat = document.getElementById('sig-cat').value;
-      const entry = document.getElementById('sig-entry').value; 
-      const sl = document.getElementById('sig-sl').value; 
-      const tp = document.getElementById('sig-tp').value;
-      const analysis = document.getElementById('sig-notes').value.trim(); 
-      const fileInput = document.getElementById('sig-image-input');
-      
-      let imageUrl = null;
-      try {
-        if (fileInput.files.length > 0) {
-          const file = fileInput.files[0]; 
-          const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
-          const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
-          if (uploadError) throw uploadError;
-          const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); 
-          imageUrl = publicUrlData.publicUrl;
-        }
-        
-        const { error: insertError } = await supabaseClient.from('signals').insert([{ 
-          asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' 
-        }]);
-        if (insertError) throw insertError;
-        
-        showAlert("Signal published successfully!", "success"); 
-        toggleSignalModal(); 
-        fetchSignals();
-      } catch (err) { 
-        showAlert("Failed to post signal: " + err.message, "error"); 
-      } finally { 
-        btn.innerText = "Publish Signal"; btn.disabled = false; 
-      }
-    });
-  }
-});
+
