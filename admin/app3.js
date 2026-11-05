@@ -156,11 +156,6 @@ function renderSignals() {
       </div>
       
       <div class="body">
-        <div class="facts">
-          <div class="fact"><label>Entry</label><b class="num">${s.entry}</b></div>
-          <div class="fact"><label>Risk→Reward</label><b class="num">${rrDisplay}</b></div>
-          <div class="fact"><label>Size</label><b class="num">1×</b></div>
-        </div>
         
         <div class="bar-wrap">
           <div class="price-track">
@@ -211,6 +206,8 @@ function renderSignals() {
       </div>
     </article>`;
   }).join('') || '<div class="empty"><b>Nothing here yet</b>Tap “Post Signal” to add a trade.</div>';
+  updateSummaryStats();
+  applyFilter(currentFilter);
 }
 
 // --- TABS ---
@@ -415,4 +412,100 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.readAsDataURL(file);
     };
   }
+});
+
+// --- UPDATE SUMMARY STATS ---
+function updateSummaryStats() {
+  let totalPnl = 0;
+  let openCount = 0;
+  let pendingCount = 0;
+  let wins = 0;
+  let closedCount = 0;
+
+  // Calculate PnL and Open count from liveTrades
+  liveTrades.forEach(p => {
+    totalPnl += parseFloat(p.position.upl || 0);
+    openCount++;
+  });
+
+  // Calculate Pending, Wins, Closed from signalsData
+  signalsData.forEach(s => {
+    if (s.result === 'win') { wins++; closedCount++; }
+    else if (s.result === 'loss') { closedCount++; }
+    else if (s.result === 'pending') { 
+      // Only count as pending if it's NOT live
+      const isLive = liveTrades.some(p => p.position.dealId === s.deal_id);
+      if (!isLive) pendingCount++;
+    }
+  });
+
+  const winRate = closedCount > 0 ? Math.round((wins / closedCount) * 100) : 0;
+
+  // Update DOM elements
+  const elTotal = document.getElementById('ui-total-pl');
+  const elOpen = document.getElementById('ui-open');
+  const elPending = document.getElementById('ui-pending');
+  const elWinRate = document.getElementById('ui-winrate');
+  const elUpd = document.getElementById('ui-upd');
+
+  if (elTotal) {
+    elTotal.innerText = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
+    elTotal.className = 'num ' + (totalPnl >= 0 ? 'pos' : 'neg');
+  }
+  if (elOpen) elOpen.innerText = openCount;
+  if (elPending) elPending.innerText = pendingCount;
+  if (elWinRate) elWinRate.innerText = winRate + '%';
+  if (elUpd) elUpd.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+  // Update filter counts
+  const cntAll = document.getElementById('ui-cnt-all');
+  const cntOpen = document.getElementById('ui-cnt-open');
+  const cntPending = document.getElementById('ui-cnt-pending');
+  const cntClosed = document.getElementById('ui-cnt-closed');
+
+  if (cntAll) cntAll.innerText = signalsData.length;
+  if (cntOpen) cntOpen.innerText = openCount;
+  if (cntPending) cntPending.innerText = pendingCount;
+  if (cntClosed) cntClosed.innerText = closedCount;
+}
+
+// --- FILTER LOGIC ---
+let currentFilter = 'all';
+
+function applyFilter(filter) {
+  currentFilter = filter;
+  
+  // Update chip styles
+  document.querySelectorAll('.chip').forEach(c => {
+    if (c.dataset.f === filter) {
+      c.style.background = 'var(--cyan-bg)';
+      c.style.borderColor = 'var(--cyan)';
+      c.style.color = 'var(--cyan)';
+    } else {
+      c.style.background = 'var(--card)';
+      c.style.borderColor = 'var(--line)';
+      c.style.color = 'var(--muted)';
+    }
+  });
+
+  // Filter the cards visually
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    const statusClass = card.className;
+    if (filter === 'all') card.style.display = '';
+    else if (filter === 'open' && statusClass.includes('open')) card.style.display = '';
+    else if (filter === 'pending' && statusClass.includes('pending')) card.style.display = '';
+    else if (filter === 'closed' && statusClass.includes('closed')) card.style.display = '';
+    else card.style.display = 'none';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Bind filter chips
+  document.querySelectorAll('.chip').forEach(c => {
+    c.onclick = (e) => {
+      e.preventDefault();
+      applyFilter(c.dataset.f);
+    };
+  });
 });
