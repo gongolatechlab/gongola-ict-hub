@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_aRLgeNmCRrvmOsW8d7YOlA_lEtVuGaE';
+  const SUPABASE_KEY = 'YOUR_PUBLISHABLE_KEY_HERE';
   const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
   const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
 
