@@ -145,14 +145,23 @@
 
   function checkPin() {
     if (document.getElementById('admin-pin').value === "1973") {
-      document.getElementById('pin-gate').classList.add('hidden');
-      document.getElementById('main-content').classList.remove('hidden');
-      
-      if (window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        fetchSignals();
-        setInterval(syncLiveTrades, 30000); // Auto-sync every 30s
+      const gate = document.getElementById('pin-gate');
+      if (gate) gate.style.display = 'none';
+      const main = document.getElementById('main-content');
+      if (main) main.classList.remove('hidden');
+      try {
+        if (window.supabase) {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+          fetchSignals();
+          setInterval(syncLiveTrades, 30000);
+        }
+      } catch (err) {
+        console.error('Supabase failed', err);
       }
+    } else {
+      alert('Incorrect PIN');
+    }
+  }
     } else {
       alert("Incorrect PIN");
     }
