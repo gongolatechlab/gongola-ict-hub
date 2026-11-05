@@ -197,15 +197,15 @@ function renderSignals() {
           </div>
         </div>
 
-        <div class="tools">
-          <button class="tool" onclick="event.stopPropagation(); openImage('${s.image_url}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-9 9"/></svg>
-            <span><b>Chart</b><small>See the setup</small></span>
-          </button>
-          <button class="tool" onclick="event.stopPropagation(); openAnalysis('${s.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
-            <span><b>Analysis</b><small>Why this trade</small></span>
-          </button>
+        <div style="display:flex; margin-bottom:12px; border-bottom:1px solid var(--line);">
+          <button id="tab-chart-${s.id}" onclick="event.stopPropagation(); switchTab('${s.id}', 'chart')" style="flex:1; padding:10px; background:none; border:none; color:var(--amber); font-weight:bold; border-bottom:2px solid var(--amber);">Chart</button>
+          <button id="tab-analysis-${s.id}" onclick="event.stopPropagation(); switchTab('${s.id}', 'analysis')" style="flex:1; padding:10px; background:none; border:none; color:var(--muted); font-weight:bold; border-bottom:2px solid transparent;">Analysis</button>
+        </div>
+        <div id="content-chart-${s.id}" style="display:block;">
+          <img src="${s.image_url || ''}" style="width:100%; border-radius:12px; border:1px solid var(--line);" onerror="this.style.display='none'">
+        </div>
+        <div id="content-analysis-${s.id}" style="display:none; padding:12px; background:var(--bg2); border:1px solid var(--line); border-radius:12px; font-size:14px; color:#cfd9e4; line-height:1.5;">
+          ${s.analysis || 'No analysis.'}
         </div>
 
         <div class="actions">
