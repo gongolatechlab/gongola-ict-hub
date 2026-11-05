@@ -747,3 +747,22 @@ async function executePartialClose(dealId, size, direction, epic) {
     alert("Error: " + err.message);
   }
 }
+
+window.forceSync = async function() {
+  alert("Forcing sync with Capital.com...");
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
+    const data = await res.json();
+    if (data.positions) {
+      liveTrades = data.positions;
+      renderSignals();
+      alert("Sync successful! Found " + liveTrades.length + " open trades.");
+    } else if (data.error) {
+      alert("Capital.com Error: " + data.error);
+    } else {
+      alert("Unexpected response: " + JSON.stringify(data));
+    }
+  } catch (err) {
+    alert("Network Error: " + err.message);
+  }
+};
