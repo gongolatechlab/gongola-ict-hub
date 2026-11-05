@@ -165,25 +165,36 @@ function renderSignals() {
       
       <div class="body">
         
-        <div class="bar-wrap">
+        <div class="bar-wrap" style="padding-top: 30px; padding-bottom: 20px;">
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
             <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
-            <div class="pin" style="left: ${pctSL}%;"><span class="pin-label">SL</span></div>
-            <div class="pin entry" style="left: ${pctEntry}%;"><span class="pin-label">ENTRY</span></div>
-            <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
-            ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
-          </div>
-          <div class="bar-bot num">
-            ${s.direction === 'BUY' ? `
-              <span><em>SL</em>${s.sl}</span>
-              <span><em>Entry</em>${s.entry}</span>
-              <span><em>TP</em>${s.tp}</span>
-            ` : `
-              <span><em>TP</em>${s.tp}</span>
-              <span><em>Entry</em>${s.entry}</span>
-              <span><em>SL</em>${s.sl}</span>
-            `}
+            
+            <!-- SL Pin -->
+            <div class="pin" style="left: ${pctSL}%;">
+              <span class="pin-label" style="top: -25px;">${s.sl}</span>
+              <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">SL</span>
+            </div>
+            
+            <!-- TP Pin -->
+            <div class="pin" style="left: ${pctTP}%;">
+              <span class="pin-label" style="top: -25px;">${s.tp}</span>
+              <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">TP</span>
+            </div>
+
+            <!-- Entry Pin -->
+            <div class="pin entry" style="left: ${pctEntry}%;">
+              <span class="pin-label" style="top: -25px; color: #fff;">${s.entry}</span>
+              <span class="pin-label" style="top: 14px; font-size: 9px; color: var(--muted);">ENTRY</span>
+            </div>
+            
+            <!-- Live Pin -->
+            ${pctLive !== null ? `
+              <div class="pin live" style="left: ${pctLive}%;">
+                <span class="pin-label" style="color: #00E5FF; top: -25px; font-weight: bold; font-size: 11px;">${liveBid}</span>
+                <span class="pin-label" style="color: #00E5FF; top: 14px; font-size: 9px;">LIVE</span>
+              </div>
+            ` : ''}
           </div>
         </div>
 
