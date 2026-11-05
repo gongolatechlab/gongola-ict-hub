@@ -514,3 +514,29 @@ document.addEventListener('DOMContentLoaded', () => {
     plCard.onclick = openAccountInfo;
   }
 });
+
+// Tab switching logic
+function switchTab(id, tab) {
+  const chartBtn = document.getElementById('tab-chart-' + id);
+  const analysisBtn = document.getElementById('tab-analysis-' + id);
+  const chartContent = document.getElementById('content-chart-' + id);
+  const analysisContent = document.getElementById('content-analysis-' + id);
+  
+  if (!chartBtn) return;
+
+  if (tab === 'chart') {
+    chartBtn.style.color = 'var(--amber)';
+    chartBtn.style.borderBottom = '2px solid var(--amber)';
+    analysisBtn.style.color = 'var(--muted)';
+    analysisBtn.style.borderBottom = '2px solid transparent';
+    chartContent.style.display = 'block';
+    analysisContent.style.display = 'none';
+  } else {
+    analysisBtn.style.color = 'var(--amber)';
+    analysisBtn.style.borderBottom = '2px solid var(--amber)';
+    chartBtn.style.color = 'var(--muted)';
+    chartBtn.style.borderBottom = '2px solid transparent';
+    chartContent.style.display = 'none';
+    analysisContent.style.display = 'block';
+  }
+}
