@@ -292,6 +292,7 @@
           <div class="flex items-center gap-3">
             <span class="text-lg font-bold font-mono">${s.asset}</span>
             <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
+            <span class="text-xs font-mono text-muted">RR ${s.rr || '—'}</span>
           </div>
           <div class="flex items-center gap-2">
             ${livePnlBadge}
@@ -300,7 +301,7 @@
           </div>
         </div>
         
-        <!-- Visual Price Bar -->
+        <!-- Visual Price Bar (Always Visible) -->
         <div class="px-4 mt-2">
           <div class="price-track">
             <div class="zone-sl" style="width: ${leftPin}%;"></div>
