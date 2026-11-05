@@ -308,26 +308,16 @@ function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
   if (!modal) return;
   
-  const isOpen = modal.hasAttribute('open') || modal.style.display === 'block';
-  
-  if (isOpen) {
-    if (typeof modal.close === 'function') modal.close();
-    modal.removeAttribute('open');
+  if (modal.style.display === 'flex') {
     modal.style.display = 'none';
     return;
   }
 
   document.getElementById('signal-form').reset();
   setSigDir('BUY');
-  document.getElementById('sig-image-preview-container').classList.add('hidden');
-  document.getElementById('manual-fields').classList.add('hidden');
-  
-  if (typeof modal.showModal === 'function') {
-    try { modal.showModal(); } catch(e) { modal.style.display = 'block'; modal.setAttribute('open', ''); }
-  } else {
-    modal.style.display = 'block';
-    modal.setAttribute('open', '');
-  }
+  document.getElementById('sig-image-preview-container').style.display = 'none';
+  document.getElementById('manual-fields').style.display = 'none';
+  modal.style.display = 'flex';
 }
 
 function setSigDir(dir) {

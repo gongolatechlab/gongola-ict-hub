@@ -155,5 +155,75 @@ input,select{font:inherit;color:inherit}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app3.js"></script>
+
+<!-- Post Signal Modal -->
+<div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99998;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--card);width:100%;max-width:640px;border-radius:24px 24px 0 0;padding:24px;max-height:90vh;overflow-y:auto;border:1px solid var(--line);border-bottom:none;">
+    <form id="signal-form" style="display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font-size:20px;color:#fff;">Post Signal</h2>
+        <button type="button" onclick="toggleSignalModal()" style="background:var(--card2);border-radius:50%;padding:8px;color:var(--muted);">✕</button>
+      </div>
+      
+      <div>
+        <label style="display:block;font-size:12px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Upload Chart</label>
+        <input type="file" id="sig-image-input" accept="image/*" style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--muted);">
+        <div id="sig-image-preview-container" class="hidden" style="display:none;margin-top:10px;position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);">
+          <img id="sig-image-preview" style="width:100%;max-height:200px;object-fit:contain;background:#000;">
+          <div id="sig-image-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);flex-direction:column;align-items:center;justify-content:center;">
+            <div style="width:30px;height:30px;border:3px solid var(--cyan);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:8px;"></div>
+            <span style="color:var(--cyan);font-weight:bold;">AI Reading...</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="manual-fields" style="display:none;flex-direction:column;gap:12px;">
+        <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Asset</label>
+            <input type="text" id="sig-asset" placeholder="XAUUSD" required style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-size:16px;font-weight:bold;outline:none;">
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Category</label>
+            <select id="sig-cat" style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-size:16px;font-weight:bold;outline:none;">
+              <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;">
+          <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:10px;border-radius:8px;font-weight:bold;border:1px solid var(--green);background:rgba(25,230,140,0.1);color:var(--green);">BUY</button>
+          <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:10px;border-radius:8px;font-weight:bold;border:1px solid transparent;color:var(--muted);">SELL</button>
+          <input type="hidden" id="sig-direction" value="BUY">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
+            <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">Entry</label>
+            <input type="number" id="sig-entry-display" step="any" style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-entry').value=this.value">
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
+            <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">SL</label>
+            <input type="number" id="sig-sl-display" step="any" style="width:100%;background:transparent;border:none;color:var(--red);font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-sl').value=this.value">
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
+            <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">TP</label>
+            <input type="number" id="sig-tp-display" step="any" style="width:100%;background:transparent;border:none;color:var(--green);font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-tp').value=this.value">
+          </div>
+        </div>
+
+        <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+          <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Analysis</label>
+          <textarea id="sig-notes" rows="3" style="width:100%;background:transparent;border:none;color:#fff;outline:none;resize:none;"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" id="submit-btn" style="width:100%;padding:16px;background:var(--cyan);color:#000;font-weight:bold;font-size:16px;border-radius:14px;margin-top:8px;">Publish Signal</button>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
