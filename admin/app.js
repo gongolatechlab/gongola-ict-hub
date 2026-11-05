@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
-  const SUPABASE_KEY = 'YOUR_ACTUAL_SUPABASE_ANON_KEY_HERE';
+  const SUPABASE_KEY = 'MISSING_KEY';
   const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
   const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
 
