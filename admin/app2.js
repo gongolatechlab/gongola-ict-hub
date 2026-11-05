@@ -1,4 +1,113 @@
-window.toggleCardDetails = function(id) {\n  const el = document.getElementById("card-details-" + id);\n  if (el) el.classList.toggle("hidden");\n};\n\nconst SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';\nconst SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';\nconst AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";\nconst EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";\n\nlet supabaseClient = null;\nlet signalsData = [];\nlet liveTrades = [];\nlet currentSigDir = 'BUY';\nlet syncInterval = null;\n\n// --- UNIVERSAL ERROR MODAL ---\nfunction showUniversalError(msg) {\n  let modal = document.getElementById('universal-error-modal');\n  if (!modal) {\n    modal = document.createElement('div');\n    modal.id = 'universal-error-modal';\n    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999;display:flex;flex-direction:column;padding:20px;font-family:monospace;color:#fff;';\n    modal.innerHTML = `\n      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:10px;">\n        <h2 style="color:#ff4444;margin:0;font-size:18px;">⚠️ SYSTEM ERROR</h2>\n        <button onclick="document.getElementById('universal-error-modal').remove()" style="background:#333;color:#fff;border:none;padding:5px 15px;border-radius:5px;font-size:16px;">✕ Close</button>\n      </div>\n      <pre id="universal-error-text" style="flex:1;overflow:auto;white-space:pre-wrap;font-size:12px;color:#ffaaaa;background:#111;padding:10px;border-radius:5px;"></pre>\n    `;\n    document.body.appendChild(modal);\n  }\n  document.getElementById('universal-error-text').textContent += msg + "\n\n";\n}\n\nwindow.onerror = function(msg, url, line) { showUniversalError("JS ERROR: " + msg + "\nLine: " + line + "\nFile: " + url); };\nwindow.addEventListener('unhandledrejection', function(e) { showUniversalError("PROMISE: " + (e.reason ? e.reason.message || e.reason : "Unknown")); });\n\n\n// --- FETCH SIGNALS ---\nasync function fetchSignals() {\n  const list = document.getElementById('signal-list');\n  if (!supabaseClient) {\n    if (list) list.innerHTML = '<div class="text-center text-loss p-4">Database not ready.</div>';\n    return;\n  }\n  try {\n    const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });\n    if (error) throw new Error(error.message);\n    signalsData = data || [];\n    renderSignals();\n  } catch (err) {\n    if (list) list.innerHTML = '<div class="text-center text-loss p-4">DB Error: ' + err.message + '</div>';\n  }\n}\n\n// --- SYNC LIVE TRADES ---\nasync function syncLiveTrades() {\n  try {\n    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });\n    const data = await res.json();\n    if (data.positions) {\n      liveTrades = data.positions;\n      updateLiveStrip();\n      renderSignals();\n    }\n  } catch (err) { \n    console.error("Sync failed: " + err.message); \n  }\n}\n\nfunction updateLiveStrip() {\n  let totalPnl = 0;\n  liveTrades.forEach(p => { totalPnl += parseFloat(p.position.upl); });\n  const strip = document.getElementById('strip-pnl');\n  if (strip) {\n    strip.innerText = (totalPnl > 0 ? '+$' : '$') + totalPnl.toFixed(2);\n    strip.className = `text-lg font-mono font-bold ${totalPnl > 0 ? 'text-win' : totalPnl < 0 ? 'text-loss' : 'text-muted'}`;\n  }\n  const openEl = document.getElementById('strip-open');\n  if (openEl) openEl.innerText = liveTrades.length;\n  const timeEl = document.getElementById('strip-time');\n  if (timeEl) timeEl.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});\n}\n\n// --- MATCHING LOGIC ---\nfunction getLiveTradeForSignal(s, used) {\n  used = used || new Set();\n  if (s.deal_id) {\n    const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));\n    if (m) return m;\n  }\n  const getNum = (val) => parseFloat(String(val).replace(/[^0-9.-]+/g,""));\n  const sEntry = getNum(s.entry), sSL = getNum(s.sl), sTP = getNum(s.tp);\n  return liveTrades.find(p => {\n    if (used.has(p.position.dealId)) return false;\n    const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));\n    if (!epicMatch || p.position.direction !== s.direction) return false;\n    const pLevel = p.position.level || p.position.openLevel;\n    if (!pLevel || !sEntry) return false;\n    const pSL = p.position.stopLevel; const pTP = p.position.profitLevel;\n    const priceMatch = Math.abs(pLevel - sEntry) < 0.5;\n    const slMatch = !pSL || !sSL || Math.abs(pSL - sSL) < 0.5;\n    const tpMatch = !pTP || !sTP || Math.abs(pTP - sTP) < 0.5;\n    return priceMatch && slMatch && tpMatch;\n  });\n}\n\n// --- RENDER UI ---\nfunction renderSignals() {
+window.toggleCardDetails = function(id) {
+  const el = document.getElementById("card-details-" + id);
+  if (el) el.classList.toggle("hidden");
+};
+
+const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
+const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
+const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
+
+let supabaseClient = null;
+let signalsData = [];
+let liveTrades = [];
+let currentSigDir = 'BUY';
+let syncInterval = null;
+
+// --- UNIVERSAL ERROR MODAL ---
+function showUniversalError(msg) {
+  let modal = document.getElementById('universal-error-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'universal-error-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999;display:flex;flex-direction:column;padding:20px;font-family:monospace;color:#fff;';
+    modal.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:10px;">
+        <h2 style="color:#ff4444;margin:0;font-size:18px;">⚠️ SYSTEM ERROR</h2>
+        <button onclick="document.getElementById('universal-error-modal').remove()" style="background:#333;color:#fff;border:none;padding:5px 15px;border-radius:5px;font-size:16px;">✕ Close</button>
+      </div>
+      <pre id="universal-error-text" style="flex:1;overflow:auto;white-space:pre-wrap;font-size:12px;color:#ffaaaa;background:#111;padding:10px;border-radius:5px;"></pre>
+    `;
+    document.body.appendChild(modal);
+  }
+  document.getElementById("universal-error-text").textContent += msg + "\n\n";
+}
+
+window.onerror = function(msg, url, line) { showUniversalError("JS ERROR: " + msg + " | Line: " + line + " | File: " + url); };
+window.addEventListener('unhandledrejection', function(e) { showUniversalError("PROMISE: " + (e.reason ? e.reason.message || e.reason : "Unknown")); });
+
+
+// --- FETCH SIGNALS ---
+async function fetchSignals() {
+  const list = document.getElementById('signal-list');
+  if (!supabaseClient) {
+    if (list) list.innerHTML = '<div class="text-center text-loss p-4">Database not ready.</div>';
+    return;
+  }
+  try {
+    const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    signalsData = data || [];
+    renderSignals();
+  } catch (err) {
+    if (list) list.innerHTML = '<div class="text-center text-loss p-4">DB Error: ' + err.message + '</div>';
+  }
+}
+
+// --- SYNC LIVE TRADES ---
+async function syncLiveTrades() {
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
+    const data = await res.json();
+    if (data.positions) {
+      liveTrades = data.positions;
+      updateLiveStrip();
+      renderSignals();
+    }
+  } catch (err) { 
+    console.error("Sync failed: " + err.message); 
+  }
+}
+
+function updateLiveStrip() {
+  let totalPnl = 0;
+  liveTrades.forEach(p => { totalPnl += parseFloat(p.position.upl); });
+  const strip = document.getElementById('strip-pnl');
+  if (strip) {
+    strip.innerText = (totalPnl > 0 ? '+$' : '$') + totalPnl.toFixed(2);
+    strip.className = `text-lg font-mono font-bold ${totalPnl > 0 ? 'text-win' : totalPnl < 0 ? 'text-loss' : 'text-muted'}`;
+  }
+  const openEl = document.getElementById('strip-open');
+  if (openEl) openEl.innerText = liveTrades.length;
+  const timeEl = document.getElementById('strip-time');
+  if (timeEl) timeEl.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// --- MATCHING LOGIC ---
+function getLiveTradeForSignal(s, used) {
+  used = used || new Set();
+  if (s.deal_id) {
+    const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));
+    if (m) return m;
+  }
+  const getNum = (val) => parseFloat(String(val).replace(/[^0-9.-]+/g,""));
+  const sEntry = getNum(s.entry), sSL = getNum(s.sl), sTP = getNum(s.tp);
+  return liveTrades.find(p => {
+    if (used.has(p.position.dealId)) return false;
+    const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));
+    if (!epicMatch || p.position.direction !== s.direction) return false;
+    const pLevel = p.position.level || p.position.openLevel;
+    if (!pLevel || !sEntry) return false;
+    const pSL = p.position.stopLevel; const pTP = p.position.profitLevel;
+    const priceMatch = Math.abs(pLevel - sEntry) < 0.5;
+    const slMatch = !pSL || !sSL || Math.abs(pSL - sSL) < 0.5;
+    const tpMatch = !pTP || !sTP || Math.abs(pTP - sTP) < 0.5;
+    return priceMatch && slMatch && tpMatch;
+  });
+}
+
+// --- RENDER UI ---
+function renderSignals() {
   const list = document.getElementById('signal-list');
   if (!list) return;
   if (signalsData.length === 0) return list.innerHTML = '<div class="text-center text-muted text-sm p-8">No signals found.</div>';
@@ -101,4 +210,201 @@ window.toggleCardDetails = function(id) {\n  const el = document.getElementById(
       </div>
     </div>`;
   }).join('');
-}\nasync function executeTrade(id) {\n  const sig = signalsData.find(s => s.id === id);\n  if (!sig) return;\n  if (!confirm(`Execute ${sig.direction} ${sig.asset}?`)) return;\n  showAlert("Sending order...", "success");\n  try {\n    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });\n    const data = await res.json();\n    if (data.dealReference || data.dealId) {\n      showAlert("Trade Executed! Syncing...", "success");\n      setTimeout(async () => {\n        const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });\n        const syncData = await syncRes.json();\n        if (syncData.positions) {\n          const matchingPos = syncData.positions.find(p => (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && p.position.direction === sig.direction);\n          if (matchingPos) {\n            await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);\n            showAlert("Linked Deal ID!", "success");\n          }\n        }\n        syncLiveTrades();\n      }, 2000);\n    } else { showAlert("Execution Failed: " + JSON.stringify(data), "error"); }\n  } catch (err) { showUniversalError("Execution failed: " + err.message); }\n}\n\nasync function closeTrade(signalId, dealId) {\n  if (!dealId) return showAlert("No deal ID.", "error");\n  if (!confirm('Close position on Capital.com?')) return;\n  const live = liveTrades.find(p => p.position.dealId === dealId);\n  const pnl = live ? parseFloat(live.position.upl) : 0;\n  const finalResult = pnl >= 0 ? 'win' : 'loss';\n  showAlert("Closing...", "success");\n  try {\n    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });\n    const data = await res.json();\n    if (data.success || data.dealReference || data.dealId) {\n      await supabaseClient.from('signals').update({ result: finalResult, deal_id: null }).eq('id', signalId);\n      showAlert("Closed & marked " + finalResult.toUpperCase(), "success");\n      syncLiveTrades(); fetchSignals();\n    } else { showAlert("Close failed.", "error"); }\n  } catch (err) { showUniversalError("Close failed: " + err.message); }\n}\n\nasync function updateResult(id, result) {\n  await supabaseClient.from('signals').update({ result }).eq('id', id);\n  fetchSignals();\n}\n\nasync function deleteSignal(id) {\n  if (confirm('Delete permanently?')) {\n    await supabaseClient.from('signals').delete().eq('id', id);\n    fetchSignals();\n  }\n}\n\nfunction showAlert(message, type = 'error') {\n  const modal = document.getElementById('custom-alert');\n  if(!modal) return alert(message);\n  const title = document.getElementById('alert-title');\n  const msg = document.getElementById('alert-message');\n  if(title) title.innerText = type === 'error' ? 'Error' : 'Success';\n  if(msg) msg.innerText = message;\n  \n  if (typeof modal.showModal === "function") { \n    try { modal.showModal(); } catch(e) { modal.style.display = "block"; } \n  } else { \n    modal.style.display = "block"; \n  }\n}\n\nfunction hideAlert() { \n  const modal = document.getElementById('custom-alert'); \n  if (modal) { \n    if (typeof modal.close === "function") { modal.close(); } \n    else { modal.style.display = "none"; modal.removeAttribute("open"); } \n  } \n}\n\nfunction toggleSignalModal() {\n  const modal = document.getElementById('signal-modal');\n  if (!modal) return;\n  \n  const isOpen = modal.hasAttribute('open') || modal.style.display === 'block';\n  \n  if (isOpen) {\n    if (typeof modal.close === 'function') modal.close();\n    modal.removeAttribute('open');\n    modal.style.display = 'none';\n    return;\n  }\n\n  document.getElementById('signal-form').reset();\n  setSigDir('BUY');\n  document.getElementById('sig-image-preview-container').classList.add('hidden');\n  document.getElementById('manual-fields').classList.add('hidden');\n  \n  if (typeof modal.showModal === 'function') {\n    try { modal.showModal(); } catch(e) { modal.style.display = 'block'; modal.setAttribute('open', ''); }\n  } else {\n    modal.style.display = 'block';\n    modal.setAttribute('open', '');\n  }\n}\n\nfunction setSigDir(dir) {\n  currentSigDir = dir; document.getElementById('sig-direction').value = dir;\n  const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');\n  if (dir === 'BUY') { \n    b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; \n    s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; \n  } else { \n    s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; \n    b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; \n  }\n}\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  const fileInput = document.getElementById('sig-image-input');\n  if (fileInput) {\n    fileInput.addEventListener('change', function(e) {\n      const file = e.target.files[0]; if (!file) return;\n      const reader = new FileReader();\n      reader.onload = function(event) {\n        const img = new Image();\n        img.onload = async function() {\n          const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);\n          const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);\n          const base64Data = canvas.toDataURL('image/jpeg', 0.7);\n          document.getElementById('sig-image-preview').src = base64Data; document.getElementById('sig-image-preview-container').classList.remove('hidden');\n          document.getElementById('sig-image-loading').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('flex');\n          const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart..."; notesArea.disabled = true;\n          try {\n            const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });\n            const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }\n            if(data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));\n            if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();\n            if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }\n            if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }\n            if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }\n            if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }\n            setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');\n            notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text returned.";\n          } catch (err) { notesArea.value = "Error: " + err.message; }\n          finally { notesArea.disabled = false; document.getElementById('manual-fields').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('hidden'); document.getElementById('sig-image-loading').classList.remove('flex'); }\n        };\n        img.src = event.target.result;\n      };\n      reader.readAsDataURL(file);\n    });\n  }\n\n  const form = document.getElementById('signal-form');\n  if (form) {\n    form.addEventListener('submit', async (e) => {\n      e.preventDefault();\n      const btn = document.getElementById('submit-btn'); btn.innerText = "Publishing..."; btn.disabled = true;\n      const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); const cat = document.getElementById('sig-cat').value;\n      const entry = document.getElementById('sig-entry').value; const sl = document.getElementById('sig-sl').value; const tp = document.getElementById('sig-tp').value;\n      const analysis = document.getElementById('sig-notes').value.trim(); const fileInput = document.getElementById('sig-image-input');\n      let imageUrl = null;\n      try {\n        if (fileInput.files.length > 0) {\n          const file = fileInput.files[0]; const fileName = `${Date.now()}.${file.name.split('.').pop()}`;\n          const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);\n          if (uploadError) throw uploadError;\n          const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); imageUrl = publicUrlData.publicUrl;\n        }\n        const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);\n        if (insertError) throw insertError;\n        showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();\n      } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }\n      finally { btn.innerText = "Publish Signal"; btn.disabled = false; }\n    });\n  }\n});\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  if (!window.supabase) {\n    showUniversalError("Supabase library not loaded. Check internet.");\n    return;\n  }\n  \n  // Initialize Supabase\n  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);\n  \n  // Load data immediately\n  fetchSignals();\n  syncLiveTrades();\n  \n  // Auto-sync every 60 seconds\n  if (syncInterval) clearInterval(syncInterval);\n  syncInterval = setInterval(() => {\n    syncLiveTrades();\n    fetchSignals();\n  }, 60000);\n});\n
+}
+async function executeTrade(id) {
+  const sig = signalsData.find(s => s.id === id);
+  if (!sig) return;
+  if (!confirm(`Execute ${sig.direction} ${sig.asset}?`)) return;
+  showAlert("Sending order...", "success");
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
+    const data = await res.json();
+    if (data.dealReference || data.dealId) {
+      showAlert("Trade Executed! Syncing...", "success");
+      setTimeout(async () => {
+        const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
+        const syncData = await syncRes.json();
+        if (syncData.positions) {
+          const matchingPos = syncData.positions.find(p => (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && p.position.direction === sig.direction);
+          if (matchingPos) {
+            await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);
+            showAlert("Linked Deal ID!", "success");
+          }
+        }
+        syncLiveTrades();
+      }, 2000);
+    } else { showAlert("Execution Failed: " + JSON.stringify(data), "error"); }
+  } catch (err) { showUniversalError("Execution failed: " + err.message); }
+}
+
+async function closeTrade(signalId, dealId) {
+  if (!dealId) return showAlert("No deal ID.", "error");
+  if (!confirm('Close position on Capital.com?')) return;
+  const live = liveTrades.find(p => p.position.dealId === dealId);
+  const pnl = live ? parseFloat(live.position.upl) : 0;
+  const finalResult = pnl >= 0 ? 'win' : 'loss';
+  showAlert("Closing...", "success");
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });
+    const data = await res.json();
+    if (data.success || data.dealReference || data.dealId) {
+      await supabaseClient.from('signals').update({ result: finalResult, deal_id: null }).eq('id', signalId);
+      showAlert("Closed & marked " + finalResult.toUpperCase(), "success");
+      syncLiveTrades(); fetchSignals();
+    } else { showAlert("Close failed.", "error"); }
+  } catch (err) { showUniversalError("Close failed: " + err.message); }
+}
+
+async function updateResult(id, result) {
+  await supabaseClient.from('signals').update({ result }).eq('id', id);
+  fetchSignals();
+}
+
+async function deleteSignal(id) {
+  if (confirm('Delete permanently?')) {
+    await supabaseClient.from('signals').delete().eq('id', id);
+    fetchSignals();
+  }
+}
+
+function showAlert(message, type = 'error') {
+  const modal = document.getElementById('custom-alert');
+  if(!modal) return alert(message);
+  const title = document.getElementById('alert-title');
+  const msg = document.getElementById('alert-message');
+  if(title) title.innerText = type === 'error' ? 'Error' : 'Success';
+  if(msg) msg.innerText = message;
+  
+  if (typeof modal.showModal === "function") { 
+    try { modal.showModal(); } catch(e) { modal.style.display = "block"; } 
+  } else { 
+    modal.style.display = "block"; 
+  }
+}
+
+function hideAlert() { 
+  const modal = document.getElementById('custom-alert'); 
+  if (modal) { 
+    if (typeof modal.close === "function") { modal.close(); } 
+    else { modal.style.display = "none"; modal.removeAttribute("open"); } 
+  } 
+}
+
+function toggleSignalModal() {
+  const modal = document.getElementById('signal-modal');
+  if (!modal) return;
+  
+  const isOpen = modal.hasAttribute('open') || modal.style.display === 'block';
+  
+  if (isOpen) {
+    if (typeof modal.close === 'function') modal.close();
+    modal.removeAttribute('open');
+    modal.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('signal-form').reset();
+  setSigDir('BUY');
+  document.getElementById('sig-image-preview-container').classList.add('hidden');
+  document.getElementById('manual-fields').classList.add('hidden');
+  
+  if (typeof modal.showModal === 'function') {
+    try { modal.showModal(); } catch(e) { modal.style.display = 'block'; modal.setAttribute('open', ''); }
+  } else {
+    modal.style.display = 'block';
+    modal.setAttribute('open', '');
+  }
+}
+
+function setSigDir(dir) {
+  currentSigDir = dir; document.getElementById('sig-direction').value = dir;
+  const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
+  if (dir === 'BUY') { 
+    b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+    s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+  } else { 
+    s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+    b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; 
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('sig-image-input');
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = async function() {
+          const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);
+          const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const base64Data = canvas.toDataURL('image/jpeg', 0.7);
+          document.getElementById('sig-image-preview').src = base64Data; document.getElementById('sig-image-preview-container').classList.remove('hidden');
+          document.getElementById('sig-image-loading').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('flex');
+          const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart..."; notesArea.disabled = true;
+          try {
+            const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
+            const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
+            if(data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+            if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
+            if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
+            if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
+            if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
+            if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
+            setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
+            notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text returned.";
+          } catch (err) { notesArea.value = "Error: " + err.message; }
+          finally { notesArea.disabled = false; document.getElementById('manual-fields').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('hidden'); document.getElementById('sig-image-loading').classList.remove('flex'); }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const form = document.getElementById('signal-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn'); btn.innerText = "Publishing..."; btn.disabled = true;
+      const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); const cat = document.getElementById('sig-cat').value;
+      const entry = document.getElementById('sig-entry').value; const sl = document.getElementById('sig-sl').value; const tp = document.getElementById('sig-tp').value;
+      const analysis = document.getElementById('sig-notes').value.trim(); const fileInput = document.getElementById('sig-image-input');
+      let imageUrl = null;
+      try {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0]; const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+          const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
+          if (uploadError) throw uploadError;
+          const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); imageUrl = publicUrlData.publicUrl;
+        }
+        const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
+        if (insertError) throw insertError;
+        showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();
+      } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }
+      finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.supabase) {
+    showUniversalError("Supabase library not loaded. Check internet.");
+    return;
+  }
+  
+  // Initialize Supabase
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // Load data immediately
+  fetchSignals();
+  syncLiveTrades();
+  
+  // Auto-sync every 60 seconds
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(() => {
+    syncLiveTrades();
+    fetchSignals();
+  }, 60000);
+});
