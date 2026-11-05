@@ -1,3 +1,42 @@
+
+// --- UNIVERSAL ERROR MODAL ---
+function showUniversalError(msg) {
+  let modal = document.getElementById('universal-error-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'universal-error-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:99999;display:flex;flex-direction:column;padding:20px;font-family:monospace;color:#fff;';
+    modal.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:10px;">
+        <h2 style="color:#ff4444;margin:0;font-size:18px;">⚠️ SYSTEM ERROR</h2>
+        <button onclick="document.getElementById('universal-error-modal').remove()" style="background:#333;color:#fff;border:none;padding:5px 15px;border-radius:5px;font-size:16px;">✕ Close</button>
+      </div>
+      <pre id="universal-error-text" style="flex:1;overflow:auto;white-space:pre-wrap;font-size:12px;color:#ffaaaa;background:#111;padding:10px;border-radius:5px;"></pre>
+    `;
+    document.body.appendChild(modal);
+  }
+  const textEl = document.getElementById('universal-error-text');
+  textEl.textContent += msg + "\n\n";
+}
+
+// Catch all errors
+window.onerror = function(msg, url, line, col, error) {
+  showUniversalError("JS ERROR: " + msg + "\nLine: " + line + "\nFile: " + url);
+};
+
+// Catch unhandled promise rejections
+window.addEventListener('unhandledrejection', function(event) {
+  showUniversalError("PROMISE REJECTION: " + (event.reason ? event.reason.message || event.reason : "Unknown"));
+});
+
+// Intercept console.error
+const originalError = console.error;
+console.error = function(...args) {
+  originalError.apply(console, args);
+  showUniversalError("CONSOLE ERROR: " + args.join(' '));
+};
+// -----------------------------
+
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
   const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
