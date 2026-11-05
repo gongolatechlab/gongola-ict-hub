@@ -1,0 +1,59 @@
+    return `
+    <div class="sig-card flex flex-col bg-surface border border-line rounded-xl overflow-hidden mb-3">
+      <div class="flex justify-between items-center p-4 border-b border-line">
+        <div class="flex items-center gap-3">
+          <span class="text-xl font-bold font-mono text-white">${s.asset}</span>
+          <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
+          <span class="text-xs text-muted font-mono">${new Date(s.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          ${isLive ? `<span class="text-sm font-mono font-bold ${livePnl >= 0 ? 'text-win' : 'text-loss'}">${livePnl > 0 ? '+' : ''}$${livePnl.toFixed(2)}</span>` : ''}
+          ${statusBadge}
+          <span class="text-sm font-mono text-muted font-bold">RR ${rrDisplay}</span>
+        </div>
+      </div>
+
+      <div class="px-4 pt-4 pb-2">
+        <div class="price-track">
+          <div class="zone-sl" style="width: ${leftPin}%;"></div>
+          <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
+          <div class="pin" style="left: ${pctSL}%;"><span class="pin-label">SL</span></div>
+          <div class="pin entry" style="left: ${pctEntry}%;"><span class="pin-label">ENTRY</span></div>
+          <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
+          ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
+        </div>
+        <div class="flex justify-between text-xs font-mono text-muted mt-2">
+          <span>${s.sl}</span>
+          <span>${s.entry}</span>
+          <span>${s.tp}</span>
+        </div>
+      </div>
+
+      <div id="card-details-${s.id}" class="hidden border-t border-line p-4 bg-surface2/30">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="sig-label mb-2">Chart</p>
+            ${s.image_url ? `<img src="${s.image_url}" class="w-full rounded-lg border border-line object-contain max-h-48 bg-black">` : `<div class="h-32 flex items-center justify-center border border-line rounded-lg text-muted text-sm">No Chart</div>`}
+          </div>
+          <div>
+            <p class="sig-label mb-2">Analysis</p>
+            <div class="text-sm text-text/80 leading-relaxed max-h-48 overflow-y-auto pr-2">
+              ${s.analysis ? s.analysis.replace(/\\*/g, '') : 'No analysis provided.'}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 border-t border-line flex gap-2">
+        ${isLive ? `
+          <button onclick="closeTrade('${s.id}','${live.position.dealId}')" class="flex-1 py-3 bg-loss text-white font-bold rounded-lg hover:brightness-110">Close</button>
+          <button onclick="toggleCardDetails('${s.id}')" class="flex-1 py-3 bg-surface2 border border-line text-white font-bold rounded-lg hover:border-accent">Details</button>
+        ` : s.result === 'win' || s.result === 'loss' ? `
+          <button class="flex-1 py-3 bg-surface2 text-muted border border-line rounded-lg font-bold cursor-not-allowed" disabled>Closed</button>
+          <button onclick="toggleCardDetails('${s.id}')" class="flex-1 py-3 bg-surface2 border border-line text-white font-bold rounded-lg hover:border-accent">Details</button>
+        ` : `
+          <button onclick="executeTrade('${s.id}')" class="flex-1 py-3 bg-win text-bg font-bold rounded-lg hover:brightness-110">Execute</button>
+          <button onclick="toggleCardDetails('${s.id}')" class="flex-1 py-3 bg-surface2 border border-line text-white font-bold rounded-lg hover:border-accent">Details</button>
+        `}
+      </div>
+    </div>`;
