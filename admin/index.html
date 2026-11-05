@@ -1,98 +1,170 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Admin Panel | Gongola ICT Hub</title>
-<meta name="theme-color" content="#0B0C10">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          bg: '#0B0C10', surface: '#1F2833', surface2: '#151E26',
-          text: '#eef1fb', muted: '#8d97b8', line: 'rgba(255,255,255,0.1)',
-          win: '#00FF66', loss: '#FF3B30', accent: '#00E5FF', open: '#F5A524'
-        },
-        fontFamily: { display: ['"Space Grotesk"', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] }
-      }
-    }
-  }
-</script>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e13">
+<title>Admin Panel · Gongola ICT Hub</title>
+<style>
+:root{
+  --bg:#0a0e13; --bg2:#0f151c; --card:#141b24; --card2:#1a232f; --line:#243040;
+  --text:#eef3f8; --muted:#8392a5; --dim:#5d6b7d;
+  --green:#19e68c; --green-bg:rgba(25,230,140,.12);
+  --red:#ff5a4f; --red-bg:rgba(255,90,79,.12);
+  --amber:#ffb020; --amber-bg:rgba(255,176,32,.12);
+  --cyan:#22d3ee; --cyan-bg:rgba(34,211,238,.12);
+  --r:18px; --r-sm:12px;
+  --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Courier New", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.4}
+body{min-height:100vh;padding-bottom:110px;max-width:640px;margin:0 auto}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit;color:inherit}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ---------- Header ---------- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;background:rgba(10,14,19,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:20px;color:#04121a;
+  background:linear-gradient(135deg,#22d3ee,#19e68c);flex:none}
+.brand h1{font-size:18px;font-weight:700;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted);margin-top:3px}
+.btn-post{display:flex;align-items:center;gap:6px;height:44px;padding:0 16px;border-radius:14px;font-weight:700;font-size:15px;
+  color:#032214;background:var(--green);box-shadow:0 6px 20px rgba(25,230,140,.28);flex:none}
+.btn-post:active{transform:scale(.97)}
+
+/* ---------- Summary ---------- */
+.wrap{padding:16px}
+.summary{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 10px 11px}
+.stat label{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.stat b{display:block;font-size:19px;font-weight:700}
+.stat.main b{font-size:21px}
+.pos{color:var(--green)} .neg{color:var(--red)}
+.sub-row{display:flex;align-items:center;justify-content:space-between;margin:12px 2px 0;font-size:12.5px;color:var(--muted)}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);margin-right:6px;
+  box-shadow:0 0 0 0 rgba(34,211,238,.7);animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+.help-link{display:flex;align-items:center;gap:6px;color:var(--cyan);font-weight:600;font-size:13px;min-height:36px}
+.q{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;font-size:11px;font-weight:800}
+
+/* ---------- Filters ---------- */
+.filters{display:flex;gap:8px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;height:40px;padding:0 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  font-weight:600;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.chip .n{font-family:var(--mono);font-size:12px;background:var(--bg2);border-radius:999px;padding:1px 8px}
+.chip.on{background:var(--cyan-bg);border-color:var(--cyan);color:var(--cyan)}
+
+/* ---------- Trade card ---------- */
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dim)}
+.card.open::before{background:var(--green)}
+.card.pending::before{background:var(--amber)}
+.card.closed::before{background:var(--dim)}
+.head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 14px 15px 18px;text-align:left;min-height:72px}
+.h-left{min-width:0}
+.pair{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:800;letter-spacing:.01em}
+.side{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;letter-spacing:.06em}
+.side.sell{color:var(--red);background:var(--red-bg)}
+.side.buy{color:var(--green);background:var(--green-bg)}
+.meta{margin-top:5px;font-size:12.5px;color:var(--muted)}
+.h-right{display:flex;align-items:center;gap:10px;flex:none}
+.pl{text-align:right}
+.pl b{display:block;font-size:19px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;padding:3px 9px;border-radius:999px;margin-top:4px}
+.badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.open{color:var(--green);background:var(--green-bg)}
+.badge.open i{animation:pulse 1.6s infinite;box-shadow:0 0 0 0 rgba(25,230,140,.6)}
+.badge.pending{color:var(--amber);background:var(--amber-bg)}
+.badge.closed{color:var(--muted);background:var(--bg2)}
+.chev{width:22px;height:22px;color:var(--muted);transition:transform .25s}
+.card.exp .chev{transform:rotate(180deg)}
+
+.body{display:none;border-top:1px solid var(--line);padding:16px 16px 16px 20px;background:var(--bg2)}
+.card.exp .body{display:block;animation:slide .25s ease}
+@keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.plain{font-size:14.5px;color:#cfd9e4;line-height:1.5;margin-bottom:14px}
+.plain b{color:var(--text)}
+
+/* RR + facts */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.fact{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 10px}
+.fact label{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.fact b{display:block;margin-top:3px;font-size:15px}
+
+/* Price bar - OLD DESIGN */
+.price-track { height: 6px; background: #151E26; border-radius: 99px; position: relative; margin: 20px 0 10px 0; }
+.zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,59,48,0.5); border-radius: 99px 0 0 99px; }
+.zone-tp { position: absolute; right: 0; height: 100%; background: rgba(0,255,102,0.5); border-radius: 0 99px 99px 0; }
+.pin { position: absolute; top: -4px; width: 2px; height: 14px; background: #fff; transform: translateX(-50%); }
+.pin-label { position: absolute; top: -20px; font-size: 9px; font-weight: 700; color: #8d97b8; transform: translateX(-50%); white-space: nowrap; }
+.pin.entry { background: #00E5FF; z-index: 2; width: 3px; }
+.pin.live { background: #00E5FF; z-index: 3; width: 3px; box-shadow: 0 0 10px #00E5FF; }
+.pin.live::after { content: ''; position: absolute; top: -2px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #00E5FF; animation: pulse 1.5s infinite; }
+.bar-bot{display:flex;justify-content:space-between;font-size:13px;margin-top:10px;color:var(--muted)}
+.bar-bot span:nth-child(2){text-align:center}
+.bar-bot span:last-child{text-align:right}
+.bar-bot em{display:block;font-style:normal;font-size:10px;letter-spacing:.07em;font-family:var(--sans);color:var(--dim);margin-bottom:1px;text-transform:uppercase}
+
+/* Chips: chart/analysis */
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.tool{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);min-height:52px;text-align:left}
+.tool svg{width:22px;height:22px;color:var(--cyan);flex:none}
+.tool b{display:block;font-size:14px}
+.tool small{color:var(--dim);font-size:11.5px}
+
+/* Actions */
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.act{min-height:50px;border-radius:14px;font-weight:700;font-size:14px;padding:6px 8px;background:var(--card2);border:1px solid var(--line);line-height:1.15}
+.act.danger{background:var(--red);border-color:var(--red);color:#fff}
+.act.ghost{color:var(--text)}
+.act:active{transform:scale(.97)}
+.act.warn{color:var(--amber);border-color:rgba(255,176,32,.4);background:var(--amber-bg)}
+.actions.two{grid-template-columns:1fr 1fr}
+
+.empty{text-align:center;color:var(--muted);padding:44px 20px;border:1px dashed var(--line);border-radius:var(--r)}
+.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
+</style>
 </head>
-<body class="text-text font-display antialiased overflow-x-hidden min-h-screen">
+<body>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-30 glass border-b border-line px-4 py-3">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center font-bold text-bg shadow-[0_0_10px_rgba(0,229,255,0.4)]">A</div>
-        <div><h1 class="font-bold text-lg leading-tight">Admin Panel</h1><p class="text-[10px] font-mono text-muted uppercase tracking-widest">Gongola ICT Hub</p></div>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="toggleSignalModal()" class="px-4 py-2 bg-win text-bg font-bold text-xs rounded-lg shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
-        </button>
-      </div>
-    </div>
-  </header>
+<header class="top">
+  <div class="brand">
+    <div class="logo">A</div>
+    <div><h1>Admin Panel</h1><small>GONGOLA ICT HUB</small></div>
+  </div>
+  <button class="btn-post" id="btnPost">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Post Signal
+  </button>
+</header>
 
-  <main class="max-w-3xl mx-auto p-4 space-y-4">
-    <!-- Running P/L Strip -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-surface2 border border-line p-3 rounded-xl">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Total P/L</p>
-        <p id="strip-pnl" class="text-lg font-mono font-bold text-muted">$0.00</p>
-      </div>
-      <div class="bg-surface2 border border-line p-3 rounded-xl">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Open Trades</p>
-        <p id="strip-open" class="text-lg font-mono font-bold text-white">0</p>
-      </div>
-      <div class="bg-surface2 border border-line p-3 rounded-xl">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Last Update</p>
-        <p id="strip-time" class="text-lg font-mono font-bold text-muted">--:--</p>
-      </div>
-    </div>
+<main class="wrap">
+  <section class="summary" id="summary">
+    <div class="stat main"><label>Total P/L</label><b id="ui-total-pl" class="num">$0.00</b></div>
+    <div class="stat"><label>Open</label><b id="ui-open" class="num">0</b></div>
+    <div class="stat"><label>Waiting</label><b id="ui-pending" class="num">0</b></div>
+    <div class="stat"><label>Win rate</label><b id="ui-winrate" class="num">0%</b></div>
+  </section>
+  
+  <div class="sub-row">
+    <span><span class="live-dot"></span>Live · updated <span id="ui-upd" class="num">--:--</span></span>
+  </div>
 
-    <!-- Signals List -->
-    <div id="signal-list" class="space-y-3">
-      <div class="text-center text-muted text-sm p-8">Connecting to Database...</div>
-    </div>
-  </main>
+  <nav class="filters" id="filters">
+    <button class="chip on" data-f="all">All <span class="n" id="ui-cnt-all">0</span></button>
+    <button class="chip" data-f="open">Open <span class="n" id="ui-cnt-open">0</span></button>
+    <button class="chip" data-f="pending">Waiting <span class="n" id="ui-cnt-pending">0</span></button>
+    <button class="chip" data-f="closed">Closed <span class="n" id="ui-cnt-closed">0</span></button>
+  </nav>
 
-  <!-- Post Signal Modal -->
-  <dialog id="signal-modal" class="bg-surface text-text w-full max-w-lg mt-auto mb-0 md:m-auto rounded-t-2xl md:rounded-2xl border border-line p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm">
-    <form id="signal-form" class="p-5 flex flex-col gap-4 max-h-[90vh] overflow-y-auto pb-safe">
-      <div class="flex justify-between items-center mb-2"><h2 class="text-xl font-bold">Post Signal</h2><button type="button" onclick="toggleSignalModal()" class="p-2 bg-surface2 rounded-full text-muted hover:text-white"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-      <div><label class="block text-[10px] font-mono text-muted uppercase mb-1">Upload Chart</label><input type="file" id="sig-image-input" accept="image/*" class="w-full bg-bg border border-line rounded-lg px-3 py-3 text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-win file:text-bg hover:file:brightness-110 transition-all cursor-pointer"><div id="sig-image-preview-container" class="hidden mt-2 relative rounded-lg overflow-hidden border border-line"><img id="sig-image-preview" class="w-full max-h-48 object-contain bg-black"><div id="sig-image-loading" class="absolute inset-0 bg-black/70 hidden flex-col items-center justify-center backdrop-blur-sm"><div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mb-2"></div><span class="text-sm font-bold text-accent">AI Reading Chart...</span></div></div></div>
-      <div id="manual-fields" class="hidden flex flex-col gap-3 mt-2">
-        <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-surface2 p-3 rounded-xl border border-line"><label class="block text-[10px] font-mono text-muted uppercase mb-1">Asset</label><input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent font-mono text-lg font-bold uppercase text-white outline-none"></div>
-          <div class="bg-surface2 p-3 rounded-xl border border-line"><label class="block text-[10px] font-mono text-muted uppercase mb-1">Category</label><select id="sig-cat" class="w-full bg-transparent font-mono text-lg font-bold text-white outline-none appearance-none"><option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option></select></div>
-        </div>
-        <div class="bg-surface2 p-1.5 rounded-xl border border-line flex gap-1"><button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-win"></div> BUY</button><button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2"><div class="w-2 h-2 rounded-full bg-loss"></div> SELL</button><input type="hidden" id="sig-direction" value="BUY"></div>
-        <div class="grid grid-cols-3 gap-2"><div class="bg-surface2 p-2 rounded-lg border border-line"><label class="block text-[9px] font-mono text-muted uppercase mb-1 text-center">Entry</label><input type="number" id="sig-entry-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-white outline-none text-center" oninput="document.getElementById('sig-entry').value=this.value"></div><div class="bg-surface2 p-2 rounded-lg border border-line"><label class="block text-[9px] font-mono text-muted uppercase mb-1 text-center">SL</label><input type="number" id="sig-sl-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-loss outline-none text-center" oninput="document.getElementById('sig-sl').value=this.value"></div><div class="bg-surface2 p-2 rounded-lg border border-line"><label class="block text-[9px] font-mono text-muted uppercase mb-1 text-center">TP</label><input type="number" id="sig-tp-display" step="any" class="w-full bg-transparent font-mono text-base font-bold text-win outline-none text-center" oninput="document.getElementById('sig-tp').value=this.value"></div></div>
-        <div class="bg-surface2 p-3 rounded-xl border border-line"><label class="block text-[10px] font-mono text-muted uppercase mb-1">Analysis</label><textarea id="sig-notes" rows="3" class="w-full bg-transparent text-sm text-white outline-none resize-none"></textarea></div>
-      </div>
-      <button type="submit" id="submit-btn" class="w-full py-3.5 bg-accent text-bg font-bold text-lg rounded-xl mt-2 hover:brightness-110 transition-all">Publish Signal</button>
-    </form>
-  </dialog>
+  <section id="signal-list"></section>
+</main>
 
-  <!-- Custom Alert Modal -->
-  <dialog id="custom-alert" class="bg-surface text-text w-full max-w-sm m-auto rounded-2xl border border-line p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm">
-    <div class="p-6 text-center">
-      <div id="alert-icon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center"><svg id="alert-svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"></svg></div>
-      <h3 id="alert-title" class="text-lg font-bold text-white mb-2">Notice</h3>
-      <p id="alert-message" class="text-sm text-muted mb-6"></p>
-      <button onclick="hideAlert()" class="w-full py-3 bg-surface2 border border-line text-white font-bold rounded-xl hover:border-accent transition-colors">Close</button>
-    </div>
-  </dialog>
-
-  <script src="app2.js"></script>
+<script src="app3.js"></script>
 </body>
 </html>
