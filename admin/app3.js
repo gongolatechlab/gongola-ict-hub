@@ -8,6 +8,28 @@ let signalsData = [];
 let liveTrades = [];
 let currentSigDir = 'BUY';
 let syncInterval = null;
+
+// --- CUSTOM ALERT MODAL ---
+window.alert = function(message) {
+  let modal = document.getElementById('custom-alert-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'custom-alert-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(modal);
+  }
+  
+  modal.innerHTML = `
+    <div style="background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; width:100%; max-width:340px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+      <div style="width:48px; height:48px; border-radius:50%; background:rgba(34,211,238,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      </div>
+      <p style="color:#fff; font-size:15px; line-height:1.5; margin-bottom:20px;">${message}</p>
+      <button onclick="document.getElementById('custom-alert-modal').remove()" style="width:100%; padding:12px; background:var(--cyan); color:#000; font-weight:bold; font-size:15px; border:none; border-radius:12px; cursor:pointer;">Got it</button>
+    </div>
+  `;
+};
+
 let accountBalance = 0;
 
 // --- UNIVERSAL ERROR MODAL ---
