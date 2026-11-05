@@ -285,7 +285,7 @@ function showAlert(message, type = 'error') {
   const msg = document.getElementById('alert-message');
   if(title) title.innerText = type === 'error' ? 'Error' : 'Success';
   if(msg) msg.innerText = message;
-  modal.showModal();
+  if (typeof modal.showModal === "function") { modal.showModal(); } else { modal.style.display = "block"; }
 }
 
 function hideAlert() { document.getElementById('custom-alert')?.close(); }
