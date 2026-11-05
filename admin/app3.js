@@ -8,6 +8,7 @@ let signalsData = [];
 let liveTrades = [];
 let currentSigDir = 'BUY';
 let syncInterval = null;
+let accountBalance = 0;
 
 // --- UNIVERSAL ERROR MODAL ---
 function showUniversalError(msg) {
@@ -356,6 +357,7 @@ function setSigDir(dir) {
 // --- INIT & LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  fetchAccountBalance();
   fetchSignals();
   syncLiveTrades();
   if (syncInterval) clearInterval(syncInterval);
@@ -471,6 +473,9 @@ function updateSummaryStats() {
   const elWinRate = document.getElementById('ui-winrate');
   const elUpd = document.getElementById('ui-upd');
 
+  const elBalance = document.getElementById('ui-balance');
+  if (elBalance) elBalance.innerText = '$' + accountBalance.toFixed(2);
+  
   if (elTotal) {
     elTotal.innerText = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
     elTotal.className = 'num ' + (totalPnl >= 0 ? 'pos' : 'neg');
@@ -537,3 +542,72 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   });
 });
+
+async function fetchAccountBalance() {
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { 
+      method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
+      body: JSON.stringify({ action: 'get_account' }) 
+    });
+    const data = await res.json();
+    if (data.accounts && data.accounts.length > 0) {
+      accountBalance = parseFloat(data.accounts[0].balance.balance);
+      updateSummaryStats(); // Refresh UI
+    }
+  } catch (e) { console.error("Balance fetch failed", e); }
+}
+
+async function openAccountInfo() {
+  const loadingMsg = document.createElement('div');
+  loadingMsg.id = 'acc-loading';
+  loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#141b24;border:1px solid #243040;color:#fff;padding:15px 25px;border-radius:12px;z-index:99999;font-weight:bold;';
+  loadingMsg.innerText = 'Fetching Account Info...';
+  document.body.appendChild(loadingMsg);
+
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_account' }) });
+    const data = await res.json();
+    loadingMsg.remove();
+
+    if (data.accounts && data.accounts.length > 0) {
+      const acc = data.accounts[0];
+      const bal = acc.balance;
+      
+      let modal = document.getElementById('account-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'account-modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+        document.body.appendChild(modal);
+      }
+      
+      modal.innerHTML = `
+        <div style="background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:400px;color:#fff;font-family:var(--sans);">
+          <h2 style="font-size:20px;margin-bottom:20px;">Account Info</h2>
+          <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:10px;">
+            <p style="font-size:12px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Balance</p>
+            <p style="font-size:24px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.balance).toFixed(2)}</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Available</p>
+              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.available).toFixed(2)}</p>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
+              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Profit / Loss</p>
+              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);color:${parseFloat(bal.profitLoss) >= 0 ? 'var(--green)' : 'var(--red)'}">
+                ${parseFloat(bal.profitLoss) >= 0 ? '+' : ''}$${parseFloat(bal.profitLoss).toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <button onclick="document.getElementById('account-modal').remove()" style="width:100%;padding:14px;background:var(--card2);border:1px solid var(--line);border-radius:12px;color:#fff;font-weight:bold;font-size:16px;">Close</button>
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    if (loadingMsg) loadingMsg.remove();
+    alert("Failed to fetch account info: " + err.message);
+  }
+}

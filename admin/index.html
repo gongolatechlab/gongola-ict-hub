@@ -133,7 +133,13 @@ input,select{font:inherit;color:inherit}
 
 <main class="wrap">
   <section class="summary" id="summary">
-    <div class="stat main"><label>Total P/L</label><b id="ui-total-pl" class="num">$0.00</b></div>
+    <div class="stat main" style="cursor:pointer;" onclick="openAccountInfo()">
+      <label>Balance</label>
+      <b id="ui-balance" class="num" style="font-size: 20px;">$0.00</b>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">
+        P/L: <span id="ui-total-pl" class="num">$0.00</span>
+      </div>
+    </div>
     <div class="stat"><label>Open</label><b id="ui-open" class="num">0</b></div>
     <div class="stat"><label>Waiting</label><b id="ui-pending" class="num">0</b></div>
     <div class="stat"><label>Win rate</label><b id="ui-winrate" class="num">0%</b></div>
