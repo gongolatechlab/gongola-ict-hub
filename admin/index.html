@@ -38,7 +38,7 @@
     <h2 class="text-xl font-bold mb-2">Admin Access</h2>
     <p class="text-sm text-muted mb-6">Enter your PIN to manage signals.</p>
     <input type="password" id="admin-pin" placeholder="••••" class="w-full bg-bg border border-line rounded-lg px-4 py-3 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-accent mb-4">
-    <button onclick="checkPin()" class="w-full py-3 bg-accent text-bg font-bold rounded-xl hover:brightness-110">Unlock</button>
+    <button onclick="if(document.getElementById('admin-pin').value==='1973'){document.getElementById('pin-gate').style.display='none';document.getElementById('main-content').classList.remove('hidden');}else{alert('Wrong PIN');}" class="w-full py-3 bg-accent text-bg font-bold rounded-xl hover:brightness-110">Unlock</button>
   </div>
 </div>
 
