@@ -10,7 +10,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
 const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzjI8nb-XFZEOBRrefmIPolUb2Y_gc_a5ESmOxDATJWqwx0dvHcILWONt7TtiFa-DKmXg/exec";
 
-let supabaseClient = null;
+let supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 let signalsData = [];
 let liveTrades = [];
 let currentSigDir = 'BUY';
@@ -56,9 +56,9 @@ function checkPin() {
           syncLiveTrades();
           setInterval(syncLiveTrades, 30000);
         } catch(err) { showUniversalError("Supabase init failed: " + err.message); }
-      } else if (attempts > 20) {
+      } else if (attempts > 40) {
         clearInterval(initInterval);
-        showUniversalError("Supabase library failed to load from CDN.");
+        showUniversalError("Supabase CDN failed to load after 10s. Check your internet.");
       }
     }, 250);
   } else {
