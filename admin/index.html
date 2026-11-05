@@ -5,157 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0e13">
 <title>Admin Panel · Gongola ICT Hub</title>
-<style>
-:root{
-  --bg:#0a0e13; --bg2:#0f151c; --card:#141b24; --card2:#1a232f; --line:#243040;
-  --text:#eef3f8; --muted:#8392a5; --dim:#5d6b7d;
-  --green:#19e68c; --green-bg:rgba(25,230,140,.12);
-  --red:#ff5a4f; --red-bg:rgba(255,90,79,.12);
-  --amber:#ffb020; --amber-bg:rgba(255,176,32,.12);
-  --cyan:#22d3ee; --cyan-bg:rgba(34,211,238,.12);
-  --r:18px; --r-sm:12px;
-  --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, "Courier New", monospace;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.4}
-body{min-height:100vh;padding-bottom:110px;max-width:640px;margin:0 auto}
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
-input,select{font:inherit;color:inherit}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 
-/* Header */
-.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:14px 16px;background:rgba(10,14,19,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:12px;min-width:0}
-.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:20px;color:#04121a;
-  background:linear-gradient(135deg,#22d3ee,#19e68c);flex:none}
-.brand h1{font-size:18px;font-weight:700;line-height:1.1}
-.brand small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted);margin-top:3px}
-.btn-post{display:flex;align-items:center;gap:6px;height:44px;padding:0 16px;border-radius:14px;font-weight:700;font-size:15px;
-  color:#032214;background:var(--green);box-shadow:0 6px 20px rgba(25,230,140,.28);flex:none}
-
-/* Summary */
-.wrap{padding:16px}
-.summary{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:8px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 10px 11px}
-.stat label{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.stat b{display:block;font-size:19px;font-weight:700}
-.stat.main b{font-size:21px}
-.pos{color:var(--green)} .neg{color:var(--red)}
-.sub-row{display:flex;align-items:center;justify-content:space-between;margin:12px 2px 0;font-size:12.5px;color:var(--muted)}
-.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);margin-right:6px;
-  box-shadow:0 0 0 0 rgba(34,211,238,.7);animation:pulse 1.6s infinite}
-@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
-
-/* Filters */
-.filters{display:flex;gap:8px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
-.filters::-webkit-scrollbar{display:none}
-.chip{flex:none;height:40px;padding:0 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);
-  font-weight:600;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:7px}
-.chip .n{font-family:var(--mono);font-size:12px;background:var(--bg2);border-radius:999px;padding:1px 8px}
-.chip.on{background:var(--cyan-bg);border-color:var(--cyan);color:var(--cyan)}
-
-/* Trade card */
-.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
-.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dim)}
-.card.open::before{background:var(--green)}
-.card.pending::before{background:var(--amber)}
-.card.closed::before{background:var(--dim)}
-.head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 14px 2px 18px;text-align:left;margin-bottom:7px;}
-.h-left{min-width:0}
-.pair{display:flex;align-items:center;gap:8px;font-size:19px;font-weight:800;letter-spacing:.01em}
-.side{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;letter-spacing:.06em}
-.side.sell{color:var(--red);background:var(--red-bg)}
-.side.buy{color:var(--green);background:var(--green-bg)}
-.meta{margin-top:5px;font-size:12.5px;color:var(--muted)}
-.h-right{display:flex;align-items:center;gap:10px;flex:none}
-.pl{text-align:right}
-.pl b{display:block;font-size:19px}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;padding:3px 9px;border-radius:999px;margin-top:4px}
-.badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
-.badge.open{color:var(--green);background:var(--green-bg)}
-.badge.pending{color:var(--amber);background:var(--amber-bg)}
-.badge.closed{color:var(--muted);background:var(--bg2)}
-.chev{width:22px;height:22px;color:var(--muted);transition:transform .25s}
-.card.exp .chev{transform:rotate(180deg)}
-
-.body{display:none;border-top:1px solid var(--line);padding:16px 16px 16px 20px;background:var(--bg2)}
-.card.exp .body{display:block;animation:slide .25s ease}
-@keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-
-/* Facts Grid */
-.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.fact{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 10px}
-.fact label{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.fact b{display:block;margin-top:3px;font-size:15px}
-
-/* OLD Price bar */
-.price-track { height: 6px; background: #151E26; border-radius: 99px; position: relative; margin: 20px 0 10px 0; }
-.zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,59,48,0.5); border-radius: 99px 0 0 99px; }
-.zone-tp { position: absolute; right: 0; height: 100%; background: rgba(0,255,102,0.5); border-radius: 0 99px 99px 0; }
-.pin { position: absolute; top: -4px; width: 2px; height: 14px; background: #fff; transform: translateX(-50%); }
-.pin-label { position: absolute; top: -20px; font-size: 9px; font-weight: 700; color: #8d97b8; transform: translateX(-50%); white-space: nowrap; }
-.pin.entry { background: #00E5FF; z-index: 2; width: 3px; }
-.pin.live { background: #00E5FF; z-index: 3; width: 3px; box-shadow: 0 0 10px #00E5FF; }
-.pin.live::after { content: ''; position: absolute; top: -2px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #00E5FF; animation: pulse 1.5s infinite; }
-.bar-bot{display:flex;justify-content:space-between;font-size:13px;margin-top:10px;color:var(--muted)}
-.bar-bot span:nth-child(2){text-align:center}
-.bar-bot span:last-child{text-align:right}
-.bar-bot em{display:block;font-style:normal;font-size:10px;letter-spacing:.07em;color:var(--dim);margin-bottom:1px;text-transform:uppercase}
-
-/* Tools */
-.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.tool{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);min-height:52px;text-align:left}
-.tool svg{width:22px;height:22px;color:var(--cyan);flex:none}
-.tool b{display:block;font-size:14px}
-.tool small{color:var(--dim);font-size:11.5px}
-
-/* Actions */
-.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.act{display:inline-flex; align-items:center; justify-content:center; height:32px; border-radius:8px;font-weight:700;font-size:14px;padding:6px 8px;background:var(--card2);border:1px solid var(--line);line-height:1.15}
-.act.danger{background:var(--red);border-color:var(--red);color:#fff}
-.act.warn{color:var(--amber);border-color:rgba(255,176,32,.4);background:var(--amber-bg)}
-</style>
-
-<style>
-/* Premium UI Overrides */
-.summary { gap: 10px; margin-bottom: 10px; }
-.stat { 
-  position: relative; overflow: hidden; border-radius: 16px; padding: 12px; 
-  background: linear-gradient(180deg, rgba(20,27,36,0.9) 0%, rgba(10,14,19,0.9) 100%);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-.stat label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; white-space: nowrap; }
-.stat .val { font-size: 22px; font-weight: 700; font-family: var(--mono); color: #fff; }
-.stat .sub { font-size: 11px; font-family: var(--mono); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-
-/* Gradients */
-.stat.balance::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(34,211,238,0.1)); pointer-events: none; }
-.stat.open::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(59,130,246,0.1)); pointer-events: none; }
-.stat.waiting::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(255,176,32,0.1)); pointer-events: none; }
-.stat.winrate::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(180deg, transparent, rgba(168,85,247,0.1)); pointer-events: none; }
-
-/* Filter Chips */
-.chip { border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); border-radius: 99px; color: rgba(255,255,255,0.6); }
-.chip.on { border-color: var(--green); color: var(--green); background: rgba(25,230,140,0.05); box-shadow: 0 0 10px rgba(25,230,140,0.2); }
-
-/* Trade Cards */
-.card { border-radius: 18px; background: linear-gradient(180deg, rgba(26,35,47,0.8) 0%, rgba(15,21,28,0.9) 100%); border: 1px solid rgba(255,255,255,0.05); }
-.card.open::before { background: var(--green); box-shadow: 2px 0 15px rgba(25,230,140,0.4); }
-.card.pending::before { background: var(--amber); box-shadow: 2px 0 15px rgba(255,176,32,0.4); }
-.card.closed::before { background: rgba(255,255,255,0.2); }
-
-/* Tab Active state */
-.tab-btn.active { color: var(--green) !important; border-bottom-color: var(--green) !important; }
-</style>
 
 
 <style>
-  /* Universal Card Header Fix */
+  /* Absolute Override for Header Padding */
   .head, .card.open .head, .card.pending .head, .card.closed .head {
     padding: 5px 14px 2px 18px !important;
-    margin-bottom: 7px !important;
+    margin-bottom: 0px !important;
+  }
+  /* Tighten the gap between header and price bar */
+  .bar-wrap {
+    padding-top: 12px !important;
+    padding-bottom: 0px !important;
   }
 </style>
 
@@ -174,7 +36,7 @@ input,select{font:inherit;color:inherit}
 </header>
 
 <main class="wrap">
-  <section class="summary" id="summary">
+  <section class="summary" id="summary" style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px;">
     <div class="stat balance" style="cursor:pointer;" onclick="openAccountInfo()">
       <label>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:6px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -185,26 +47,16 @@ input,select{font:inherit;color:inherit}
         P/L: <span id="ui-total-pl" class="num">$0.00</span>
       </div>
     </div>
-    <div class="stat open">
-      <label>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:6px;"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        OPEN
-      </label>
-      <div class="val" id="ui-open">0</div>
-    </div>
-    <div class="stat waiting">
-      <label>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:6px;"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        WAITING
-      </label>
-      <div class="val" id="ui-pending">0</div>
-    </div>
+    
     <div class="stat winrate">
       <label>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-right:6px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
         WIN RATE
       </label>
       <div class="val" id="ui-winrate">0%</div>
+      <div class="sub" style="color: var(--muted); margin-top:4px;">
+        Wins: <span id="ui-wins">0</span>
+      </div>
     </div>
   </section>
   

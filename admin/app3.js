@@ -574,6 +574,10 @@ function updateSummaryStats() {
   if (cntOpen) cntOpen.innerText = openCount;
   if (cntPending) cntPending.innerText = pendingCount;
   if (cntClosed) cntClosed.innerText = closedCount;
+
+  // Update new Win Rate card
+  const elWins = document.getElementById('ui-wins');
+  if (elWins) elWins.innerText = wins;
 }
 
 // --- FILTER LOGIC ---
