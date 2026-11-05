@@ -143,7 +143,7 @@ function renderSignals() {
     const directionText = s.direction === 'BUY' ? 'price expected to rise' : 'price expected to fall';
 
     return `
-    <article class="card ${statusClass}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
+    <article class="card ${isLive ? 'open' : isClosed ? 'closed' : 'pending'}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
       <div class="head">
         <div class="h-left">
           <div class="pair">${s.asset}<span class="side ${s.direction.toLowerCase()}">${s.direction}</span></div>
@@ -475,7 +475,7 @@ let currentFilter = 'all';
 function applyFilter(filter) {
   currentFilter = filter;
   
-  // Update chip styles
+  // 1. Update chip styles
   document.querySelectorAll('.chip').forEach(c => {
     if (c.dataset.f === filter) {
       c.style.background = 'var(--cyan-bg)';
@@ -488,15 +488,20 @@ function applyFilter(filter) {
     }
   });
 
-  // Filter the cards visually
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
-    const statusClass = card.className;
-    if (filter === 'all') card.style.display = '';
-    else if (filter === 'open' && statusClass.includes('open')) card.style.display = '';
-    else if (filter === 'pending' && statusClass.includes('pending')) card.style.display = '';
-    else if (filter === 'closed' && statusClass.includes('closed')) card.style.display = '';
-    else card.style.display = 'none';
+  // 2. Filter the cards visually
+  document.querySelectorAll('.card').forEach(card => {
+    // Check the classes applied to the card
+    if (filter === 'all') {
+      card.style.display = '';
+    } else if (filter === 'open' && card.classList.contains('open')) {
+      card.style.display = '';
+    } else if (filter === 'pending' && card.classList.contains('pending')) {
+      card.style.display = '';
+    } else if (filter === 'closed' && card.classList.contains('closed')) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
   });
 }
 
