@@ -7,6 +7,7 @@ let supabaseClient = null;
 let signalsData = [];
 let liveTrades = [];
 let currentSigDir = 'BUY';
+let syncInterval = null;
 
 // --- UNIVERSAL ERROR MODAL ---
 function showUniversalError(msg) {
@@ -29,53 +30,55 @@ function showUniversalError(msg) {
 
 window.onerror = function(msg, url, line) { showUniversalError("JS ERROR: " + msg + "\nLine: " + line + "\nFile: " + url); };
 window.addEventListener('unhandledrejection', function(e) { showUniversalError("PROMISE: " + (e.reason ? e.reason.message || e.reason : "Unknown")); });
-const originalError = console.error;
-console.error = function(...args) { originalError.apply(console, args); showUniversalError("CONSOLE: " + args.join(' ')); };
 
 // --- LOGIN ---
-window.checkPin = function checkPin() {
+window.checkPin = function() {
   if (document.getElementById('admin-pin').value === "1973") {
     document.getElementById('pin-gate').style.display = 'none';
     document.getElementById('main-content').classList.remove('hidden');
     
-    let attempts = 0;
-    const initInterval = setInterval(() => {
-      attempts++;
-      if (window.supabase) {
-        clearInterval(initInterval);
-        try {
-          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          fetchSignals();
-          syncLiveTrades();
-          setInterval(syncLiveTrades, 30000);
-        } catch(err) { showUniversalError("Supabase init failed: " + err.message); }
-      } else if (attempts > 40) {
-        clearInterval(initInterval);
-        showUniversalError("Supabase CDN failed to load after 10s. Check your internet.");
-      }
-    }, 250);
+    if (!window.supabase) {
+      showUniversalError("Supabase library not loaded. Check internet.");
+      return;
+    }
+    
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // Load data immediately
+    fetchSignals();
+    syncLiveTrades();
+    
+    // Auto-sync every 60 seconds
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(() => {
+      syncLiveTrades();
+      fetchSignals();
+    }, 60000);
+    
   } else {
     alert("Incorrect PIN");
   }
-}
+};
 
 // --- FETCH SIGNALS ---
 async function fetchSignals() {
-  if (!supabaseClient) return showUniversalError("Supabase client is null");
+  const list = document.getElementById('signal-list');
+  if (!supabaseClient) {
+    if (list) list.innerHTML = '<div class="text-center text-loss p-4">Database not ready.</div>';
+    return;
+  }
   try {
     const { data, error } = await supabaseClient.from('signals').select('*').order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     signalsData = data || [];
     renderSignals();
   } catch (err) {
-    showUniversalError("DB Fetch Error: " + err.message);
+    if (list) list.innerHTML = '<div class="text-center text-loss p-4">DB Error: ' + err.message + '</div>';
   }
 }
 
 // --- SYNC LIVE TRADES ---
 async function syncLiveTrades() {
-  const btn = document.getElementById('sync-btn');
-  if(btn) btn.innerHTML = '<div class="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>';
   try {
     const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
     const data = await res.json();
@@ -84,11 +87,8 @@ async function syncLiveTrades() {
       updateLiveStrip();
       renderSignals();
     }
-    } 
   } catch (err) { 
-    showUniversalError("Sync failed: " + err.message); 
-  } finally { 
-    if(btn) btn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>'; 
+    console.error("Sync failed: " + err.message); 
   }
 }
 
@@ -106,7 +106,7 @@ function updateLiveStrip() {
   if (timeEl) timeEl.innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 }
 
-// --- RENDER LOGIC ---
+// --- MATCHING LOGIC ---
 function getLiveTradeForSignal(s, used) {
   used = used || new Set();
   if (s.deal_id) {
@@ -129,6 +129,7 @@ function getLiveTradeForSignal(s, used) {
   });
 }
 
+// --- RENDER UI ---
 function renderSignals() {
   const list = document.getElementById('signal-list');
   if (!list) return;
@@ -279,27 +280,35 @@ function showAlert(message, type = 'error') {
   const msg = document.getElementById('alert-message');
   if(title) title.innerText = type === 'error' ? 'Error' : 'Success';
   if(msg) msg.innerText = message;
-  if (typeof modal.showModal === "function") { modal.showModal(); } else { modal.style.display = "block"; }
+  
+  if (typeof modal.showModal === "function") { 
+    try { modal.showModal(); } catch(e) { modal.style.display = "block"; } 
+  } else { 
+    modal.style.display = "block"; 
+  }
 }
 
-  const modal = document.getElementById("custom-alert"); if (modal) { if (typeof modal.close === "function") { modal.close(); } else { modal.style.display = "none"; modal.removeAttribute("open"); } }
+function hideAlert() { 
+  const modal = document.getElementById('custom-alert'); 
+  if (modal) { 
+    if (typeof modal.close === "function") { modal.close(); } 
+    else { modal.style.display = "none"; modal.removeAttribute("open"); } 
+  } 
+}
 
 function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
   if (!modal) return;
   
-  // Check if it's currently open (either via dialog or style)
   const isOpen = modal.hasAttribute('open') || modal.style.display === 'block';
   
   if (isOpen) {
-    // Close it both ways to be safe
     if (typeof modal.close === 'function') modal.close();
     modal.removeAttribute('open');
     modal.style.display = 'none';
     return;
   }
 
-  // Open it
   document.getElementById('signal-form').reset();
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').classList.add('hidden');
@@ -379,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: currentSigDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
         if (insertError) throw insertError;
         showAlert("Signal published successfully!", "success"); toggleSignalModal(); fetchSignals();
-      } catch (err) { showUniversalError("PUBLISH ERROR: " + err.message); }
+      } catch (err) { showAlert("Failed to post signal: " + err.message, "error"); }
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     });
   }
