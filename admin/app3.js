@@ -229,15 +229,15 @@ function renderSignals() {
           ${s.analysis || 'No analysis.'}
         </div>
 
-        <div class="actions" style="margin-top:14px; display:flex; gap:8px;">
+        <div class="actions" style="margin-top:14px; display:flex; gap:6px;">
           ${isLive ? `
-            <button class="act danger" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:8px 4px;" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">
+            <button class="act danger" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 2px; height:32px;" onclick="event.stopPropagation(); closeTrade('${s.id}', '${live.position.dealId}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Close
             </button>
-            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:8px 4px;" onclick="event.stopPropagation(); openScaleOutModal('${s.id}', '${live.position.dealId}', ${live.position.size}, '${live.position.direction}', '${live.market.epic}')">
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 2px; height:32px;" onclick="event.stopPropagation(); openScaleOutModal('${s.id}', '${live.position.dealId}', ${live.position.size}, '${live.position.direction}', '${live.market.epic}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Scale Out
             </button>
-            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:8px 4px;" onclick="event.stopPropagation(); alert('Share coming soon')">
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 2px; height:32px;" onclick="event.stopPropagation(); alert('Share coming soon')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
             </button>
           ` : isClosed ? `
@@ -249,7 +249,7 @@ function renderSignals() {
             <button class="act ghost" style="flex:1; color:var(--red); border-color:rgba(255,90,79,.3); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); deleteSignal('${s.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
             </button>
-            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:8px 4px;" onclick="event.stopPropagation(); alert('Share coming soon')">
+            <button class="act ghost" style="flex:1; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 2px; height:32px;" onclick="event.stopPropagation(); alert('Share coming soon')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
             </button>
           `}
