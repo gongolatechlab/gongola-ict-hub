@@ -24,7 +24,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 input,select{font:inherit;color:inherit}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 
-/* ---------- Header ---------- */
+/* Header */
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:14px 16px;background:rgba(10,14,19,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
@@ -34,9 +34,8 @@ input,select{font:inherit;color:inherit}
 .brand small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted);margin-top:3px}
 .btn-post{display:flex;align-items:center;gap:6px;height:44px;padding:0 16px;border-radius:14px;font-weight:700;font-size:15px;
   color:#032214;background:var(--green);box-shadow:0 6px 20px rgba(25,230,140,.28);flex:none}
-.btn-post:active{transform:scale(.97)}
 
-/* ---------- Summary ---------- */
+/* Summary */
 .wrap{padding:16px}
 .summary{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:8px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 10px 11px}
@@ -48,10 +47,8 @@ input,select{font:inherit;color:inherit}
 .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);margin-right:6px;
   box-shadow:0 0 0 0 rgba(34,211,238,.7);animation:pulse 1.6s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
-.help-link{display:flex;align-items:center;gap:6px;color:var(--cyan);font-weight:600;font-size:13px;min-height:36px}
-.q{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1.5px solid currentColor;font-size:11px;font-weight:800}
 
-/* ---------- Filters ---------- */
+/* Filters */
 .filters{display:flex;gap:8px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
 .chip{flex:none;height:40px;padding:0 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);
@@ -59,7 +56,7 @@ input,select{font:inherit;color:inherit}
 .chip .n{font-family:var(--mono);font-size:12px;background:var(--bg2);border-radius:999px;padding:1px 8px}
 .chip.on{background:var(--cyan-bg);border-color:var(--cyan);color:var(--cyan)}
 
-/* ---------- Trade card ---------- */
+/* Trade card */
 .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
 .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dim)}
 .card.open::before{background:var(--green)}
@@ -78,7 +75,6 @@ input,select{font:inherit;color:inherit}
 .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.06em;padding:3px 9px;border-radius:999px;margin-top:4px}
 .badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
 .badge.open{color:var(--green);background:var(--green-bg)}
-.badge.open i{animation:pulse 1.6s infinite;box-shadow:0 0 0 0 rgba(25,230,140,.6)}
 .badge.pending{color:var(--amber);background:var(--amber-bg)}
 .badge.closed{color:var(--muted);background:var(--bg2)}
 .chev{width:22px;height:22px;color:var(--muted);transition:transform .25s}
@@ -87,16 +83,14 @@ input,select{font:inherit;color:inherit}
 .body{display:none;border-top:1px solid var(--line);padding:16px 16px 16px 20px;background:var(--bg2)}
 .card.exp .body{display:block;animation:slide .25s ease}
 @keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.plain{font-size:14.5px;color:#cfd9e4;line-height:1.5;margin-bottom:14px}
-.plain b{color:var(--text)}
 
-/* RR + facts */
+/* Facts Grid */
 .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
 .fact{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 10px}
 .fact label{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
 .fact b{display:block;margin-top:3px;font-size:15px}
 
-/* Price bar - OLD DESIGN */
+/* OLD Price bar */
 .price-track { height: 6px; background: #151E26; border-radius: 99px; position: relative; margin: 20px 0 10px 0; }
 .zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,59,48,0.5); border-radius: 99px 0 0 99px; }
 .zone-tp { position: absolute; right: 0; height: 100%; background: rgba(0,255,102,0.5); border-radius: 0 99px 99px 0; }
@@ -108,9 +102,9 @@ input,select{font:inherit;color:inherit}
 .bar-bot{display:flex;justify-content:space-between;font-size:13px;margin-top:10px;color:var(--muted)}
 .bar-bot span:nth-child(2){text-align:center}
 .bar-bot span:last-child{text-align:right}
-.bar-bot em{display:block;font-style:normal;font-size:10px;letter-spacing:.07em;font-family:var(--sans);color:var(--dim);margin-bottom:1px;text-transform:uppercase}
+.bar-bot em{display:block;font-style:normal;font-size:10px;letter-spacing:.07em;color:var(--dim);margin-bottom:1px;text-transform:uppercase}
 
-/* Chips: chart/analysis */
+/* Tools */
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .tool{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);min-height:52px;text-align:left}
 .tool svg{width:22px;height:22px;color:var(--cyan);flex:none}
@@ -121,13 +115,7 @@ input,select{font:inherit;color:inherit}
 .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .act{min-height:50px;border-radius:14px;font-weight:700;font-size:14px;padding:6px 8px;background:var(--card2);border:1px solid var(--line);line-height:1.15}
 .act.danger{background:var(--red);border-color:var(--red);color:#fff}
-.act.ghost{color:var(--text)}
-.act:active{transform:scale(.97)}
 .act.warn{color:var(--amber);border-color:rgba(255,176,32,.4);background:var(--amber-bg)}
-.actions.two{grid-template-columns:1fr 1fr}
-
-.empty{text-align:center;color:var(--muted);padding:44px 20px;border:1px dashed var(--line);border-radius:var(--r)}
-.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:6px}
 </style>
 </head>
 <body>
