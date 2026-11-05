@@ -288,194 +288,52 @@
 
       return `
       <div class="sig-card">
-        <div class="p-4 border-b border-line flex justify-between items-center">
+        <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-surface2/50 transition-colors" onclick="document.getElementById('card-details-${s.id}').classList.toggle('hidden')">
           <div class="flex items-center gap-3">
             <span class="text-lg font-bold font-mono">${s.asset}</span>
             <span class="sig-badge ${s.direction.toLowerCase()}">${s.direction}</span>
-            <span class="text-xs font-mono text-muted">RR ${s.rr || '—'}</span>
+            <span class="text-[10px] font-mono text-muted bg-bg px-1.5 py-0.5 rounded border border-line">RR ${s.rr || '—'}</span>
           </div>
           <div class="flex items-center gap-2">
             ${livePnlBadge}
             ${statusBadge}
-            <button onclick="deleteSignal('${s.id}')" class="text-muted hover:text-loss transition-colors p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-          </div>
-        </div>
-        
-        <!-- Visual Price Bar (Always Visible) -->
-        <div class="px-4 mt-2">
-          <div class="price-track">
-            <div class="zone-sl" style="width: ${leftPin}%;"></div>
-            <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
-            
-            <div class="pin" style="left: ${pctSL}%;"><span class="pin-label">SL</span></div>
-            <div class="pin entry" style="left: ${pctEntry}%;"><span class="pin-label">ENTRY</span></div>
-            <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
-            
-            ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
+            <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
           </div>
         </div>
 
-        <div class="p-4">
-          <div class="sig-grid">
-            <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
-            <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
-            <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
+        <div id="card-details-${s.id}" class="hidden">
+          <!-- Visual Price Bar -->
+          <div class="px-4 mt-2">
+            <div class="price-track">
+              <div class="zone-sl" style="width: ${leftPin}%;"></div>
+              <div class="zone-tp" style="width: ${100 - rightPin}%; margin-left: ${rightPin}%;"></div>
+
+              <div class="pin" style="left: ${pctSL}%;"><span class="pin-label">SL</span></div>
+              <div class="pin entry" style="left: ${pctEntry}%;"><span class="pin-label">ENTRY</span></div>
+              <div class="pin" style="left: ${pctTP}%;"><span class="pin-label">TP</span></div>
+
+              ${pctLive !== null ? `<div class="pin live" style="left: ${pctLive}%;"><span class="pin-label" style="color:#00E5FF; top:10px;">LIVE</span></div>` : ''}
+            </div>
+          </div>
+
+          <div class="p-4">
+            <div class="sig-grid">
+              <div><div class="sig-label">Entry</div><div class="sig-val">${s.entry}</div></div>
+              <div><div class="sig-label">SL</div><div class="sig-val text-loss">${s.sl}</div></div>
+              <div><div class="sig-label">TP</div><div class="sig-val text-win">${s.tp}</div></div>
+            </div>
+            ${s.analysis ? `<div class="mt-4 pt-4 border-t border-line"><div class="sig-label mb-1">Analysis</div><div class="text-sm text-text/80 leading-relaxed">${s.analysis.replace(/\*/g, '')}</div></div>` : ''}
+            ${s.image_url ? `<div class="mt-4"><img src="${s.image_url}" class="w-full rounded-lg border border-line object-contain max-h-64"></div>` : ''}
+          </div>
+
+          <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
+            ${dynamicBtn}
+            <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win">Win</button>
+            <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
+            <button onclick="deleteSignal('${s.id}')" class="px-3 py-2 bg-bg border border-line rounded-lg text-muted hover:text-loss hover:border-loss flex items-center justify-center"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
           </div>
         </div>
-        
-        <div class="p-3 border-t border-line flex gap-2 bg-surface2 mt-2">
-          ${dynamicBtn}
-          <button onclick="updateResult('${s.id}', 'win')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-win hover:border-win">Win</button>
-          <button onclick="updateResult('${s.id}', 'loss')" class="flex-1 py-2 bg-bg border border-line rounded-lg text-xs font-bold text-muted hover:text-loss hover:border-loss">Loss</button>
-        </div>
-      </div>`}).join('');
-  }
-
-  async function closeTrade(signalId, dealId) {
-    if (!dealId) return showAlert("No deal ID for this position.", "error");
-    if (!confirm('Close this live position on Capital.com?')) return;
-    
-    // Find the trade P/L before closing to determine Win/Loss
-    const live = liveTrades.find(p => p.position.dealId === dealId);
-    const pnl = live ? parseFloat(live.position.upl) : 0;
-    const finalResult = pnl >= 0 ? 'win' : 'loss';
-    
-    showAlert("Closing position...", "success");
-    try {
-      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });
-      const data = await res.json();
-      
-      if (data.success || data.dealReference || data.dealId) {
-        // Update database: set Win/Loss and remove deal_id so it doesn't duplicate
-        await supabaseClient.from('signals').update({ result: finalResult, deal_id: null }).eq('id', signalId);
-        showAlert("Position closed. Marked as " + finalResult.toUpperCase() + ".", "success");
-        syncLiveTrades();
-        fetchSignals(); // Refresh the UI
-      } else {
-        showAlert("Close failed: " + JSON.stringify(data), "error");
-      }
-    } catch (err) { showAlert("Connection failed.", "error"); }
-  }
-
-  async function updateResult(id, result) {
-    const { error } = await supabaseClient.from('signals').update({ result }).eq('id', id);
-    if (error) return showAlert('Failed to update status', 'error');
-    fetchSignals();
-  }
-  async function deleteSignal(id) {
-    if (confirm('Delete this signal permanently?')) {
-      const { error } = await supabaseClient.from('signals').delete().eq('id', id);
-      if (error) return showAlert('Failed to delete signal', 'error');
-      fetchSignals();
-    }
-  }
-
-  async function executeTrade(id) {
-    const sig = signalsData.find(s => s.id === id);
-    if (!sig) return;
-    if (!confirm(`Execute ${sig.direction} ${sig.asset} on Capital.com DEMO account?`)) return;
-    showAlert("Sending order to Capital.com...", "success");
-    try {
-      const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'execute_trade', epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, direction: sig.direction, size: 1.0, stopLevel: sig.sl, profitLevel: sig.tp }) });
-      const data = await res.json();
-      
-      if (data.dealReference || data.dealId) {
-        showAlert("Trade Executed! Syncing deal ID...", "success");
-        
-        // Wait 2 seconds for Capital.com to register the trade, then fetch positions
-        setTimeout(async () => {
-          try {
-            const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
-            const syncData = await syncRes.json();
-            
-            if (syncData.positions) {
-              // Find the newest position matching this asset and direction
-              const matchingPos = syncData.positions.find(p => 
-                (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && 
-                p.position.direction === sig.direction
-              );
-              
-              if (matchingPos) {
-                const realDealId = matchingPos.position.dealId;
-                await supabaseClient.from('signals').update({ deal_id: realDealId }).eq('id', sig.id);
-                showAlert("Linked Deal ID: " + realDealId, "success");
-              } else {
-                showAlert("Trade executed, but could not auto-link deal ID.", "error");
-              }
-            }
-          } catch(e) { console.error(e); }
-          syncLiveTrades(); // Refresh UI
-        }, 2000);
-      } else {
-        showAlert("Execution Failed: " + JSON.stringify(data), "error");
-      }
-    } catch (err) { showAlert("Connection failed.", "error"); }
-  }
-
-  function toggleSignalModal() {
-    const modal = document.getElementById('signal-modal');
-    if (modal.open) return modal.close();
-    document.getElementById('signal-form').reset();
-    setSigDir('BUY');
-    document.getElementById('sig-image-preview-container').classList.add('hidden');
-    document.getElementById('manual-fields').classList.add('hidden');
-    modal.showModal();
-  }
-  document.getElementById('close-modal-btn')?.addEventListener('click', toggleSignalModal);
-
-  function setSigDir(dir) {
-    currentSigDir = dir; document.getElementById('sig-direction').value = dir;
-    const b = document.getElementById('sig-btn-buy'), s = document.getElementById('sig-btn-sell');
-    if (dir === 'BUY') { b.className = 'flex-1 py-2.5 rounded-lg border border-win bg-win/10 text-win font-bold text-sm transition-all flex justify-center items-center gap-2'; s.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
-    else { s.className = 'flex-1 py-2.5 rounded-lg border border-loss bg-loss/10 text-loss font-bold text-sm transition-all flex justify-center items-center gap-2'; b.className = 'flex-1 py-2.5 rounded-lg border border-transparent text-muted font-bold text-sm transition-all flex justify-center items-center gap-2'; }
-  }
-
-  document.getElementById('sig-image-input').addEventListener('change', function(e) {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = async function() {
-        const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);
-        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const base64Data = canvas.toDataURL('image/jpeg', 0.7);
-        document.getElementById('sig-image-preview').src = base64Data; document.getElementById('sig-image-preview-container').classList.remove('hidden');
-        document.getElementById('sig-image-loading').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('flex');
-        const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart structure..."; notesArea.disabled = true;
-        try {
-          const res = await fetch(AI_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) });
-          const text = await res.text(); let data; try { data = JSON.parse(text); } catch { throw new Error("Invalid server response: " + text); }
-          console.log("RAW AI RESPONSE:", text);
-          if(data.error) {
-            const errMsg = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
-            throw new Error("AI Error: " + errMsg);
-          }
-          if(!data.analysis && !data.asset) throw new Error("AI returned empty result. Raw: " + text.substring(0, 300));
-          if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
-          if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
-          if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
-          if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
-          if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
-          setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
-          notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text was returned.";
-        } catch (err) { notesArea.value = "Error: " + err.message; }
-        finally { notesArea.disabled = false; document.getElementById('manual-fields').classList.remove('hidden'); document.getElementById('sig-image-loading').classList.add('hidden'); document.getElementById('sig-image-loading').classList.remove('flex'); }
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById('signal-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn'); btn.innerText = "Publishing..."; btn.disabled = true;
-    const asset = document.getElementById('sig-asset').value.toUpperCase().trim(); const cat = document.getElementById('sig-cat').value;
-    const entry = document.getElementById('sig-entry').value; const sl = document.getElementById('sig-sl').value; const tp = document.getElementById('sig-tp').value;
-    const analysis = document.getElementById('sig-notes').value.trim(); const fileInput = document.getElementById('sig-image-input');
-    let imageUrl = null;
-    try {
-      if (fileInput.files.length > 0) {
-        const file = fileInput.files[0]; const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
+      </div>`
         const { error: uploadError } = await supabaseClient.storage.from('charts').upload(fileName, file);
         if (uploadError) throw uploadError;
         const { data: publicUrlData } = supabaseClient.storage.from('charts').getPublicUrl(fileName); imageUrl = publicUrlData.publicUrl;
