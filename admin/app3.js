@@ -372,11 +372,10 @@ async function closeTrade(signalId, dealId) {
     const data = await res.json();
     
     if (data.success || data.dealReference || data.dealId) {
-      // Show the actual PnL immediately
       await supabaseClient.from('signals').update({ 
         result: finalResult, 
         deal_id: null,
-        pnl: pnl // Save the actual PnL (we will need to add this column to Supabase if not there)
+        pnl: pnl
       }).eq('id', signalId);
       
       alert("Position closed. P/L: " + (pnl >= 0 ? '+' : '') + "$" + pnl.toFixed(2));
