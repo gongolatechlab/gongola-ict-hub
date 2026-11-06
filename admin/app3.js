@@ -286,7 +286,7 @@ function renderSignals() {
             <button class="act ghost" style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 12px; height:32px; white-space:nowrap;" onclick="event.stopPropagation(); openScaleOutModal('${s.id}', '${live.position.dealId}', ${live.position.size}, '${live.position.direction}', '${live.market.epic}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Scale Out
             </button>
-            <button class="act ghost" style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 12px; height:32px; white-space:nowrap;" onclick="event.stopPropagation(); alert('Share coming soon')">
+            <button class="act ghost" style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 12px; height:32px; white-space:nowrap;" onclick="event.stopPropagation(); sendTelegramAlert('${s.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
             </button>
           ` : isClosed ? `
@@ -298,7 +298,7 @@ function renderSignals() {
             <button class="act ghost" style="flex:1; color:var(--red); border-color:rgba(255,90,79,.3); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); deleteSignal('${s.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Delete
             </button>
-            <button class="act ghost" style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 12px; height:32px; white-space:nowrap;" onclick="event.stopPropagation(); alert('Share coming soon')">
+            <button class="act ghost" style="display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; padding:6px 12px; height:32px; white-space:nowrap;" onclick="event.stopPropagation(); sendTelegramAlert('${s.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98"/></svg> Share
             </button>
           `}
@@ -593,7 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const newSignalId = insertData[0].id;
         toggleSignalModal();
         fetchSignals();
-        sendTelegramAlert({ id: newSignalId, asset, direction: finalDir, entry, sl, tp, analysis });
       } catch (err) { alert("Failed: " + err.message); }
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     };
@@ -895,8 +894,10 @@ function saveAdminSettings() {
   alert("Settings saved!");
 }
 
-async function sendTelegramAlert(sig) {
-  // Create a visible toast banner
+async function sendTelegramAlert(signalId) {
+  const sig = signalsData.find(s => s.id === signalId);
+  if (!sig) return alert("Signal not found");
+
   let toast = document.getElementById('tg-toast');
   if (!toast) {
     toast = document.createElement('div');
