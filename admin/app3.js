@@ -86,31 +86,29 @@ async function syncLiveTrades() {
 function getLiveTradeForSignal(s, used) {
   used = used || new Set();
   
-  // 1. Exact match by deal_id (Best case)
+  // 1. STRICT: If signal has a deal_id, it MUST match exactly and only once
   if (s.deal_id) {
-    const m = liveTrades.find(p => (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && !used.has(p.position.dealId));
+    const m = liveTrades.find(p => 
+      (p.position.dealId === s.deal_id || p.position.workingOrderId === s.deal_id) && 
+      !used.has(p.position.dealId)
+    );
     if (m) return m;
   }
   
-  // 2. Fallback match: Asset and Direction (Looser matching for unlinked trades)
+  // 2. LOOSE: Only if no deal_id exists, try price matching
   const getNum = (val) => parseFloat(String(val).replace(/[^0-9.-]+/g,""));
   const sEntry = getNum(s.entry);
   
+  if (!sEntry || !Number.isFinite(sEntry)) return null;
+  
   return liveTrades.find(p => {
     if (used.has(p.position.dealId)) return false;
-    // Check asset match (handle GOLD vs XAUUSD)
     const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));
     if (!epicMatch || p.position.direction !== s.direction) return false;
-    
-    // If we don't have an entry price in the signal, just match by asset+direction
-    if (!sEntry || !Number.isFinite(sEntry)) return true;
-
-    // If we do have a price, check within a wider range (e.g., 5.0 points)
     const pLevel = p.position.level || p.position.openLevel;
-    if (!pLevel) return true; 
-    
-    return Math.abs(pLevel - sEntry) < 5.0; // Widened from 0.5 to 5.0
-  });
+    if (!pLevel) return false;
+    return Math.abs(pLevel - sEntry) < 5.0; // Wider tolerance
+  }) || null;
 }
 
 // --- RENDER UI ---
