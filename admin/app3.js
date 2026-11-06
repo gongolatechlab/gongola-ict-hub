@@ -654,147 +654,62 @@ async function fetchAccountBalance() {
   } catch (e) { console.error("Balance fetch failed", e); }
 }
 
+
 async function openAccountInfo() {
-  const loadingMsg = document.createElement('div');
-  loadingMsg.id = 'acc-loading';
-  loadingMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#141b24;border:1px solid #243040;color:#fff;padding:15px 25px;border-radius:12px;z-index:99999;font-weight:bold;';
-  loadingMsg.innerText = 'Fetching Account Info...';
-  document.body.appendChild(loadingMsg);
+  let modal = document.getElementById('account-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'account-modal';
+    document.body.appendChild(modal);
+  }
+
+  modal.className = 'app-modal-overlay';
+  modal.innerHTML = `
+    <div class="app-modal-card">
+      <h2 class="app-modal-title">Account Info</h2>
+      <p class="app-modal-sub">Loading...</p>
+    </div>
+  `;
 
   try {
     const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'get_account' }) });
     const data = await res.json();
-    loadingMsg.remove();
 
     if (data.accounts && data.accounts.length > 0) {
       const acc = data.accounts[0];
       const bal = acc.balance;
       
-      let modal = document.getElementById('account-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'account-modal';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-        document.body.appendChild(modal);
-      }
-      
       modal.innerHTML = `
-        <div style="background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:400px;color:#fff;font-family:var(--sans);">
-          <h2 style="font-size:20px;margin-bottom:20px;">Account Info</h2>
-          <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:10px;">
-            <p style="font-size:12px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Balance</p>
-            <p style="font-size:24px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.balance).toFixed(2)}</p>
+        <div class="app-modal-card">
+          <h2 class="app-modal-title">Account Info</h2>
+          
+          <div style="background: var(--panel2); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
+            <p style="font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Balance</p>
+            <p style="font-size:24px; font-weight:700; font-family:var(--mono); color:#fff;">$${parseFloat(bal.balance).toFixed(2)}</p>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
-              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Available</p>
-              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);">$${parseFloat(bal.available).toFixed(2)}</p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+            <div style="background: var(--panel2); border-radius: 12px; padding: 12px;">
+              <p style="font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Available</p>
+              <p style="font-size:16px; font-weight:700; font-family:var(--mono); color:#fff;">$${parseFloat(bal.available).toFixed(2)}</p>
             </div>
-            <div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;">
-              <p style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Profit / Loss</p>
-              <p style="font-size:16px;font-weight:bold;font-family:var(--mono);color:${parseFloat(bal.profitLoss) >= 0 ? 'var(--green)' : 'var(--red)'}">
+            <div style="background: var(--panel2); border-radius: 12px; padding: 12px;">
+              <p style="font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Profit / Loss</p>
+              <p style="font-size:16px; font-weight:700; font-family:var(--mono); color:${parseFloat(bal.profitLoss) >= 0 ? 'var(--green)' : 'var(--red)'}">
                 ${parseFloat(bal.profitLoss) >= 0 ? '+' : ''}$${parseFloat(bal.profitLoss).toFixed(2)}
               </p>
             </div>
           </div>
-          <div style="margin-top:20px;">
-            <button onclick="document.getElementById('account-modal').remove()" style="width:100%;padding:14px;background:var(--card2);border:1px solid var(--line);border-radius:12px;color:#fff;font-weight:bold;font-size:16px;">Close</button>
-          </div>
+
+          <button onclick="document.getElementById('account-modal').remove()" class="app-modal-cancel" style="width:100%;">Close</button>
         </div>
       `;
+    } else {
+      alert("No account data received.");
+      modal.remove();
     }
   } catch (err) {
-    if (loadingMsg) loadingMsg.remove();
     alert("Failed to fetch account info: " + err.message);
-  }
-}
-
-
-
-window.forceSync = async function() {
-  alert("Forcing sync with Capital.com...");
-  try {
-    const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
-    const data = await res.json();
-    if (data.positions) {
-      liveTrades = data.positions;
-      renderSignals();
-      alert("Sync successful! Found " + liveTrades.length + " open trades.");
-    } else if (data.error) {
-      alert("Capital.com Error: " + data.error);
-    } else {
-      alert("Unexpected response: " + JSON.stringify(data));
-    }
-  } catch (err) {
-    alert("Network Error: " + err.message);
-  }
-};
-
-async function openScaleOutModal(signalId, dealId, currentSize, direction, epic) {
-  let modal = document.getElementById('scale-out-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'scale-out-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-    document.body.appendChild(modal);
-  }
-
-  const size25 = (currentSize * 0.75).toFixed(2); // Remaining size
-  const size50 = (currentSize * 0.50).toFixed(2);
-  const size75 = (currentSize * 0.25).toFixed(2);
-  
-  const isTooSmall = currentSize <= 0.01;
-
-  modal.innerHTML = `
-    <div style="background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; width:100%; max-width:340px;">
-      <h2 style="color:#fff; font-size:18px; margin-bottom:4px;">Scale Out</h2>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Current Size: <b>${currentSize} Lots</b></p>
-      
-      ${isTooSmall ? `
-        <div style="background:rgba(255,176,32,0.1); border:1px solid var(--amber); border-radius:12px; padding:12px; margin-bottom:16px;">
-          <p style="color:var(--amber); font-size:12px; line-height:1.4;">⚠️ This trade is too small to split. Capital.com requires a minimum of 0.02 lots to scale out.</p>
-        </div>
-      ` : ''}
-
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size25}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">
-          25%<br><span style="font-size:10px; color:var(--muted); font-weight:normal; margin-top:2px; display:block;">Remaining: ${size25}</span>
-        </button>
-        
-        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size50}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">
-          50%<br><span style="font-size:10px; color:var(--muted); font-weight:normal; margin-top:2px; display:block;">Remaining: ${size50}</span>
-        </button>
-        
-        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size75}, '${direction}', '${epic}')" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:${isTooSmall ? 'var(--muted)' : '#fff'}; font-weight:bold; font-size:14px; ${isTooSmall ? 'opacity:0.5;' : ''}">
-          75%<br><span style="font-size:10px; color:var(--muted); font-weight:normal; margin-top:2px; display:block;">Remaining: ${size75}</span>
-        </button>
-
-        <button onclick="closeTrade('${signalId}', '${dealId}')" style="padding:14px; background:var(--red); border:1px solid var(--red); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Close All<br><span style="font-size:10px; color:rgba(255,255,255,0.7); font-weight:normal; margin-top:2px; display:block;">Full size</span></button>
-      </div>
-
-      <button onclick="document.getElementById('scale-out-modal').remove()" style="width:100%; padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Cancel</button>
-    </div>
-  `;
-}
-
-async function executePartialClose(signalId, dealId, newSize, direction, epic) {
-  document.getElementById('scale-out-modal').remove();
-  alert("Resizing trade to " + newSize + " lots...");
-  
-  try {
-    const res = await fetch(EXECUTE_ENDPOINT, { 
-      method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
-      body: JSON.stringify({ action: 'partial_close', dealId: dealId, newSize: parseFloat(newSize) }) 
-    });
-    const data = await res.json();
-    
-    if (data.success) {
-      alert("Successfully resized to " + newSize + " lots.");
-      syncLiveTrades();
-    } else {
-      alert("Failed to scale out: " + (data.error || "Unknown error"));
-    }
-  } catch (err) {
-    alert("Error: " + err.message);
+    modal.remove();
   }
 }
