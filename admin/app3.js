@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
-const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbxLirC74ppC7f5-P2o_ELAibIllQvSKRODFDThsFK2IHgZx56S-S7j1BBk6RFpfKxkbBQ/exec";
-const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbxLirC74ppC7f5-P2o_ELAibIllQvSKRODFDThsFK2IHgZx56S-S7j1BBk6RFpfKxkbBQ/exec";
+const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHs084KZZWsJMCuOAwz6JbLG7ZsvLCmL06iM4qKn9lLUdsOH1vvY5xKB_XHi8y28ibdQ/exec";
+const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHs084KZZWsJMCuOAwz6JbLG7ZsvLCmL06iM4qKn9lLUdsOH1vvY5xKB_XHi8y28ibdQ/exec";
 
 let supabaseClient = null;
 let signalsData = [];
