@@ -895,22 +895,28 @@ function saveAdminSettings() {
 
 async function sendTelegramAlert(sig) {
   const saved = JSON.parse(localStorage.getItem('adminSettings') || '{}');
-  if (!saved.token || !saved.chatId) return alert("Telegram settings missing! Please save them in Settings.");
+  if (!saved.token || !saved.chatId) {
+    alert("Telegram settings missing! Please open the Gear icon and click Save.");
+    return;
+  }
 
-  const text = `🚨 <b>NEW SIGNAL</b> 🚨\n\n` +
-               `📊 <b>Asset:</b> ${sig.asset}\n` +
-               `📈 <b>Direction:</b> ${sig.direction}\n` +
-               `🎯 <b>Entry:</b> ${sig.entry}\n` +
-               `🛑 <b>SL:</b> ${sig.sl}\n` +
-               `🏆 <b>TP:</b> ${sig.tp}\n\n` +
-               `📝 <b>Analysis:</b>\n${sig.analysis || 'No analysis'}\n\n` +
-               `🔗 <a href="https://gongolatechlab.github.io/gongola-ict-hub/signals/">View on Signals Hub</a>`;
+  const text = `🚨 NEW SIGNAL 🚨\n\n` +
+               `📊 Asset: ${sig.asset}\n` +
+               `📈 Direction: ${sig.direction}\n` +
+               `🎯 Entry: ${sig.entry}\n` +
+               `🛑 SL: ${sig.sl}\n` +
+               `🏆 TP: ${sig.tp}\n\n` +
+               `📝 Analysis:\n${sig.analysis || 'No analysis'}\n\n` +
+               `🔗 View: https://gongolatechlab.github.io/gongola-ict-hub/signals/`;
 
   try {
+    const payload = new URLSearchParams();
+    payload.append('chat_id', saved.chatId);
+    payload.append('text', text);
+
     const res = await fetch(`https://api.telegram.org/bot${saved.token}/sendMessage`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: saved.chatId, text: text, parse_mode: 'HTML' })
+      body: payload
     });
     
     const data = await res.json();
