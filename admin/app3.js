@@ -1,6 +1,34 @@
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
 const AI_ENDPOINT = "https://script.google.com/macros/s/AKfycbyqepBsGy2O3dVZYbme5EHD3556vRJX-wHgp619d-GeT4OFxQVxC_tUzJnGpIgcxul1CQ/exec";
+
+// --- CAPITAL.COM EPIC MAPPING ---
+const EPIC_MAP = {
+  'XAUUSD': 'GOLD',
+  'XAGUSD': 'SILVER',
+  'EURUSD': 'EURUSD',
+  'GBPUSD': 'GBPUSD',
+  'USDJPY': 'USDJPY',
+  'EURJPY': 'EURJPY',
+  'GBPJPY': 'GBPJPY',
+  'AUDJPY': 'AUDJPY',
+  'CADJPY': 'CADJPY',
+  'CHFJPY': 'CHFJPY',
+  'BTCUSD': 'BTCUSD',
+  'ETHUSD': 'ETHUSD',
+  'US30': 'US30',
+  'US500': 'US500',
+  'NAS100': 'NAS100',
+  'GER40': 'GER40',
+  'UK100': 'UK100',
+  'OIL': 'OIL_CRUDE',
+};
+
+function toEpic(asset) {
+  const upper = asset.toUpperCase();
+  return EPIC_MAP[upper] || upper;
+}
+
 const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbyqepBsGy2O3dVZYbme5EHD3556vRJX-wHgp619d-GeT4OFxQVxC_tUzJnGpIgcxul1CQ/exec";
 
 let supabaseClient = null;
@@ -103,7 +131,7 @@ function getLiveTradeForSignal(s, used) {
   
   return liveTrades.find(p => {
     if (used.has(p.position.dealId)) return false;
-    const epicMatch = (p.market.epic === s.asset || (p.market.epic === 'GOLD' && s.asset === 'XAUUSD'));
+    const epicMatch = (p.market.epic === toEpic(s.asset));
     if (!epicMatch || p.position.direction !== s.direction) return false;
     const pLevel = p.position.level || p.position.openLevel;
     if (!pLevel) return false;
@@ -352,7 +380,7 @@ async function executeTrade(id) {
         method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({ 
           action: 'execute_trade', 
-          epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, 
+          epic: toEpic(sig.asset), 
           direction: sig.direction, 
           size: lotSize, 
           stopLevel: sig.sl, 
@@ -370,7 +398,7 @@ async function executeTrade(id) {
             const { data: allSignals } = await supabaseClient.from('signals').select('deal_id').not('deal_id', 'is', null);
             const usedDealIds = new Set((allSignals || []).map(s => s.deal_id));
             const matchingPos = syncData.positions.find(p => {
-              const epicMatch = p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD');
+              const epicMatch = p.market.epic === toEpic(sig.asset);
               return epicMatch && p.position.direction === sig.direction && !usedDealIds.has(p.position.dealId);
             });
             if (matchingPos) {
