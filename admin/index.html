@@ -211,13 +211,14 @@
 
   <main class="max-w-3xl mx-auto p-4 space-y-4">
     <div class="grid grid-cols-2 gap-3" id="summary">
-      <div class="stat main bg-surface2 border border-line p-3 rounded-xl cursor-pointer" onclick="openAccountInfo()">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Total P/L</p>
-        <p id="ui-total-pl" class="text-lg font-mono font-bold text-muted">$0.00</p>
+      <div class="stat balance bg-surface2 border border-line p-3 rounded-xl cursor-pointer" onclick="openAccountInfo()">
+        <p class="text-[10px] font-mono text-muted uppercase mb-1">Balance</p>
+        <p id="ui-balance" class="text-lg font-mono font-bold text-white">$0.00</p>
+        <p class="text-[10px] font-mono text-muted mt-1">P/L: <span id="ui-total-pl" class="text-xs">$0.00</span></p>
       </div>
-      <div class="stat bg-surface2 border border-line p-3 rounded-xl">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Open Trades</p>
-        <p id="ui-open" class="text-lg font-mono font-bold text-white">0</p>
+      <div class="stat winrate bg-surface2 border border-line p-3 rounded-xl">
+        <p class="text-[10px] font-mono text-muted uppercase mb-1">Win Rate</p>
+        <p id="ui-winrate" class="text-lg font-mono font-bold text-white">0%</p>
       </div>
     </div>
 

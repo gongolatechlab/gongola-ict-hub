@@ -569,6 +569,9 @@ function updateSummaryStats() {
   const elBalance = document.getElementById('ui-balance');
   if (elBalance) elBalance.innerText = '$' + accountBalance.toFixed(2);
   
+  const elWinRate = document.getElementById('ui-winrate');
+  if (elWinRate) elWinRate.innerText = winRate + '%';
+  
   if (elTotal) {
     elTotal.innerText = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toFixed(2);
     elTotal.className = 'num ' + (totalPnl >= 0 ? 'pos' : 'neg');
