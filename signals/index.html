@@ -403,6 +403,8 @@
 
   function renderGrid(data) {
     const grid = document.getElementById('signal-grid');
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetId = urlParams.get('id');
     if (data.length === 0) {
       grid.innerHTML = '<div class="empty-state">No signals match these filters.</div>';
       return;
@@ -441,7 +443,7 @@
       const aliasTag = s.alias ? `<span style="font-size:10px;color:var(--muted);margin-left:4px;">also ${s.alias}</span>` : '';
 
       return `
-      <div class="card status-${statusClass} ${isPending ? 'pending' : 'closed'}">
+      <div class="card status-${statusClass} ${isPending ? 'pending' : 'closed'}" id="signal-${s.id}">
         <div class="card-body">
           <div class="top-row">
             <div class="symbol-wrap">
@@ -518,6 +520,22 @@
       </div>
       `;
     }).join('');
+
+    // Deep link scroll & highlight logic
+    if (targetId) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        const el = document.getElementById('signal-' + targetId);
+        if (el) {
+          clearInterval(interval);
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.border = '2px solid #22d3ee';
+          el.style.boxShadow = '0 0 20px rgba(34, 211, 238, 0.5)';
+        }
+        attempts++;
+        if (attempts > 25) clearInterval(interval); // Stop after 5 seconds
+      }, 200);
+    }
   }
 
   function toggleTab(id, tab, btn) {
