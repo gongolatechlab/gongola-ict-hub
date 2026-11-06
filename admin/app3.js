@@ -340,10 +340,20 @@ async function executeTrade(id) {
         setTimeout(async () => {
           const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
           const syncData = await syncRes.json();
-          if (syncData.positions) {
-            const matchingPos = syncData.positions.find(p => (p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD')) && p.position.direction === sig.direction);
+          
+          if (syncData.positions && syncData.positions.length > 0) {
+            const { data: allSignals } = await supabaseClient.from('signals').select('deal_id').not('deal_id', 'is', null);
+            const usedDealIds = new Set((allSignals || []).map(s => s.deal_id));
+            
+            const matchingPos = syncData.positions.find(p => {
+              const epicMatch = p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD');
+              return epicMatch && p.position.direction === sig.direction && !usedDealIds.has(p.position.dealId);
+            });
+            
             if (matchingPos) {
               await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);
+            } else {
+              console.warn("Could not find an unlinked matching trade.");
             }
           }
           syncLiveTrades();
