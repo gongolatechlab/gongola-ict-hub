@@ -295,18 +295,18 @@ async function executeTrade(id) {
 
   // Show custom Lot Size Modal
   let lotModal = document.getElementById('lot-size-modal');
-  if (!lotModal) {
+    lotModal.className = 'app-modal-overlay';
     lotModal = document.createElement('div');
     lotModal.id = 'lot-size-modal';
-    lotModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-    document.body.appendChild(lotModal);
-  }
-
-  lotModal.innerHTML = `
-    <div style="background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; width:100%; max-width:340px; text-align:center;">
-      <h2 style="color:#fff; font-size:18px; margin-bottom:8px;">Execute Trade</h2>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">${sig.direction} ${sig.asset}</p>
-      
+    lotModal.innerHTML = '<div class="app-modal-card">' +
+    '<h2 class="app-modal-title">Execute Trade</h2>' +
+    '<p class="app-modal-sub">' + sig.direction + ' ' + sig.asset + '</p>' +
+    '<label class="app-modal-label">Lot Size</label>' +
+    '<input type="number" id="lot-size-input" step="0.01" value="1.0" class="app-modal-input">' +
+    '<div class="app-modal-buttons">' +
+    '<button onclick="document.getElementById('"'"'lot-size-modal'"'"').remove()" class="app-modal-cancel">Cancel</button>' +
+    '<button id="confirm-lot-btn" class="app-modal-confirm">Confirm</button>' +
+    '</div></div>';
       <label style="display:block; text-align:left; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Lot Size</label>
       <input type="number" id="lot-size-input" step="0.01" value="1.0" style="width:100%; background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px; color:#fff; font-size:18px; font-weight:bold; font-family:var(--mono); text-align:center; outline:none; margin-bottom:20px;">
       
