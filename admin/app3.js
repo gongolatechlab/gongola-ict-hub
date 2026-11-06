@@ -894,11 +894,30 @@ function saveAdminSettings() {
 }
 
 async function sendTelegramAlert(sig) {
+  // Create a visible toast banner
+  let toast = document.getElementById('tg-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'tg-toast';
+    toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:8px;font-weight:bold;z-index:9999999;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,0.5);transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+  }
+
+  const showToast = (msg, isError) => {
+    toast.innerText = msg;
+    toast.style.background = isError ? '#ff4d4d' : '#22e58f';
+    toast.style.color = isError ? '#fff' : '#000';
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+  };
+
   const saved = JSON.parse(localStorage.getItem('adminSettings') || '{}');
   if (!saved.token || !saved.chatId) {
-    alert("Telegram settings missing! Please open the Gear icon and click Save.");
+    showToast("Telegram settings missing! Open Gear icon and Save.", true);
     return;
   }
+
+  showToast("Sending Telegram alert...", false);
 
   const text = `🚨 NEW SIGNAL 🚨\n\n` +
                `📊 Asset: ${sig.asset}\n` +
@@ -921,11 +940,11 @@ async function sendTelegramAlert(sig) {
     
     const data = await res.json();
     if (!data.ok) {
-      alert("Telegram Error: " + JSON.stringify(data));
+      showToast("Telegram Error: " + data.description, true);
     } else {
-      alert("Telegram alert sent successfully!");
+      showToast("✅ Telegram alert sent successfully!", false);
     }
   } catch (e) {
-    alert("Fetch Error: " + e.message);
+    showToast("Fetch Error: " + e.message, true);
   }
 }
