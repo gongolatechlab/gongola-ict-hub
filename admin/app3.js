@@ -895,7 +895,7 @@ function saveAdminSettings() {
 
 async function sendTelegramAlert(sig) {
   const saved = JSON.parse(localStorage.getItem('adminSettings') || '{}');
-  if (!saved.token || !saved.chatId) return; // Skip if not configured
+  if (!saved.token || !saved.chatId) return alert("Telegram settings missing! Please save them in Settings.");
 
   const text = `🚨 <b>NEW SIGNAL</b> 🚨\n\n` +
                `📊 <b>Asset:</b> ${sig.asset}\n` +
@@ -907,12 +907,19 @@ async function sendTelegramAlert(sig) {
                `🔗 <a href="https://gongolatechlab.github.io/gongola-ict-hub/signals/">View on Signals Hub</a>`;
 
   try {
-    await fetch(`https://api.telegram.org/bot${saved.token}/sendMessage`, {
+    const res = await fetch(`https://api.telegram.org/bot${saved.token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: saved.chatId, text: text, parse_mode: 'HTML' })
     });
+    
+    const data = await res.json();
+    if (!data.ok) {
+      alert("Telegram Error: " + JSON.stringify(data));
+    } else {
+      alert("Telegram alert sent successfully!");
+    }
   } catch (e) {
-    console.error('Telegram alert failed', e);
+    alert("Fetch Error: " + e.message);
   }
 }
