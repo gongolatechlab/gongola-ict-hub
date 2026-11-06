@@ -116,6 +116,10 @@ function renderSignals() {
   const list = document.getElementById('signal-list');
   if (!list) return;
   
+  // Save expanded state before rebuild
+  const expandedIds = [];
+  list.querySelectorAll('.card.exp').forEach(c => expandedIds.push(c.dataset.id));
+  
   const usedDealIds = new Set();
   list.innerHTML = signalsData.map(s => {
     const live = getLiveTradeForSignal(s, usedDealIds);
@@ -255,6 +259,12 @@ function renderSignals() {
       </div>
     </article>`;
   }).join('') || '<div class="empty"><b>Nothing here yet</b>Tap “Post Signal” to add a trade.</div>';
+  
+  // Restore expanded state
+  expandedIds.forEach(id => {
+    const card = list.querySelector(`.card[data-id="${id}"]`);
+    if (card) card.classList.add('exp');
+  });
   updateSummaryStats();
   applyFilter(currentFilter);
 }
