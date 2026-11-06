@@ -302,14 +302,16 @@ async function executeTrade(id) {
 
   lotModal.className = 'app-modal-overlay';
   lotModal.innerHTML = `
-    <div class="app-modal-card">
-      <h2 class="app-modal-title">Execute Trade</h2>
-      <p class="app-modal-sub">${sig.direction} ${sig.asset}</p>
-      <label class="app-modal-label">Lot Size</label>
-      <input type="number" id="lot-size-input" step="0.01" value="1.0" class="app-modal-input">
-      <div class="app-modal-buttons">
-        <button onclick="document.getElementById('lot-size-modal').remove()" class="app-modal-cancel">Cancel</button>
-        <button id="confirm-lot-btn" class="app-modal-confirm">Confirm</button>
+    <div style="background:#0c1220; border:1px solid rgba(120,150,200,0.16); border-radius:20px; padding:24px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.9);">
+      <h2 style="color:#fff; font-size:22px; font-weight:700; margin-bottom:8px;">Execute Trade</h2>
+      <p style="color:#8e9bb3; font-size:14px; margin-bottom:16px;">${sig.direction} ${sig.asset}</p>
+      
+      <label style="display:block; font-size:11px; font-weight:700; color:#8e9bb3; text-transform:uppercase; margin-bottom:6px;">Lot Size</label>
+      <input type="number" id="lot-size-input" step="0.01" value="1.0" style="width:100%; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; padding:14px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:20px; text-align:center; margin-bottom:20px; outline:none;">
+      
+      <div style="display:flex; gap:10px;">
+        <button onclick="document.getElementById('lot-size-modal').remove()" style="flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:15px; border:1px solid rgba(120,150,200,0.16); background:#0f1627; color:#fff;">Cancel</button>
+        <button id="confirm-lot-btn" style="flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:15px; border:none; background:#22e58f; color:#000;">Confirm</button>
       </div>
     </div>
   `;
