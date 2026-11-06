@@ -874,3 +874,45 @@ async function executePartialClose(signalId, dealId, newSize) {
     alert("Error: " + err.message);
   }
 }
+
+// --- ADMIN SETTINGS ---
+function toggleAdminSettings() {
+  const modal = document.getElementById('admin-settings-modal');
+  modal.classList.toggle('hidden');
+  
+  const saved = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+  if (saved.token) document.getElementById('tg-token').value = saved.token;
+  if (saved.chatId) document.getElementById('tg-chat-id').value = saved.chatId;
+}
+
+function saveAdminSettings() {
+  const token = document.getElementById('tg-token').value.trim();
+  const chatId = document.getElementById('tg-chat-id').value.trim();
+  localStorage.setItem('adminSettings', JSON.stringify({ token, chatId }));
+  toggleAdminSettings();
+  alert("Settings saved!");
+}
+
+async function sendTelegramAlert(sig) {
+  const saved = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+  if (!saved.token || !saved.chatId) return; // Skip if not configured
+
+  const text = `🚨 <b>NEW SIGNAL</b> 🚨\n\n` +
+               `📊 <b>Asset:</b> ${sig.asset}\n` +
+               `📈 <b>Direction:</b> ${sig.direction}\n` +
+               `🎯 <b>Entry:</b> ${sig.entry}\n` +
+               `🛑 <b>SL:</b> ${sig.sl}\n` +
+               `🏆 <b>TP:</b> ${sig.tp}\n\n` +
+               `📝 <b>Analysis:</b>\n${sig.analysis || 'No analysis'}\n\n` +
+               `🔗 <a href="https://gongolatechlab.github.io/gongola-ict-hub/signals/">View on Signals Hub</a>`;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${saved.token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: saved.chatId, text: text, parse_mode: 'HTML' })
+    });
+  } catch (e) {
+    console.error('Telegram alert failed', e);
+  }
+}
