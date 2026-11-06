@@ -399,16 +399,21 @@ async function deleteSignal(id) {
 function toggleSignalModal() {
   const modal = document.getElementById('signal-modal');
   if (!modal) return;
-  if (modal.style.display === 'flex') { modal.style.display = 'none'; return; }
+  
+  const isOpen = modal.style.display === 'flex';
+  
+  if (isOpen) {
+    modal.style.display = 'none';
+    return;
+  }
+  
   document.getElementById('signal-form').reset();
-  // Force reset to BUY on open
   document.getElementById('sig-direction').value = 'BUY';
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').style.display = 'none';
   document.getElementById('manual-fields').style.display = 'none';
   modal.style.display = 'flex';
 }
-
 function setSigDir(dir) {
   // 1. Update the global variable
   currentSigDir = dir;

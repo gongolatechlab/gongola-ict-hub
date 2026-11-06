@@ -1,0 +1,22 @@
+function toggleSignalModal() {
+  const modal = document.getElementById('signal-modal');
+  if (!modal) return;
+  
+  // Check if the modal is currently open
+  const isOpen = modal.style.display === 'flex';
+  
+  if (isOpen) {
+    // Close it
+    modal.style.display = 'none';
+    modal.setAttribute('style', 'display: none !important; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999999; align-items: flex-end; justify-content: center;');
+    return;
+  }
+  
+  // Open it
+  document.getElementById('signal-form').reset();
+  document.getElementById('sig-direction').value = 'BUY';
+  setSigDir('BUY');
+  document.getElementById('sig-image-preview-container').style.display = 'none';
+  document.getElementById('manual-fields').style.display = 'none';
+  modal.style.display = 'flex';
+}
