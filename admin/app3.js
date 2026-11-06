@@ -728,3 +728,59 @@ async function openAccountInfo() {
     modal.remove();
   }
 }
+
+async function openScaleOutModal(signalId, dealId, currentSize, direction, epic) {
+  let modal = document.getElementById('scale-out-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'scale-out-modal';
+    document.body.appendChild(modal);
+  }
+
+  const size25 = (currentSize * 0.75).toFixed(2);
+  const size50 = (currentSize * 0.50).toFixed(2);
+  const size75 = (currentSize * 0.25).toFixed(2);
+  const isTooSmall = currentSize <= 0.01;
+
+  modal.innerHTML = `
+    <div style="background:#0c1220; border:1px solid rgba(120,150,200,0.16); border-radius:20px; padding:24px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.9);">
+      <h2 style="color:#fff; font-size:22px; font-weight:700; margin-bottom:8px;">Scale Out</h2>
+      <p style="color:#8e9bb3; font-size:14px; margin-bottom:16px;">Current Size: <b>${currentSize} Lots</b></p>
+      
+      ${isTooSmall ? `
+        <div style="background:rgba(255,176,32,0.1); border:1px solid #f5b53d; border-radius:12px; padding:12px; margin-bottom:16px;">
+          <p style="color:#f5b53d; font-size:12px;">⚠️ Trade too small to split. Use Close All.</p>
+        </div>
+      ` : ''}
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size25})" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; color:${isTooSmall ? '#5d6b7d' : '#fff'}; font-weight:700; font-size:14px;">25%<br><span style="font-size:10px; color:#8e9bb3;">Remaining: ${size25}</span></button>
+        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size50})" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; color:${isTooSmall ? '#5d6b7d' : '#fff'}; font-weight:700; font-size:14px;">50%<br><span style="font-size:10px; color:#8e9bb3;">Remaining: ${size50}</span></button>
+        <button onclick="executePartialClose('${signalId}', '${dealId}', ${size75})" ${isTooSmall ? 'disabled' : ''} style="padding:14px; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; color:${isTooSmall ? '#5d6b7d' : '#fff'}; font-weight:700; font-size:14px;">75%<br><span style="font-size:10px; color:#8e9bb3;">Remaining: ${size75}</span></button>
+        <button onclick="closeTrade('${signalId}', '${dealId}')" style="padding:14px; background:#ff4d4d; border:1px solid #ff4d4d; border-radius:12px; color:#fff; font-weight:700; font-size:14px;">Close All<br><span style="font-size:10px; color:rgba(255,255,255,0.7);">Full size</span></button>
+      </div>
+
+      <button onclick="document.getElementById('scale-out-modal').remove()" style="width:100%; padding:14px; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; color:#fff; font-weight:700; font-size:14px;">Cancel</button>
+    </div>
+  `;
+}
+
+async function executePartialClose(signalId, dealId, newSize) {
+  document.getElementById('scale-out-modal').remove();
+  alert("Resizing trade to " + newSize + " lots...");
+  try {
+    const res = await fetch(EXECUTE_ENDPOINT, { 
+      method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
+      body: JSON.stringify({ action: 'partial_close', dealId: dealId, newSize: parseFloat(newSize) }) 
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert("Resized to " + newSize + " lots.");
+      syncLiveTrades();
+    } else {
+      alert("Failed: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+}
