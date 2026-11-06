@@ -272,6 +272,7 @@
   .head { padding-top: 8px !important; padding-bottom: 8px !important; }
 </style>
 
+<style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen">
 
@@ -320,66 +321,85 @@
   </main>
 
   <!-- Post Signal Modal -->
-  <div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999999;align-items:flex-end;justify-content:center;">
-    <div style="background:var(--card);width:100%;max-width:640px;border-radius:24px 24px 0 0;padding:24px;max-height:90vh;overflow-y:auto;border:1px solid var(--line);border-bottom:none;">
-      <form id="signal-form" style="display:flex;flex-direction:column;gap:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <h2 style="font-size:20px;color:#fff;">Post Signal</h2>
-          <button type="button" onclick="toggleSignalModal()" style="background:var(--card2);border-radius:50%;padding:8px;color:var(--muted);">✕</button>
+  <div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:#0c1220;width:100%;max-width:640px;border-radius:24px 24px 0 0;border:1px solid rgba(120,150,200,0.16);border-bottom:none;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
+    <form id="signal-form" style="display:flex;flex-direction:column;gap:16px;padding:24px;">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font-size:22px;color:#fff;font-weight:700;margin:0;">Post Signal</h2>
+        <button type="button" onclick="toggleSignalModal()" style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+
+      <!-- Upload Dropzone -->
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Upload Chart</label>
+        <div id="dropzone" style="border:2px dashed rgba(120,150,200,0.3);border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(15,22,39,0.5);" onclick="document.getElementById('sig-image-input').click()" ondragover="event.preventDefault();this.style.borderColor='#22e58f';" ondragleave="this.style.borderColor='rgba(120,150,200,0.3)';">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22e58f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p style="color:#fff;font-size:14px;font-weight:600;margin:0;">Tap to upload chart</p>
+          <p style="color:#8e9bb3;font-size:12px;margin-top:4px;">PNG, JPG accepted</p>
+          <input type="file" id="sig-image-input" accept="image/*" style="display:none;">
         </div>
-        <div>
-          <label style="display:block;font-size:12px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Upload Chart</label>
-          <input type="file" id="sig-image-input" accept="image/*" style="width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--muted);">
-          <div id="sig-image-preview-container" style="display:none;margin-top:10px;position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);">
-            <img id="sig-image-preview" style="width:100%;max-height:200px;object-fit:contain;background:#000;">
-            <div id="sig-image-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.7);flex-direction:column;align-items:center;justify-content:center;">
-              <div style="width:30px;height:30px;border:3px solid var(--cyan);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:8px;"></div>
-              <span style="color:var(--cyan);font-weight:bold;">AI Reading...</span>
-            </div>
-          </div>
-        </div>
-        <div id="manual-fields" style="display:none;flex-direction:column;gap:12px;">
-          <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
-              <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Asset</label>
-              <input type="text" id="sig-asset" placeholder="XAUUSD" required style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-size:16px;font-weight:bold;outline:none;">
-            </div>
-            <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
-              <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Category</label>
-              <select id="sig-cat" style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-size:16px;font-weight:bold;outline:none;">
-                <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:6px;">
-            <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:10px;border-radius:8px;font-weight:bold;border:1px solid var(--green);background:rgba(25,230,140,0.1);color:var(--green);">BUY</button>
-            <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:10px;border-radius:8px;font-weight:bold;border:1px solid transparent;color:var(--muted);">SELL</button>
-            <input type="hidden" id="sig-direction" value="BUY">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
-              <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">Entry</label>
-              <input type="number" id="sig-entry-display" step="any" style="width:100%;background:transparent;border:none;color:#fff;font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-entry').value=this.value">
-            </div>
-            <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
-              <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">SL</label>
-              <input type="number" id="sig-sl-display" step="any" style="width:100%;background:transparent;border:none;color:var(--red);font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-sl').value=this.value">
-            </div>
-            <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;">
-              <label style="display:block;font-size:10px;color:var(--muted);text-align:center;margin-bottom:4px;">TP</label>
-              <input type="number" id="sig-tp-display" step="any" style="width:100%;background:transparent;border:none;color:var(--green);font-family:var(--mono);font-weight:bold;text-align:center;outline:none;" oninput="document.getElementById('sig-tp').value=this.value">
-            </div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Analysis</label>
-            <textarea id="sig-notes" rows="3" style="width:100%;background:transparent;border:none;color:#fff;outline:none;resize:none;"></textarea>
+        <div id="sig-image-preview-container" style="display:none;margin-top:12px;position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(120,150,200,0.16);">
+          <img id="sig-image-preview" style="width:100%;max-height:180px;object-fit:contain;background:#000;">
+          <div id="sig-image-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.8);flex-direction:column;align-items:center;justify-content:center;">
+            <div style="width:36px;height:36px;border:3px solid #22e58f;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
+            <span style="color:#22e58f;font-weight:700;font-size:14px;">AI is reading chart...</span>
           </div>
         </div>
-        <button type="submit" id="submit-btn" style="width:100%;padding:16px;background:var(--cyan);color:#000;font-weight:bold;font-size:16px;border-radius:14px;margin-top:8px;">Publish Signal</button>
-      </form>
-    </div>
+      </div>
+
+      <!-- Manual fields -->
+      <div id="manual-fields" style="display:none;flex-direction:column;gap:16px;">
+        <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Asset</label>
+            <input type="text" id="sig-asset" placeholder="XAUUSD" required style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;outline:none;">
+          </div>
+          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Category</label>
+            <select id="sig-cat" style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;outline:none;">
+              <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- BUY / SELL Toggle -->
+        <div style="display:flex;gap:10px;background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:14px;padding:6px;">
+          <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid #22e58f;background:rgba(34,229,143,0.15);color:#22e58f;">BUY</button>
+          <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid transparent;background:transparent;color:#8e9bb3;">SELL</button>
+          <input type="hidden" id="sig-direction" value="BUY">
+        </div>
+
+        <!-- Entry / SL / TP -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">Entry</label>
+            <input type="number" id="sig-entry-display" step="any" style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-entry').value=this.value">
+          </div>
+          <div style="background:#0f1627;border:1px solid rgba(255,77,77,0.3);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:#ff4d4d;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">SL</label>
+            <input type="number" id="sig-sl-display" step="any" style="width:100%;background:transparent;border:none;color:#ff4d4d;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-sl').value=this.value">
+          </div>
+          <div style="background:#0f1627;border:1px solid rgba(34,229,143,0.3);border-radius:12px;padding:12px;">
+            <label style="display:block;font-size:10px;color:#22e58f;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">TP</label>
+            <input type="number" id="sig-tp-display" step="any" style="width:100%;background:transparent;border:none;color:#22e58f;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-tp').value=this.value">
+          </div>
+        </div>
+
+        <!-- Analysis -->
+        <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
+          <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Analysis</label>
+          <textarea id="sig-notes" rows="4" style="width:100%;background:transparent;border:none;color:#fff;outline:none;resize:none;font-family:inherit;font-size:14px;line-height:1.5;"></textarea>
+        </div>
+      </div>
+
+      <!-- Publish -->
+      <button type="submit" id="submit-btn" style="width:100%;padding:16px;background:#22e58f;color:#000;font-weight:800;font-size:16px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 0 25px rgba(34,229,143,0.4);transition:transform 0.15s;">Publish Signal</button>
+    </form>
   </div>
+</div>
 
   <script src="app3.js"></script>
 </body>
