@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICT Glossary | Gongola ICT Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0a0e13; color: #eef1fb; font-family: 'Inter', sans-serif; }
+        .glass-card { background: linear-gradient(180deg, rgba(26,35,47,0.8) 0%, rgba(15,21,28,0.9) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; }
+    </style>
+</head>
+<body class="p-4 max-w-3xl mx-auto pb-20">
+    <header class="flex justify-between items-center mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center font-bold text-black text-xl">G</div>
+            <div>
+                <h1 class="text-xl font-bold">ICT Glossary</h1>
+                <p class="text-xs text-gray-400">Gongola ICT Hub</p>
+            </div>
+        </div>
+        <a href="https://gongolatechlab.github.io/gongola-ict-hub/signals/" class="text-sm text-cyan-400">Back to Signals</a>
+    </header>
+
+    <div class="space-y-4">
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">FVG (Fair Value Gap)</h2>
+            <p class="text-sm text-gray-300">An imbalance in the price where one candle's wick leaves a gap between the previous candle's high and the next candle's low. Price often returns to fill this gap.</p>
+            <p class="text-xs text-gray-500 mt-2">🧠 <b>+FVG (Blue):</b> Bullish gap. <b>-FVG (Red):</b> Bearish gap.</p>
+        </div>
+
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">Order Block (OB)</h2>
+            <p class="text-sm text-gray-300">The last opposing candle before a strong move that breaks market structure. This is where institutions have placed their orders, and price often reacts here.</p>
+        </div>
+
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">DOL (Draw on Liquidity)</h2>
+            <p class="text-sm text-gray-300">A specific price level (like a previous high/low or equal highs/lows) where a large amount of liquidity (stop losses) is resting. The market is drawn to these levels.</p>
+        </div>
+
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">PDH / PDL</h2>
+            <p class="text-sm text-gray-300">Previous Day High and Previous Day Low. These are key reference points used by day traders to gauge daily bias and potential reversal zones.</p>
+        </div>
+
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">Killzones (London / NY)</h2>
+            <p class="text-sm text-gray-300">Specific time windows when institutional trading volume is highest. 
+                <br><b>London Killzone:</b> 2:00 AM - 5:00 AM NY Time.
+                <br><b>New York Killzone:</b> 7:00 AM - 10:00 AM NY Time.
+            </p>
+        </div>
+
+        <div class="glass-card p-5">
+            <h2 class="text-lg font-bold text-cyan-400 mb-2">iFVG (Inversed FVG)</h2>
+            <p class="text-sm text-gray-300">When a Fair Value Gap fails and price breaks through it, the FVG becomes invalidated and flips its role. A failed +FVG becomes a bearish -iFVG, and a failed -FVG becomes a bullish +iFVG.</p>
+        </div>
+    </div>
+</body>
+</html>
