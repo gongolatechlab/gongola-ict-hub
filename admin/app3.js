@@ -34,6 +34,7 @@ const EXECUTE_ENDPOINT = "https://script.google.com/macros/s/AKfycbwfp3lOPcooUDU
 let supabaseClient = null;
 let signalsData = [];
 let liveTrades = [];
+let workingOrders = [];
 let currentSigDir = 'BUY';
 let syncInterval = null;
 
@@ -99,14 +100,23 @@ async function fetchSignals() {
 // --- SYNC LIVE TRADES ---
 async function syncLiveTrades() {
   try {
+    // Get active positions
     const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
     const data = await res.json();
     if (data.positions) {
       liveTrades = data.positions;
-      renderSignals();
     }
+    
+    // Get working orders (limit orders)
+    const woRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_working_orders' }) });
+    const woData = await woRes.json();
+    if (woData.workingOrders) {
+      workingOrders = woData.workingOrders;
+    }
+    
+    renderSignals();
   } catch (err) { 
-    console.error("Sync failed"); 
+    console.error("Sync failed", err); 
   }
 }
 
@@ -156,13 +166,21 @@ function renderSignals() {
     const livePnl = isLive ? parseFloat(live.position.upl) : 0;
 
     const isClosed = s.result === 'win' || s.result === 'loss';
+    // Check if this signal has a working limit order on Capital.com
+    const hasWorkingOrder = workingOrders && workingOrders.some(wo => wo.workingOrderData.epic === toEpic(s.asset) && wo.workingOrderData.direction === s.direction);
+    
     const statusClass = isLive ? 'open' : isClosed ? 'closed' : 'pending';
     
-    const badgeHtml = isLive 
-      ? '<span class="badge open"><i></i>OPEN</span>' 
-      : isClosed 
-        ? '<span class="badge closed">CLOSED</span>' 
-        : '<span class="badge pending"><i></i>WAITING</span>';
+    let badgeHtml = '';
+    if (isLive) {
+      badgeHtml = '<span class="badge open"><i></i>OPEN</span>';
+    } else if (isClosed) {
+      badgeHtml = '<span class="badge closed">CLOSED</span>';
+    } else if (hasWorkingOrder) {
+      badgeHtml = '<span class="badge pending" style="background:rgba(245,181,61,0.2); color:#f5b53d; border:1px solid #f5b53d;"><i></i>LIMIT ARMED</span>';
+    } else {
+      badgeHtml = '<span class="badge pending"><i></i>WAITING</span>';
+    }
 
     const displayPnl = isLive ? livePnl : (s.pnl !== undefined && s.pnl !== null ? parseFloat(s.pnl) : null);
     const pnlHtml = displayPnl !== null 
