@@ -21,6 +21,25 @@
   }
 </style>
 
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0a0e13', surface: '#1F2833', surface2: '#151E26',
+            text: '#eef1fb', muted: '#8d97b8', line: 'rgba(255,255,255,0.1)',
+            win: '#00FF66', loss: '#FF3B30', accent: '#00E5FF', open: '#F5A524'
+          },
+          fontFamily: { display: ['"Space Grotesk"', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 
