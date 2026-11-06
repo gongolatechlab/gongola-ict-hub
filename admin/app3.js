@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
   syncInterval = setInterval(() => { 
     fetchSignals(); 
     syncLiveTrades().then(() => fetchAccountBalance());
-  }, 60000);
+  }, 15000);
 
   // Bind Post Button
   const postBtn = document.getElementById('btnPost');

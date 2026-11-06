@@ -264,6 +264,14 @@
   }
 </style>
 
+
+<style>
+  .pair { font-size: 15px !important; gap: 6px !important; }
+  .pair .side { font-size: 9px !important; padding: 2px 5px !important; }
+  .pair span[style*="var(--muted)"] { font-size: 11px !important; }
+  .head { padding-top: 8px !important; padding-bottom: 8px !important; }
+</style>
+
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen">
 
@@ -296,7 +304,7 @@
 
     <div class="flex justify-between items-center text-xs font-mono text-muted">
       <span><span class="inline-block w-2 h-2 rounded-full bg-accent mr-1 animate-pulse"></span>Live · updated <span id="ui-upd">--:--</span></span>
-      <button onclick="forceSync()" class="text-accent bg-surface2 px-2 py-1 rounded">Retry Sync</button>
+      
     </div>
 
     <div class="flex gap-2 overflow-x-auto pb-2" id="filters">
