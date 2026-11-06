@@ -243,7 +243,7 @@ function renderSignals() {
           ` : isClosed ? `
             <button class="act ghost" style="width:100%; padding:6px 12px; height:32px;">Closed (${s.result.toUpperCase()})</button>
           ` : `
-            <button class="act danger" style="flex:1; background:var(--green); color:#000; border-color:var(--green); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); executeTrade('${s.id}')">
+            <button class="act danger" style="flex:1; background:#00FF66; color:#0a0e13; border:none; box-shadow:0 0 15px rgba(0,255,102,0.3); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px; font-weight:bold;" onclick="event.stopPropagation(); executeTrade('${s.id}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Execute
             </button>
             <button class="act ghost" style="flex:1; color:var(--red); border-color:rgba(255,90,79,.3); display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;" onclick="event.stopPropagation(); deleteSignal('${s.id}')">
