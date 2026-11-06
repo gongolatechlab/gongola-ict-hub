@@ -134,7 +134,7 @@ function renderSignals() {
         ? '<span class="badge closed">CLOSED</span>' 
         : '<span class="badge pending"><i></i>WAITING</span>';
 
-    const displayPnl = isLive ? livePnl : (s.pnl !== undefined && s.pnl !== null ? s.pnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null));
+    const displayPnl = isLive ? livePnl : (s.pnl !== undefined && s.pnl !== null ? parseFloat(s.pnl) : null);
     const pnlHtml = displayPnl !== null 
       ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
       : '';
