@@ -588,11 +588,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Read direction directly from the hidden input
         const finalDir = document.getElementById('sig-direction').value;
-        const { error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: finalDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]);
+        const { data: insertData, error: insertError } = await supabaseClient.from('signals').insert([{ asset, category: cat, direction: finalDir, entry, sl, tp, analysis, image_url: imageUrl, result: 'pending' }]).select();
         if (insertError) throw insertError;
+        const newSignalId = insertData[0].id;
         toggleSignalModal();
         fetchSignals();
-        sendTelegramAlert({ asset, direction: finalDir, entry, sl, tp, analysis });
+        sendTelegramAlert({ id: newSignalId, asset, direction: finalDir, entry, sl, tp, analysis });
       } catch (err) { alert("Failed: " + err.message); }
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     };
@@ -927,7 +928,8 @@ async function sendTelegramAlert(sig) {
                `🛑 SL: ${sig.sl}\n` +
                `🏆 TP: ${sig.tp}\n\n` +
                `📝 Analysis:\n${sig.analysis || 'No analysis'}\n\n` +
-               `🔗 View: https://gongolatechlab.github.io/gongola-ict-hub/signals/`;
+               `🆔 Signal ID: ${sig.id.substring(0, 8)}...\n` +
+               `🔗 View: https://gongolatechlab.github.io/gongola-ict-hub/signals/?id=${sig.id}`;
 
   try {
     const payload = new URLSearchParams();
