@@ -118,3 +118,90 @@ input, select, textarea { font-size: 16px !important; }
   font-size: 14px !important;
   padding: 12px !important;
 }
+
+/* Modal Overlay */
+.app-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+}
+
+/* Modal Card */
+.app-modal-card {
+  background: #0c1220 !important;
+  border: 1px solid rgba(120, 150, 200, 0.16) !important;
+  border-radius: 20px !important;
+  padding: 24px !important;
+  width: 100% !important;
+  max-width: 360px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9) !important;
+  color: #f3f6fb !important;
+}
+
+.app-modal-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  margin-bottom: 6px !important;
+}
+
+.app-modal-sub {
+  font-size: 13px !important;
+  color: #8e9bb3 !important;
+  margin-bottom: 16px !important;
+}
+
+.app-modal-label {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #8e9bb3 !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+.app-modal-input {
+  width: 100% !important;
+  background: #0f1627 !important;
+  border: 1px solid rgba(120, 150, 200, 0.16) !important;
+  border-radius: 12px !important;
+  padding: 14px !important;
+  color: #fff !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 20px !important;
+  text-align: center !important;
+  margin-bottom: 20px !important;
+  outline: none !important;
+}
+
+.app-modal-buttons {
+  display: flex !important;
+  gap: 10px !important;
+}
+
+.app-modal-cancel, .app-modal-confirm {
+  flex: 1 !important;
+  padding: 14px !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+.app-modal-cancel {
+  background: #0f1627 !important;
+  color: #fff !important;
+  border: 1px solid rgba(120, 150, 200, 0.16) !important;
+}
+
+.app-modal-confirm {
+  background: #22e58f !important;
+  color: #000 !important;
+}
