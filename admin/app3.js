@@ -141,7 +141,8 @@ function renderSignals() {
       ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '+' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
       : '';
 
-    const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
+    const liveEntry = (live && live.position && live.position.openLevel) ? parseFloat(live.position.openLevel) : parseFloat(s.entry);
+    const slN = parseFloat(s.sl), entryN = liveEntry, tpN = parseFloat(s.tp);
     let rrDisplay = '';
     if (Number.isFinite(slN) && Number.isFinite(entryN) && Number.isFinite(tpN)) {
       const risk = Math.abs(entryN - slN);
