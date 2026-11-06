@@ -170,8 +170,8 @@ function renderSignals() {
         <div class="h-left">
           <div class="pair" style="display:flex; align-items:center; flex-wrap:nowrap; font-size: 16px !important;">
             <span style="display:flex; align-items:center;">${assetIcon}${s.asset}</span>
-            <span class="side ${s.direction.toLowerCase()}" style="margin-left:8px; flex-shrink:0;">${s.direction}</span>
-            <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 8px; white-space:nowrap;">${rrDisplay}</span>
+            <span class="side ${s.direction.toLowerCase()}" style="margin-left:6px; flex-shrink:0; font-size:9px; padding:2px 5px;">${s.direction}</span>
+            <span style="font-size: 11px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 6px; white-space:nowrap;">${rrDisplay}</span>
           </div>
           <div class="meta">${time} · ${directionText}</div>
         </div>
