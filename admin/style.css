@@ -1,22 +1,80 @@
+:root {
+  --bg: #05080f;
+  --panel: #0c1220;
+  --panel2: #0f1627;
+  --line: rgba(120,150,200,.16);
+  --text: #f3f6fb;
+  --muted: #8e9bb3;
+  --green: #22e58f;
+  --green2: #19d3c5;
+  --red: #ff4d4d;
+  --cyan: #2ad4f5;
+  --amber: #f5b53d;
+  --blue: #2f8cff;
+  --purple: #b042ff;
+}
+
+/* Base */
 ::-webkit-scrollbar { display: none; }
-  body { -ms-overflow-style: none; scrollbar-width: none; background-color: #0B0C10; }
-  .glass { background: rgba(11, 12, 16, 0.85); backdrop-filter: blur(12px); }
-  .sig-card { background: #1F2833; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-  .sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-  .sig-badge.buy { background: rgba(0,255,102,0.1); color: #00FF66; border: 1px solid rgba(0,255,102,0.3); }
-  .sig-badge.sell { background: rgba(255,59,48,0.1); color: #FF3B30; border: 1px solid rgba(255,59,48,0.3); }
-  .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: #151E26; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-  .sig-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #8d97b8; text-transform: uppercase; }
-  .sig-val { font-size: 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: white; }
-  input, select, textarea { font-size: 16px !important; }
-  .active-tab { background-color: #00E5FF !important; color: #0B0C10 !important; border-color: #00E5FF !important; }
-  
-  /* Price Bar */
-  .price-track { height: 6px; background: #151E26; border-radius: 99px; position: relative; margin: 20px 0 10px 0; }
-  .zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,59,48,0.5); border-radius: 99px 0 0 99px; }
-  .zone-tp { position: absolute; right: 0; height: 100%; background: rgba(0,255,102,0.5); border-radius: 0 99px 99px 0; }
-  .pin { position: absolute; top: -4px; width: 2px; height: 14px; background: #fff; transform: translateX(-50%); }
-  .pin-label { position: absolute; top: -20px; font-size: 9px; font-weight: 700; color: #8d97b8; transform: translateX(-50%); white-space: nowrap; }
-  .pin.entry { background: #00E5FF; z-index: 2; width: 3px; }
-  .pin.live { background: #00E5FF; z-index: 3; width: 3px; box-shadow: 0 0 10px #00E5FF; }
-  .pin.live::after { content: ''; position: absolute; top: -2px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #00E5FF; animation: pulse 1.5s infinite; }
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 40% at 100% 0%, rgba(34,229,143,.13), transparent 60%),
+    radial-gradient(80% 30% at 0% 0%, rgba(25,211,197,.12), transparent 60%),
+    radial-gradient(60% 30% at 100% 45%, rgba(34,229,143,.07), transparent 70%);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Glass */
+.glass { background: rgba(5,8,15,0.85); backdrop-filter: blur(12px); }
+
+/* Card */
+.sig-card {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)), var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 20px rgba(0,0,0,.35);
+}
+
+/* Badges */
+.sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+.sig-badge.buy { background: rgba(34,229,143,.16); color: var(--green); border: 1px solid rgba(34,229,143,.3); }
+.sig-badge.sell { background: rgba(255,77,77,.16); color: var(--red); border: 1px solid rgba(255,77,77,.3); }
+
+/* Grid */
+.sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; background: var(--panel2); padding: 12px; border-radius: 8px; border: 1px solid var(--line); }
+.sig-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); text-transform: uppercase; }
+.sig-val { font-size: 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: white; }
+
+/* Inputs */
+input, select, textarea { font-size: 16px !important; }
+
+/* Tabs */
+.active-tab { background-color: var(--cyan) !important; color: var(--bg) !important; border-color: var(--cyan) !important; }
+
+/* Price Bar */
+.price-track { height: 6px; background: var(--panel2); border-radius: 99px; position: relative; margin: 20px 0 10px 0; }
+.zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,77,77,0.5); border-radius: 99px 0 0 99px; }
+.zone-tp { position: absolute; right: 0; height: 100%; background: rgba(34,229,143,0.5); border-radius: 0 99px 99px 0; }
+.pin { position: absolute; top: -4px; width: 2px; height: 14px; background: #fff; transform: translateX(-50%); }
+.pin-label { position: absolute; top: -20px; font-size: 9px; font-weight: 700; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.pin.entry { background: var(--cyan); z-index: 2; width: 3px; }
+.pin.live { background: var(--cyan); z-index: 3; width: 3px; box-shadow: 0 0 10px var(--cyan); }
+.pin.live::after { content: ''; position: absolute; top: -2px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); animation: pulse 1.5s infinite; }
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(42,212,245,0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(42,212,245,0); }
+  100% { box-shadow: 0 0 0 0 rgba(42,212,245,0); }
+}
+
+/* Status Glows (applied via :has pseudo or classes in JS) */
+.card.open { border-color: rgba(34,229,143,.4); box-shadow: 0 0 26px rgba(34,229,143,.22), 0 8px 20px rgba(0,0,0,.4); }
+.card.pending { border-color: rgba(245,181,61,.35); }
+.card.closed { border-color: var(--line); }
