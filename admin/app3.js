@@ -293,26 +293,23 @@ async function executeTrade(id) {
   const sig = signalsData.find(s => s.id === id);
   if (!sig) return;
 
-  // Show custom Lot Size Modal
   let lotModal = document.getElementById('lot-size-modal');
-    lotModal.className = 'app-modal-overlay';
+  if (!lotModal) {
     lotModal = document.createElement('div');
     lotModal.id = 'lot-size-modal';
-    lotModal.innerHTML = '<div class="app-modal-card">' +
-    '<h2 class="app-modal-title">Execute Trade</h2>' +
-    '<p class="app-modal-sub">' + sig.direction + ' ' + sig.asset + '</p>' +
-    '<label class="app-modal-label">Lot Size</label>' +
-    '<input type="number" id="lot-size-input" step="0.01" value="1.0" class="app-modal-input">' +
-    '<div class="app-modal-buttons">' +
-    '<button onclick="document.getElementById('"'"'lot-size-modal'"'"').remove()" class="app-modal-cancel">Cancel</button>' +
-    '<button id="confirm-lot-btn" class="app-modal-confirm">Confirm</button>' +
-    '</div></div>';
-      <label style="display:block; text-align:left; font-size:11px; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Lot Size</label>
-      <input type="number" id="lot-size-input" step="0.01" value="1.0" style="width:100%; background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px; color:#fff; font-size:18px; font-weight:bold; font-family:var(--mono); text-align:center; outline:none; margin-bottom:20px;">
-      
-      <div style="display:flex; gap:10px;">
-        <button onclick="document.getElementById('lot-size-modal').remove()" style="flex:1; padding:14px; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:#fff; font-weight:bold; font-size:14px;">Cancel</button>
-        <button id="confirm-lot-btn" style="flex:1; padding:14px; background:var(--green); border:none; border-radius:12px; color:#000; font-weight:bold; font-size:14px;">Confirm</button>
+    document.body.appendChild(lotModal);
+  }
+
+  lotModal.className = 'app-modal-overlay';
+  lotModal.innerHTML = `
+    <div class="app-modal-card">
+      <h2 class="app-modal-title">Execute Trade</h2>
+      <p class="app-modal-sub">${sig.direction} ${sig.asset}</p>
+      <label class="app-modal-label">Lot Size</label>
+      <input type="number" id="lot-size-input" step="0.01" value="1.0" class="app-modal-input">
+      <div class="app-modal-buttons">
+        <button onclick="document.getElementById('lot-size-modal').remove()" class="app-modal-cancel">Cancel</button>
+        <button id="confirm-lot-btn" class="app-modal-confirm">Confirm</button>
       </div>
     </div>
   `;
