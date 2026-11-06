@@ -592,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (insertError) throw insertError;
         toggleSignalModal();
         fetchSignals();
+        sendTelegramAlert({ asset, direction: finalDir, entry, sl, tp, analysis });
       } catch (err) { alert("Failed: " + err.message); }
       finally { btn.innerText = "Publish Signal"; btn.disabled = false; }
     };
