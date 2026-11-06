@@ -314,10 +314,21 @@ async function executeTrade(id) {
     <div style="background:#0c1220; border:1px solid rgba(120,150,200,0.16); border-radius:20px; padding:24px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.9);">
       <h2 style="color:#fff; font-size:22px; font-weight:700; margin-bottom:8px;">Execute Trade</h2>
       <p style="color:#8e9bb3; font-size:14px; margin-bottom:16px;">${sig.direction} ${sig.asset}</p>
-      
+
+      <label style="display:block; font-size:11px; font-weight:700; color:#8e9bb3; text-transform:uppercase; margin-bottom:6px;">Order Type</label>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button id="ord-type-market" onclick="selectOrdType('market')" style="flex:1; padding:12px; border-radius:10px; font-weight:700; font-size:14px; background:#22e58f; color:#000; border:none;">Market</button>
+        <button id="ord-type-limit" onclick="selectOrdType('limit')" style="flex:1; padding:12px; border-radius:10px; font-weight:700; font-size:14px; background:#0f1627; color:#fff; border:1px solid rgba(120,150,200,0.16);">Limit</button>
+      </div>
+
+      <div id="limit-entry-box" style="display:none; margin-bottom:16px;">
+        <label style="display:block; font-size:11px; font-weight:700; color:#8e9bb3; text-transform:uppercase; margin-bottom:6px;">Entry Price (Limit)</label>
+        <input type="number" id="limit-entry" step="any" value="${sig.entry}" style="width:100%; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; padding:14px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:20px; text-align:center;">
+      </div>
+
       <label style="display:block; font-size:11px; font-weight:700; color:#8e9bb3; text-transform:uppercase; margin-bottom:6px;">Lot Size</label>
       <input type="number" id="lot-size-input" step="0.01" value="1.0" style="width:100%; background:#0f1627; border:1px solid rgba(120,150,200,0.16); border-radius:12px; padding:14px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:20px; text-align:center; margin-bottom:20px; outline:none;">
-      
+
       <div style="display:flex; gap:10px;">
         <button onclick="document.getElementById('lot-size-modal').remove()" style="flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:15px; border:1px solid rgba(120,150,200,0.16); background:#0f1627; color:#fff;">Cancel</button>
         <button id="confirm-lot-btn" style="flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:15px; border:none; background:#22e58f; color:#000;">Confirm</button>
@@ -325,46 +336,45 @@ async function executeTrade(id) {
     </div>
   `;
 
+  window.currentOrdType = 'market';
+
   document.getElementById('confirm-lot-btn').onclick = async () => {
     const lotSize = parseFloat(document.getElementById('lot-size-input').value);
-    if (!lotSize || lotSize <= 0) return alert("Please enter a valid lot size.");
+    if (!lotSize || lotSize <= 0) return alert("Invalid lot size.");
+    
+    const orderType = window.currentOrdType === 'limit' ? 'LIMIT' : 'MARKET';
+    const level = window.currentOrdType === 'limit' ? parseFloat(document.getElementById('limit-entry').value) : sig.entry;
     
     lotModal.remove();
 
     try {
       const res = await fetch(EXECUTE_ENDPOINT, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'text/plain' }, 
+        method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({ 
           action: 'execute_trade', 
           epic: sig.asset === 'XAUUSD' ? 'GOLD' : sig.asset, 
           direction: sig.direction, 
           size: lotSize, 
           stopLevel: sig.sl, 
-          profitLevel: sig.tp 
+          profitLevel: sig.tp,
+          orderType: orderType,
+          level: level
         }) 
       });
-      
       const data = await res.json();
-      
       if (data.dealReference || data.dealId) {
         setTimeout(async () => {
           const syncRes = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'sync_positions' }) });
           const syncData = await syncRes.json();
-          
           if (syncData.positions && syncData.positions.length > 0) {
             const { data: allSignals } = await supabaseClient.from('signals').select('deal_id').not('deal_id', 'is', null);
             const usedDealIds = new Set((allSignals || []).map(s => s.deal_id));
-            
             const matchingPos = syncData.positions.find(p => {
               const epicMatch = p.market.epic === sig.asset || (p.market.epic === 'GOLD' && sig.asset === 'XAUUSD');
               return epicMatch && p.position.direction === sig.direction && !usedDealIds.has(p.position.dealId);
             });
-            
             if (matchingPos) {
               await supabaseClient.from('signals').update({ deal_id: matchingPos.position.dealId }).eq('id', sig.id);
-            } else {
-              console.warn("Could not find an unlinked matching trade.");
             }
           }
           syncLiveTrades();
@@ -376,6 +386,23 @@ async function executeTrade(id) {
       alert("Execution failed: " + err.message); 
     }
   };
+}
+
+function selectOrdType(type) {
+  window.currentOrdType = type;
+  const mkt = document.getElementById('ord-type-market');
+  const lim = document.getElementById('ord-type-limit');
+  const box = document.getElementById('limit-entry-box');
+  
+  if (type === 'market') {
+    mkt.style.background = '#22e58f'; mkt.style.color = '#000';
+    lim.style.background = '#0f1627'; lim.style.color = '#fff';
+    box.style.display = 'none';
+  } else {
+    lim.style.background = '#22e58f'; lim.style.color = '#000';
+    mkt.style.background = '#0f1627'; mkt.style.color = '#fff';
+    box.style.display = 'block';
+  }
 }
 async function closeTrade(signalId, dealId) {
   if (!dealId) return alert("No deal ID.");
