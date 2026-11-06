@@ -569,7 +569,7 @@ function updateSummaryStats() {
   const elBalance = document.getElementById('ui-balance');
   if (elBalance) elBalance.innerText = '$' + accountBalance.toFixed(2);
   
-  const elWinRate = document.getElementById('ui-winrate');
+  // elWinRate already declared above
   if (elWinRate) elWinRate.innerText = winRate + '%';
   
   if (elTotal) {
