@@ -464,6 +464,12 @@ function setSigDir(dir) {
 
 // --- INIT & LISTENERS ---
 document.addEventListener('DOMContentLoaded', () => {
+  const list = document.getElementById('signal-list');
+  if (!window.supabase) {
+    if (list) list.innerHTML = '<div style="color: #ff4d4d; padding: 20px; text-align: center;">Supabase library failed to load. Check internet.</div>';
+    return;
+  }
+  
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   // Load signals and live trades FIRST
   fetchSignals();
