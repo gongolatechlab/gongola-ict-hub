@@ -136,7 +136,7 @@ function renderSignals() {
 
     const displayPnl = isLive ? livePnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null);
     const pnlHtml = displayPnl !== null 
-      ? `<span style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
+      ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
       : '';
 
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);

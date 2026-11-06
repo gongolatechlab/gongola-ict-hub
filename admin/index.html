@@ -178,6 +178,20 @@
   .chip.on { background: rgba(0,229,255,0.1); border-color: #00E5FF; color: #00E5FF; }
 </style>
 
+
+<style>
+  /* Force P/L Colors */
+  .pnl-pos { color: #00FF66 !important; }
+  .pnl-neg { color: #FF3B30 !important; }
+  
+  /* Any element with font-mono that holds a P/L value */
+  .pl .num.pos { color: #00FF66 !important; }
+  .pl .num.neg { color: #FF3B30 !important; }
+  
+  /* Explicit check for the closed cards to ensure color is correct */
+  .card.closed .pl .num { color: inherit; }
+</style>
+
 </head>
 <body class="text-text font-display antialiased overflow-x-hidden min-h-screen">
 
