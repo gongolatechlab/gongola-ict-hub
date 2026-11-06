@@ -929,7 +929,7 @@ async function sendTelegramAlert(signalId) {
                `🛑 SL: ${sig.sl}\n` +
                `🏆 TP: ${sig.tp}\n\n` +
                `📝 Analysis:\n${sig.analysis || 'No analysis'}\n\n` +
-               `🆔 Signal ID: ${sig.id.substring(0, 8)}...\n` +
+               `⏰ Date & Time: ${new Date(sig.created_at).toLocaleString()}\n` +
                `🔗 View: https://gongolatechlab.github.io/gongola-ict-hub/signals/?id=${sig.id}`;
 
   try {
