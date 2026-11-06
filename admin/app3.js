@@ -134,7 +134,7 @@ function renderSignals() {
         ? '<span class="badge closed">CLOSED</span>' 
         : '<span class="badge pending"><i></i>WAITING</span>';
 
-    const displayPnl = isLive ? livePnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null);
+    const displayPnl = isLive ? livePnl : (s.pnl !== undefined && s.pnl !== null ? s.pnl : (s.result === 'win' ? 100 : s.result === 'loss' ? -100 : null));
     const pnlHtml = displayPnl !== null 
       ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
       : '';
@@ -362,17 +362,32 @@ async function executeTrade(id) {
 async function closeTrade(signalId, dealId) {
   if (!dealId) return alert("No deal ID.");
   if (!confirm('Close position?')) return;
+  
   const live = liveTrades.find(p => p.position.dealId === dealId);
   const pnl = live ? parseFloat(live.position.upl) : 0;
   const finalResult = pnl >= 0 ? 'win' : 'loss';
+  
   try {
     const res = await fetch(EXECUTE_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'close_position', dealId: dealId }) });
     const data = await res.json();
+    
     if (data.success || data.dealReference || data.dealId) {
-      await supabaseClient.from('signals').update({ result: finalResult, deal_id: null }).eq('id', signalId);
-      syncLiveTrades(); fetchSignals();
+      // Show the actual PnL immediately
+      await supabaseClient.from('signals').update({ 
+        result: finalResult, 
+        deal_id: null,
+        pnl: pnl // Save the actual PnL (we will need to add this column to Supabase if not there)
+      }).eq('id', signalId);
+      
+      alert("Position closed. P/L: " + (pnl >= 0 ? '+' : '') + "$" + pnl.toFixed(2));
+      syncLiveTrades(); 
+      fetchSignals();
+    } else {
+      alert("Close failed: " + JSON.stringify(data));
     }
-  } catch (err) { alert("Close failed: " + err.message); }
+  } catch (err) { 
+    alert("Close failed: " + err.message); 
+  }
 }
 
 async function deleteSignal(id) {
