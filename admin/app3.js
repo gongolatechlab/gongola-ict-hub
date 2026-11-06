@@ -136,7 +136,7 @@ function renderSignals() {
 
     const displayPnl = isLive ? livePnl : (s.pnl !== undefined && s.pnl !== null ? parseFloat(s.pnl) : null);
     const pnlHtml = displayPnl !== null 
-      ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
+      ? `<span class="num ${displayPnl >= 0 ? 'pos' : 'neg'}" style="font-size: 14px; font-family: var(--mono); font-weight: bold; color: ${displayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${displayPnl >= 0 ? '+' : '-'}$${Math.abs(displayPnl).toFixed(2)}</span>` 
       : '';
 
     const slN = parseFloat(s.sl), entryN = parseFloat(s.entry), tpN = parseFloat(s.tp);
@@ -170,7 +170,7 @@ function renderSignals() {
     <article class="card ${statusClass}" data-id="${s.id}" onclick="this.classList.toggle('exp')">
       <div class="head">
         <div class="h-left">
-          <div class="pair" style="display:flex; align-items:center; flex-wrap:nowrap;">
+          <div class="pair" style="display:flex; align-items:center; flex-wrap:nowrap; font-size: 16px;">
             <span style="display:flex; align-items:center;">${assetIcon}${s.asset}</span>
             <span class="side ${s.direction.toLowerCase()}" style="margin-left:8px; flex-shrink:0;">${s.direction}</span>
             <span style="font-size: 13px; font-family: var(--mono); color: var(--muted); font-weight: normal; margin-left: 8px; white-space:nowrap;">${rrDisplay}</span>
