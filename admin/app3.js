@@ -36,6 +36,7 @@ let signalsData = [];
 let liveTrades = [];
 let workingOrders = [];
 let currentSigDir = 'BUY';
+let currentImageBase64 = null;
 let syncInterval = null;
 
 // --- CUSTOM ALERT MODAL ---
@@ -503,6 +504,8 @@ function toggleSignalModal() {
   document.getElementById('sig-direction').value = 'BUY';
   setSigDir('BUY');
   document.getElementById('sig-image-preview-container').style.display = 'none';
+  document.getElementById('retry-ai-btn').style.display = 'none';
+  currentImageBase64 = null;
   document.getElementById('manual-fields').style.display = 'none';
   modal.style.display = 'flex';
 }
@@ -610,8 +613,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = img.height * (800 / img.width);
           const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           const base64Data = canvas.toDataURL('image/jpeg', 0.7);
+          currentImageBase64 = base64Data; // Store for retry
           document.getElementById('sig-image-preview').src = base64Data;
           document.getElementById('sig-image-preview-container').style.display = 'block';
+          document.getElementById('retry-ai-btn').style.display = 'block';
           document.getElementById('sig-image-loading').style.display = 'flex';
           const notesArea = document.getElementById('sig-notes'); notesArea.value = "🤖 AI is reading the chart..."; notesArea.disabled = true;
           try {
@@ -950,5 +955,41 @@ async function sendTelegramAlert(signalId) {
     }
   } catch (e) {
     showToast("Fetch Error: " + e.message, true);
+  }
+}
+
+async function retryAIAnalysis() {
+  if (!currentImageBase64) return alert("Please upload a chart first.");
+  
+  const loading = document.getElementById('sig-image-loading');
+  const notesArea = document.getElementById('sig-notes');
+  
+  loading.style.display = 'flex';
+  notesArea.value = "🤖 AI is looking for a different confluence...";
+  notesArea.disabled = true;
+  
+  try {
+    const res = await fetch(AI_ENDPOINT, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'text/plain' }, 
+      body: JSON.stringify({ action: 'analyze_chart', image: currentImageBase64, isRetry: true }) 
+    });
+    const text = await res.text(); 
+    let data; 
+    try { data = JSON.parse(text); } catch { throw new Error("Invalid server response."); }
+    if (data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+    
+    if (data.asset) document.getElementById('sig-asset').value = data.asset.toUpperCase();
+    if (data.category) { const catSelect = document.getElementById('sig-cat'); catSelect.value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase(); }
+    if (data.entry) { document.getElementById('sig-entry').value = data.entry; document.getElementById('sig-entry-display').value = data.entry; }
+    if (data.sl) { document.getElementById('sig-sl').value = data.sl; document.getElementById('sig-sl-display').value = data.sl; }
+    if (data.tp) { document.getElementById('sig-tp').value = data.tp; document.getElementById('sig-tp-display').value = data.tp; }
+    setSigDir(data.direction && data.direction.toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
+    notesArea.value = data.analysis ? data.analysis.replace(/\*/g, '') : "AI finished, but no analysis text returned.";
+  } catch (err) { 
+    notesArea.value = "Error: " + err.message; 
+  } finally { 
+    notesArea.disabled = false; 
+    loading.style.display = 'none'; 
   }
 }
