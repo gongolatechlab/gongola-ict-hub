@@ -325,7 +325,7 @@
 
   <!-- Post Signal Modal -->
   <div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);">
-  <div style="background:#0c1220;width:100%;max-width:640px;border-radius:24px 24px 0 0;border:1px solid rgba(120,150,200,0.16);border-bottom:none;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
+  <div style="background:#0c1220;width:100%;max-width:800px;border-radius:24px 24px 0 0;border:1px solid rgba(120,150,200,0.16);border-bottom:none;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
     <form id="signal-form" style="display:flex;flex-direction:column;gap:20px;padding:24px;">
       
       <!-- Header -->
@@ -375,8 +375,8 @@
         </div>
 
         <div style="display:flex;gap:10px;background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:14px;padding:6px;">
-          <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid #22e58f;background:rgba(34,229,143,0.15);color:#22e58f;">BUY</button>
-          <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid transparent;background:transparent;color:#8e9bb3;">SELL</button>
+          <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:14px;border-radius:10px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.15s;border:2px solid #22e58f;background:rgba(34,229,143,0.2);color:#22e58f;box-shadow:0 0 15px rgba(34,229,143,0.2);">BUY</button>
+          <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:14px;border-radius:10px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.15s;border:2px solid rgba(255,77,77,0.3);background:rgba(255,77,77,0.05);color:#8e9bb3;">SELL</button>
           <input type="hidden" id="sig-direction" value="BUY">
         </div>
 
