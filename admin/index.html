@@ -326,7 +326,8 @@
   <!-- Post Signal Modal -->
   <div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);">
   <div style="background:#0c1220;width:100%;max-width:640px;border-radius:24px 24px 0 0;border:1px solid rgba(120,150,200,0.16);border-bottom:none;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
-    <form id="signal-form" style="display:flex;flex-direction:column;gap:16px;padding:24px;">
+    <form id="signal-form" style="display:flex;flex-direction:column;gap:20px;padding:24px;">
+      
       <!-- Header -->
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <h2 style="font-size:22px;color:#fff;font-weight:700;margin:0;">Post Signal</h2>
@@ -342,23 +343,25 @@
           <p style="color:#8e9bb3;font-size:12px;margin-top:4px;">PNG, JPG accepted</p>
           <input type="file" id="sig-image-input" accept="image/*" style="display:none;">
         </div>
-        <button type="button" id="retry-ai-btn" onclick="retryAIAnalysis()" style="display:none; width:100%; margin-top:10px; padding:10px; background:rgba(34,229,143,0.1); border:1px solid #22e58f; border-radius:8px; color:#22e58f; font-weight:bold; font-size:14px;">
-          ↻ Retry / Find Different Confluence
-        </button>
+
         <div id="sig-image-preview-container" style="display:none;margin-top:12px;position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(120,150,200,0.16);">
-          <img id="sig-image-preview" style="width:100%;max-height:180px;object-fit:contain;background:#000;">
+          <img id="sig-image-preview" style="width:100%;max-height:200px;object-fit:contain;background:#000;">
           <div id="sig-image-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.8);flex-direction:column;align-items:center;justify-content:center;">
             <div style="width:36px;height:36px;border:3px solid #22e58f;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
             <span style="color:#22e58f;font-weight:700;font-size:14px;">AI is reading chart...</span>
           </div>
         </div>
+
+        <button type="button" id="retry-ai-btn" onclick="retryAIAnalysis()" style="display:none; width:100%; margin-top:10px; padding:10px; background:rgba(34,229,143,0.1); border:1px solid #22e58f; border-radius:8px; color:#22e58f; font-weight:bold; font-size:14px; cursor:pointer;">
+          ↻ Retry / Find Different Confluence
+        </button>
       </div>
 
-      <!-- Manual fields -->
-      <div id="manual-fields" style="display:none;flex-direction:column;gap:16px;">
+      <!-- Manual Fields -->
+      <div id="manual-fields" style="display:none;flex-direction:column;gap:20px;">
         <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
             <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Asset</label>
             <input type="text" id="sig-asset" placeholder="XAUUSD" required style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;outline:none;">
@@ -371,15 +374,13 @@
           </div>
         </div>
 
-        <!-- BUY / SELL Toggle -->
         <div style="display:flex;gap:10px;background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:14px;padding:6px;">
           <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid #22e58f;background:rgba(34,229,143,0.15);color:#22e58f;">BUY</button>
           <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;transition:all 0.15s;border:2px solid transparent;background:transparent;color:#8e9bb3;">SELL</button>
           <input type="hidden" id="sig-direction" value="BUY">
         </div>
 
-        <!-- Entry / SL / TP -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
             <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">Entry</label>
             <input type="number" id="sig-entry-display" step="any" style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-entry').value=this.value">
@@ -394,14 +395,12 @@
           </div>
         </div>
 
-        <!-- Analysis -->
         <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
           <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Analysis</label>
           <textarea id="sig-notes" rows="4" style="width:100%;background:transparent;border:none;color:#fff;outline:none;resize:none;font-family:inherit;font-size:14px;line-height:1.5;"></textarea>
         </div>
       </div>
 
-      <!-- Publish -->
       <button type="submit" id="submit-btn" style="width:100%;padding:16px;background:#22e58f;color:#000;font-weight:800;font-size:16px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 0 25px rgba(34,229,143,0.4);transition:transform 0.15s;">Publish Signal</button>
     </form>
   </div>
