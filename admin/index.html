@@ -1,427 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0e13">
-<title>Admin Panel · Gongola ICT Hub</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0B1220">
+    <title>Command Centre | Gongola ICT Hub</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0B1220',
+                        surface: '#111827',
+                        surface2: '#172033',
+                        elevated: '#1D293B',
+                        primary: '#3B82F6',
+                        accent: '#F59E0B',
+                        positive: '#16A34A',
+                        negative: '#EF4444',
+                        main: '#F8FAFC',
+                        muted: '#94A3B8',
+                        border: '#263449'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { background-color: #0B1220; color: #F8FAFC; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .view-section { display: none; animation: fadeIn 0.2s ease-in-out; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          bg: '#0a0e13', surface: '#1F2833', surface2: '#151E26',
-          text: '#eef1fb', muted: '#8d97b8', line: 'rgba(255,255,255,0.1)',
-          win: '#00FF66', loss: '#FF3B30', accent: '#00E5FF', open: '#F5A524'
-        },
-        fontFamily: { display: ['"Space Grotesk"', 'system-ui', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] }
-      }
-    }
-  }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="style.css">
-
-<style>
-  /* CRITICAL LAYOUT FIXES */
-  body { background-color: #0a0e13; color: #eef1fb; font-family: 'Space Grotesk', system-ui, sans-serif; margin: 0; padding: 0; }
-  * { box-sizing: border-box; }
-  
-  .bg-surface2 { background-color: #151E26; }
-  .bg-surface { background-color: #1F2833; }
-  .bg-bg { background-color: #0a0e13; }
-  .bg-accent { background-color: #00E5FF; }
-  .bg-win { background-color: #00FF66; }
-  .bg-loss { background-color: #FF3B30; }
-  .bg-open { background-color: #F5A524; }
-  
-  .text-muted { color: #8d97b8; }
-  .text-white { color: #ffffff; }
-  .text-accent { color: #00E5FF; }
-  .text-win { color: #00FF66; }
-  .text-loss { color: #FF3B30; }
-  .text-bg { color: #0a0e13; }
-  
-  .border { border-width: 1px; border-style: solid; }
-  .border-line { border-color: rgba(255,255,255,0.1); }
-  .border-accent { border-color: #00E5FF; }
-  .border-win { border-color: #00FF66; }
-  .border-loss { border-color: #FF3B30; }
-  
-  .rounded-xl { border-radius: 12px; }
-  .rounded-lg { border-radius: 8px; }
-  .rounded-full { border-radius: 9999px; }
-  
-  .p-4 { padding: 16px; }
-  .p-3 { padding: 12px; }
-  .p-2 { padding: 8px; }
-  .px-4 { padding-left: 16px; padding-right: 16px; }
-  .py-3 { padding-top: 12px; padding-bottom: 12px; }
-  .py-2 { padding-top: 8px; padding-bottom: 8px; }
-  .px-3 { padding-left: 12px; padding-right: 12px; }
-  .py-1 { padding-top: 4px; padding-bottom: 4px; }
-  .mb-1 { margin-bottom: 4px; }
-  .mb-2 { margin-bottom: 8px; }
-  .mb-4 { margin-bottom: 16px; }
-  .mt-2 { margin-top: 8px; }
-  .mt-4 { margin-top: 16px; }
-  .mr-1 { margin-right: 4px; }
-  .mr-2 { margin-right: 8px; }
-  .gap-2 { gap: 8px; }
-  .gap-3 { gap: 12px; }
-  .space-y-3 > * + * { margin-top: 12px; }
-  
-  .flex { display: flex; }
-  .grid { display: grid; }
-  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .justify-between { justify-content: space-between; }
-  .justify-center { justify-content: center; }
-  .items-center { align-items: center; }
-  .flex-col { flex-direction: column; }
-  
-  .w-4 { width: 16px; }
-  .h-4 { height: 16px; }
-  .w-8 { width: 32px; }
-  .h-8 { height: 32px; }
-  .w-full { width: 100%; }
-  .h-full { height: 100%; }
-  
-  .text-xs { font-size: 12px; line-height: 1rem; }
-  .text-sm { font-size: 14px; line-height: 1.25rem; }
-  .text-lg { font-size: 18px; line-height: 1.75rem; }
-  .text-xl { font-size: 20px; line-height: 1.75rem; }
-  .text-\[10px\] { font-size: 10px; }
-  
-  .font-bold { font-weight: 700; }
-  .font-mono { font-family: 'JetBrains Mono', monospace; }
-  .uppercase { text-transform: uppercase; }
-  .tracking-widest { letter-spacing: 0.1em; }
-  
-  .overflow-x-hidden { overflow-x: hidden; }
-  .overflow-hidden { overflow: hidden; }
-  .hidden { display: none !important; }
-  .relative { position: relative; }
-  .absolute { position: absolute; }
-  .fixed { position: fixed; }
-  .sticky { position: sticky; }
-  .top-0 { top: 0; }
-  .z-30 { z-index: 30; }
-  .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-  
-  .shadow-\[0_0_10px_rgba\(0\,229\,255\,0\.4\)\] { box-shadow: 0 0 10px rgba(0,229,255,0.4); }
-  .shadow-\[0_0_15px_rgba\(0\,255\,102\,0\.3\)\] { box-shadow: 0 0 15px rgba(0,255,102,0.3); }
-  .hover\:brightness-110:hover { filter: brightness(1.1); }
-  
-  /* Fix for the giant icons */
-  svg { display: inline-block; vertical-align: middle; max-width: 24px; max-height: 24px; }
-  
-  /* Card layout fix */
-  .card {
-    background: #1F2833;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
-    margin-bottom: 12px;
-    position: relative;
-    overflow: hidden;
-    display: block;
-  }
-  .card::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    background: #8d97b8;
-  }
-  .card.open::before { background: #00FF66; }
-  .card.pending::before { background: #F5A524; }
-  .card.closed::before { background: #8d97b8; }
-  
-  .head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; cursor: pointer; }
-  .pair { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; }
-  .side { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-  .side.buy { background: rgba(0,255,102,0.1); color: #00FF66; }
-  .side.sell { background: rgba(255,59,48,0.1); color: #FF3B30; }
-  .meta { font-size: 12px; color: #8d97b8; margin-top: 2px; }
-  .badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; display: inline-block; margin-top: 4px; }
-  .badge.open { background: rgba(0,255,102,0.15); color: #00FF66; }
-  .badge.pending { background: rgba(245,165,36,0.15); color: #F5A524; }
-  .badge.closed { background: rgba(255,255,255,0.05); color: #8d97b8; }
-  
-  .body { display: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 14px; background: #151E26; }
-  .card.exp .body { display: block; }
-  
-  .pl { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .chev { width: 20px; height: 20px; color: #8d97b8; transition: transform 0.2s; margin-top: 4px; }
-  .card.exp .chev { transform: rotate(180deg); }
-  
-  .bar-wrap { padding-top: 10px; padding-bottom: 10px; }
-  .price-track { height: 6px; background: #0a0e13; border-radius: 99px; position: relative; margin: 15px 0 25px 0; }
-  .zone-sl { position: absolute; left: 0; height: 100%; background: rgba(255,59,48,0.5); border-radius: 99px 0 0 99px; }
-  .zone-tp { position: absolute; right: 0; height: 100%; background: rgba(0,255,102,0.5); border-radius: 0 99px 99px 0; }
-  .pin { position: absolute; top: -4px; width: 2px; height: 14px; background: #fff; transform: translateX(-50%); }
-  .pin-label { position: absolute; top: -20px; font-size: 9px; font-weight: 700; color: #8d97b8; transform: translateX(-50%); white-space: nowrap; }
-  .pin.entry { background: #00E5FF; z-index: 2; width: 3px; }
-  .pin.live { background: #00E5FF; z-index: 3; width: 3px; box-shadow: 0 0 10px #00E5FF; }
-  
-  .actions { display: flex; gap: 6px; margin-top: 12px; justify-content: space-between; }
-  .act { height: 32px; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; border: 1px solid transparent; }
-  .act.danger { background: #FF3B30; color: #fff; }
-  .act.ghost { background: #1F2833; color: #eef1fb; border-color: rgba(255,255,255,0.1); }
-  
-  .tab-btn { flex: 1; padding: 8px 4px; background: none; border: none; color: #8d97b8; font-weight: 600; font-size: 12px; border-bottom: 2px solid transparent; display: flex; align-items: center; justify-content: center; gap: 4px; }
-  .tab-btn.active { color: #00E5FF !important; border-bottom-color: #00E5FF !important; }
-  
-  .chip { border-radius: 999px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-  .chip.on { background: rgba(0,229,255,0.1); border-color: #00E5FF; color: #00E5FF; }
-</style>
-
-
-<style>
-  /* Force P/L Colors */
-  .pnl-pos { color: #00FF66 !important; }
-  .pnl-neg { color: #FF3B30 !important; }
-  
-  /* Any element with font-mono that holds a P/L value */
-  .pl .num.pos { color: #00FF66 !important; }
-  .pl .num.neg { color: #FF3B30 !important; }
-  
-  /* Explicit check for the closed cards to ensure color is correct */
-  .card.closed .pl .num { color: inherit; }
-</style>
-
-
-<style>
-  /* Force pair name size */
-  .pair { font-size: 16px !important; }
-  .pair span { font-size: 16px !important; }
-</style>
-
-
-<style>
-  /* ABSOLUTE MODAL OVERRIDES */
-  #lot-size-modal, #scale-out-modal, #account-modal, #custom-alert-modal {
-    position: fixed !important; inset: 0 !important;
-    background: rgba(0,0,0,0.85) !important;
-    z-index: 999999 !important;
-    display: flex !important; flex-direction: column !important;
-    align-items: center !important; justify-content: center !important;
-    padding: 20px !important;
-  }
-
-  #lot-size-modal > div, #scale-out-modal > div, #account-modal > div, #custom-alert-modal > div {
-    background: #0c1220 !important;
-    border: 1px solid rgba(120,150,200,0.16) !important;
-    border-radius: 20px !important;
-    padding: 24px !important;
-    width: 100% !important;
-    max-width: 380px !important;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.9) !important;
-    color: #fff !important;
-  }
-
-  #signal-modal > form {
-    background: #0c1220 !important;
-    border: 1px solid rgba(120,150,200,0.16) !important;
-    border-radius: 20px !important;
-    padding: 24px !important;
-    width: 100% !important;
-    max-width: 500px !important;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.9) !important;
-    color: #fff !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-  }
-
-  /* Text colors inside modals */
-  #lot-size-modal h2, #scale-out-modal h2, #account-modal h2, #signal-modal h2 {
-    color: #fff !important; font-size: 22px !important; font-weight: 700 !important; margin-bottom: 8px !important;
-  }
-  #lot-size-modal p, #scale-out-modal p {
-    color: #8e9bb3 !important; font-size: 14px !important; margin-bottom: 16px !important;
-  }
-
-  /* Inputs */
-  #lot-size-modal input, #signal-modal input[type="text"], #signal-modal input[type="number"], #signal-modal select, #signal-modal textarea {
-    background: #0f1627 !important; border: 1px solid rgba(120,150,200,0.16) !important;
-    color: #fff !important; border-radius: 10px !important; padding: 12px !important;
-    font-family: 'JetBrains Mono', monospace !important; font-size: 16px !important; width: 100% !important;
-    margin-bottom: 12px !important;
-  }
-
-  /* Buttons inside modals */
-  #lot-size-modal button, #scale-out-modal button, #account-modal button, #signal-modal button {
-    border-radius: 12px !important; font-weight: 700 !important; font-size: 15px !important;
-    padding: 14px !important; border: none !important;
-  }
-  #lot-size-modal #confirm-lot-btn, #signal-modal #submit-btn {
-    background: #22e58f !important; color: #000 !important;
-  }
-  #lot-size-modal button[onclick*="remove"], #account-modal button[onclick*="remove"], #signal-modal button[type="button"] {
-    background: #0f1627 !important; color: #fff !important; border: 1px solid rgba(120,150,200,0.16) !important;
-  }
-</style>
-
-
-<style>
-  .pair { font-size: 15px !important; gap: 6px !important; }
-  .pair .side { font-size: 9px !important; padding: 2px 5px !important; }
-  .pair span[style*="var(--muted)"] { font-size: 11px !important; }
-  .head { padding-top: 8px !important; padding-bottom: 8px !important; }
-</style>
-
-<style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
+        /* Card styles for app3.js compatibility */
+        .card {
+            background: #111827;
+            border: 1px solid #263449;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #94A3B8; }
+        .card.open::before { background: #16A34A; }
+        .card.pending::before { background: #F59E0B; }
+        .card.closed::before { background: #94A3B8; }
+        
+        .head { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #263449; cursor: pointer; }
+        .body { display: none; padding: 16px; background: #172033; border-top: 1px solid #263449; }
+        .card.exp .body { display: block; }
+        
+        .sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        .sig-badge.buy { background: rgba(22,163,74,0.15); color: #16A34A; }
+        .sig-badge.sell { background: rgba(239,68,68,0.15); color: #EF4444; }
+        
+        /* Modal Overlay base */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="text-text font-display antialiased overflow-x-hidden min-h-screen">
+<body class="h-screen flex flex-col md:flex-row overflow-hidden pb-safe">
 
-  <header class="top sticky top-0 z-30 glass border-b border-line px-4 py-3">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center font-bold text-bg shadow-[0_0_10px_rgba(0,229,255,0.4)]">A</div>
-        <div><h1 class="font-bold text-lg leading-tight">Admin Panel</h1><p class="text-[10px] font-mono text-muted uppercase tracking-widest">Gongola ICT Hub</p></div>
-      </div>
-      <div class="flex gap-2 items-center">
-        <button onclick="toggleAdminSettings()" class="p-2 bg-surface2 border border-line rounded-lg text-muted hover:text-white transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </button>
-        <button onclick="toggleSignalModal()" class="px-4 py-2 bg-win text-bg font-bold text-xs rounded-lg shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:brightness-110 transition-all flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
-        </button>
-      </div>
+    <!-- DESKTOP SIDEBAR -->
+    <nav class="hidden md:flex flex-col w-64 bg-surface border-r border-border h-full p-4 z-20">
+        <div class="flex items-center gap-3 mb-8 px-2">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white shadow-lg shadow-primary/20">G</div>
+            <div>
+                <h1 class="font-bold text-sm tracking-tight leading-tight">Gongola ICT Hub</h1>
+                <p class="text-[10px] text-muted uppercase tracking-widest">Command Centre</p>
+            </div>
+        </div>
+        
+        <div class="space-y-1 flex-1">
+            <button onclick="switchView('overview')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-primary bg-surface2" data-target="overview">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Overview
+            </button>
+            <button onclick="switchView('signals')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="signals">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> Signals
+            </button>
+            <button onclick="switchView('research')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="research">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg> Research
+            </button>
+            <button onclick="switchView('activity')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="activity">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Activity
+            </button>
+        </div>
+        
+        <div class="space-y-1 pt-4 border-t border-border">
+            <button onclick="toggleAdminSettings()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors text-muted">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Settings
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- MOBILE HEADER -->
+        <header class="flex md:hidden items-center justify-between px-4 py-3 bg-navy/90 backdrop-blur-md border-b border-border z-30">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white text-sm">G</div>
+                <span class="font-bold text-sm">Command Centre</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAdminSettings()" class="p-2 text-muted hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </button>
+                <button id="btnPost" onclick="toggleSignalModal()" class="px-3 py-1.5 bg-primary text-white font-bold text-xs rounded-lg shadow-lg shadow-primary/30 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post
+                </button>
+            </div>
+        </header>
+
+        <!-- DESKTOP HEADER ACTION -->
+        <header class="hidden md:flex items-center justify-between px-8 py-4 bg-surface border-b border-border">
+            <h2 id="desktop-view-title" class="text-xl font-bold text-white">Overview</h2>
+            <button onclick="toggleSignalModal()" class="px-4 py-2 bg-primary text-white font-bold text-sm rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 hover:brightness-110">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
+            </button>
+        </header>
+
+        <!-- VIEWS CONTAINER -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar p-4 md:p-8 relative">
+            
+            <!-- 1. OVERVIEW VIEW -->
+            <div id="view-overview" class="view-section active max-w-5xl mx-auto space-y-6">
+                
+                <!-- Status Bar -->
+                <div class="flex items-center justify-between text-xs font-mono text-muted">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-positive animate-pulse"></span>
+                        Live · updated <span id="ui-upd">--:--</span>
+                    </div>
+                    <button onclick="forceSync()" class="text-primary hover:underline">Sync Now</button>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-surface border border-border rounded-xl p-4">
+                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Balance</p>
+                        <p id="ui-balance" class="text-2xl font-bold font-mono text-white tabular-nums">$0.00</p>
+                    </div>
+                    <div class="bg-surface border border-border rounded-xl p-4">
+                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Total P/L</p>
+                        <p id="ui-total-pl" class="text-2xl font-bold font-mono text-positive tabular-nums">+$0.00</p>
+                    </div>
+                    <div class="bg-surface border border-border rounded-xl p-4">
+                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Win Rate</p>
+                        <p id="ui-winrate" class="text-2xl font-bold font-mono text-white tabular-nums">0%</p>
+                    </div>
+                    <div class="bg-surface border border-border rounded-xl p-4">
+                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Profit Factor</p>
+                        <p id="ui-pf" class="text-2xl font-bold font-mono text-white tabular-nums">0.0</p>
+                    </div>
+                </div>
+
+                <!-- Signal Stats -->
+                <div class="grid grid-cols-4 gap-2 bg-surface2 border border-border rounded-xl p-2 text-center">
+                    <div class="p-2">
+                        <p class="text-[10px] text-muted uppercase">Total</p>
+                        <p id="ui-cnt-all" class="font-bold text-lg">0</p>
+                    </div>
+                    <div class="p-2 border-l border-border">
+                        <p class="text-[10px] text-positive uppercase">Open</p>
+                        <p id="ui-cnt-open" class="font-bold text-lg">0</p>
+                    </div>
+                    <div class="p-2 border-l border-border">
+                        <p class="text-[10px] text-accent uppercase">Waiting</p>
+                        <p id="ui-cnt-pending" class="font-bold text-lg">0</p>
+                    </div>
+                    <div class="p-2 border-l border-border">
+                        <p class="text-[10px] text-muted uppercase">Closed</p>
+                        <p id="ui-cnt-closed" class="font-bold text-lg">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SIGNALS VIEW -->
+            <div id="view-signals" class="view-section max-w-5xl mx-auto">
+                <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-4" id="filters">
+                    <button class="chip on px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold whitespace-nowrap" data-f="all">All</button>
+                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="open">Open</button>
+                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="pending">Waiting</button>
+                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="closed">Closed</button>
+                </div>
+                <div id="signal-list" class="space-y-3"></div>
+            </div>
+
+            <!-- 3. RESEARCH VIEW -->
+            <div id="view-research" class="view-section max-w-5xl mx-auto">
+                <div class="text-center py-12 text-muted">
+                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    <h2 class="text-xl font-bold text-white mb-2">Research Workspace</h2>
+                    <p class="text-sm">ICT observations, patterns, and confluence tracking will appear here.</p>
+                </div>
+            </div>
+
+            <!-- 4. ACTIVITY VIEW -->
+            <div id="view-activity" class="view-section max-w-5xl mx-auto">
+                <div class="text-center py-12 text-muted">
+                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <h2 class="text-xl font-bold text-white mb-2">Activity Audit Log</h2>
+                    <p class="text-sm">System events and admin actions will appear here.</p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <nav class="md:hidden flex items-center justify-around bg-surface border-t border-border pb-safe pt-2 px-2 z-30">
+            <button onclick="switchView('overview')" class="flex flex-col items-center justify-center gap-1 text-primary nav-btn active" data-target="overview">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span class="text-[10px] font-bold">Overview</span>
+            </button>
+            <button onclick="switchView('signals')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="signals">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                <span class="text-[10px] font-bold">Signals</span>
+            </button>
+            <button onclick="switchView('research')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="research">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                <span class="text-[10px] font-bold">Research</span>
+            </button>
+            <button onclick="switchView('activity')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="activity">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-[10px] font-bold">Activity</span>
+            </button>
+        </nav>
     </div>
-  </header>
 
-  <main class="max-w-3xl mx-auto p-4 space-y-4">
-    <div class="grid grid-cols-2 gap-3" id="summary">
-      <div class="stat balance bg-surface2 border border-line p-3 rounded-xl cursor-pointer" onclick="openAccountInfo()">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Balance</p>
-        <p id="ui-balance" class="text-lg font-mono font-bold text-white">$0.00</p>
-        <p class="text-[10px] font-mono text-muted mt-1">P/L: <span id="ui-total-pl" class="text-xs">$0.00</span></p>
-      </div>
-      <div class="stat winrate bg-surface2 border border-line p-3 rounded-xl">
-        <p class="text-[10px] font-mono text-muted uppercase mb-1">Win Rate</p>
-        <p id="ui-winrate" class="text-lg font-mono font-bold text-white">0%</p>
-      </div>
+    <!-- MODALS (Preserved from app3.js) -->
+    <div id="signal-modal" class="modal-overlay">
+        <div class="bg-surface border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg md:max-w-2xl p-6 max-h-[90vh] overflow-y-auto mt-auto md:mt-0 animate-slide-up md:animate-fade-in">
+            <form id="signal-form" class="flex flex-col gap-5">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-white">Post Signal</h2>
+                    <button type="button" onclick="toggleSignalModal()" class="text-muted hover:text-white bg-surface2 p-2 rounded-full">✕</button>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-bold text-muted uppercase mb-2">Upload Chart</label>
+                    <div class="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors bg-surface2/50" onclick="document.getElementById('sig-image-input').click()">
+                        <p class="text-sm font-bold text-white">Tap to upload chart</p>
+                        <input type="file" id="sig-image-input" accept="image/*" class="hidden">
+                    </div>
+                    <div id="sig-image-preview-container" class="hidden mt-3 relative rounded-xl overflow-hidden border border-border">
+                        <img id="sig-image-preview" class="w-full max-h-48 object-contain bg-black">
+                        <div id="sig-image-loading" class="hidden absolute inset-0 bg-black/80 flex-col items-center justify-center">
+                            <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <span class="text-sm font-bold text-primary">AI Reading...</span>
+                        </div>
+                    </div>
+                    <button type="button" id="retry-ai-btn" onclick="retryAIAnalysis()" class="hidden w-full mt-2 py-2 bg-primary/10 border border-primary text-primary font-bold text-sm rounded-lg">↻ Retry Confluence</button>
+                </div>
+
+                <div id="manual-fields" class="hidden flex flex-col gap-4">
+                    <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-surface2 border border-border rounded-xl p-3">
+                            <label class="block text-[10px] text-muted uppercase mb-1">Asset</label>
+                            <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent border-none text-white font-mono font-bold outline-none">
+                        </div>
+                        <div class="bg-surface2 border border-border rounded-xl p-3">
+                            <label class="block text-[10px] text-muted uppercase mb-1">Category</label>
+                            <select id="sig-cat" class="w-full bg-transparent border-none text-white font-mono font-bold outline-none">
+                                <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 bg-surface2 border border-border rounded-xl p-1">
+                        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-3 rounded-lg font-bold text-sm bg-positive text-white">BUY</button>
+                        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-3 rounded-lg font-bold text-sm text-muted">SELL</button>
+                        <input type="hidden" id="sig-direction" value="BUY">
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-surface2 border border-border rounded-xl p-2">
+                            <label class="block text-[10px] text-muted text-center mb-1">Entry</label>
+                            <input type="number" id="sig-entry-display" step="any" class="w-full bg-transparent text-white font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-entry').value=this.value">
+                        </div>
+                        <div class="bg-surface2 border border-negative/30 rounded-xl p-2">
+                            <label class="block text-[10px] text-negative text-center mb-1">SL</label>
+                            <input type="number" id="sig-sl-display" step="any" class="w-full bg-transparent text-negative font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-sl').value=this.value">
+                        </div>
+                        <div class="bg-surface2 border border-positive/30 rounded-xl p-2">
+                            <label class="block text-[10px] text-positive text-center mb-1">TP</label>
+                            <input type="number" id="sig-tp-display" step="any" class="w-full bg-transparent text-positive font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-tp').value=this.value">
+                        </div>
+                    </div>
+
+                    <div class="bg-surface2 border border-border rounded-xl p-3">
+                        <label class="block text-[10px] text-muted uppercase mb-1">Analysis</label>
+                        <textarea id="sig-notes" rows="3" class="w-full bg-transparent text-white text-sm outline-none resize-none"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="w-full py-4 bg-primary text-white font-bold text-lg rounded-xl shadow-lg shadow-primary/20">Publish Signal</button>
+            </form>
+        </div>
     </div>
 
-    <div class="flex justify-between items-center text-xs font-mono text-muted">
-      <span><span class="inline-block w-2 h-2 rounded-full bg-accent mr-1 animate-pulse"></span>Live · updated <span id="ui-upd">--:--</span></span>
-      
+    <div id="admin-settings-modal" class="modal-overlay">
+        <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-white">Admin Settings</h2>
+            <label class="text-xs text-muted mb-1 block">Telegram Bot Token</label>
+            <input type="text" id="tg-token" placeholder="123456:ABC..." class="w-full bg-surface2 border border-border rounded-lg p-3 text-white outline-none mb-3">
+            <label class="text-xs text-muted mb-1 block">Telegram Chat ID</label>
+            <input type="text" id="tg-chat-id" placeholder="-100..." class="w-full bg-surface2 border border-border rounded-lg p-3 text-white outline-none mb-4">
+            <div class="flex gap-2">
+                <button onclick="toggleAdminSettings()" class="flex-1 py-3 bg-surface2 text-white font-bold rounded-lg">Cancel</button>
+                <button onclick="saveAdminSettings()" class="flex-1 py-3 bg-primary text-white font-bold rounded-lg">Save</button>
+            </div>
+        </div>
     </div>
 
-    <div class="flex gap-2 overflow-x-auto pb-2" id="filters">
-      <button class="chip on px-3 py-1 rounded-full border border-accent bg-accent/10 text-accent text-xs font-bold" data-f="all">All <span id="ui-cnt-all">0</span></button>
-      <button class="chip px-3 py-1 rounded-full border border-line bg-surface2 text-muted text-xs font-bold" data-f="open">Open <span id="ui-cnt-open">0</span></button>
-      <button class="chip px-3 py-1 rounded-full border border-line bg-surface2 text-muted text-xs font-bold" data-f="pending">Waiting <span id="ui-cnt-pending">0</span></button>
-      <button class="chip px-3 py-1 rounded-full border border-line bg-surface2 text-muted text-xs font-bold" data-f="closed">Closed <span id="ui-cnt-closed">0</span></button>
-    </div>
+    <!-- Keep app3.js logic intact -->
+    <script src="app3.js"></script>
+    
+    <!-- Add UI hooks for Navigation and Overview stats -->
+    <script>
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                if(b.dataset.target === viewId) {
+                    b.classList.add('active');
+                    if (b.classList.contains('flex-col')) {
+                        b.classList.add('text-primary');
+                        b.classList.remove('text-muted');
+                    } else {
+                        b.classList.add('text-primary', 'bg-surface2');
+                        b.classList.remove('text-muted');
+                    }
+                } else {
+                    b.classList.remove('active');
+                    if (b.classList.contains('flex-col')) {
+                        b.classList.remove('text-primary');
+                        b.classList.add('text-muted');
+                    } else {
+                        b.classList.remove('text-primary', 'bg-surface2');
+                        b.classList.add('text-muted');
+                    }
+                }
+            });
 
-    <div id="signal-list" class="space-y-3">
-      <div class="text-center text-muted text-sm p-8">Connecting to Database...</div>
-    </div>
-  </main>
+            const titles = { overview: 'Overview', signals: 'Signals Management', research: 'Research Workspace', activity: 'Activity Log' };
+            const titleEl = document.getElementById('desktop-view-title');
+            if(titleEl) titleEl.innerText = titles[viewId] || 'Command Centre';
+        }
 
-  <!-- Post Signal Modal -->
-  <div id="signal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999999;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);">
-  <div style="background:#0c1220;width:100%;max-width:800px;border-radius:24px 24px 0 0;border:1px solid rgba(120,150,200,0.16);border-bottom:none;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom);">
-    <form id="signal-form" style="display:flex;flex-direction:column;gap:20px;padding:24px;">
-      
-      <!-- Header -->
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h2 style="font-size:22px;color:#fff;font-weight:700;margin:0;">Post Signal</h2>
-        <button type="button" onclick="toggleSignalModal()" style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-      </div>
+        // Hook into app3.js rendering to calculate extra stats
+        const originalRenderSignals = window.renderSignals;
+        window.renderSignals = function() {
+            if(originalRenderSignals) originalRenderSignals();
+            updateOverviewData();
+        };
 
-      <!-- Upload Dropzone -->
-      <div>
-        <label style="display:block;font-size:11px;font-weight:700;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Upload Chart</label>
-        <div id="dropzone" style="border:2px dashed rgba(120,150,200,0.3);border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(15,22,39,0.5);" onclick="document.getElementById('sig-image-input').click()" ondragover="event.preventDefault();this.style.borderColor='#22e58f';" ondragleave="this.style.borderColor='rgba(120,150,200,0.3)';">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22e58f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <p style="color:#fff;font-size:14px;font-weight:600;margin:0;">Tap to upload chart</p>
-          <p style="color:#8e9bb3;font-size:12px;margin-top:4px;">PNG, JPG accepted</p>
-          <input type="file" id="sig-image-input" accept="image/*" style="display:none;">
-        </div>
+        function updateOverviewData() {
+            if (!window.signalsData) return;
+            
+            const signals = window.signalsData;
+            let closed = signals.filter(s => s.result === 'win' || s.result === 'loss');
+            let wins = closed.filter(s => s.result === 'win');
+            let losses = closed.filter(s => s.result === 'loss');
+            
+            let grossWin = 0, grossLoss = 0;
+            closed.forEach(s => {
+                const entry = parseFloat(s.entry), tp = parseFloat(s.tp), sl = parseFloat(s.sl);
+                const risk = Math.abs(entry - sl);
+                const reward = Math.abs(tp - entry);
+                if (s.result === 'win') grossWin += reward;
+                else grossLoss += risk;
+            });
 
-        <div id="sig-image-preview-container" style="display:none;margin-top:12px;position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(120,150,200,0.16);">
-          <img id="sig-image-preview" style="width:100%;max-height:200px;object-fit:contain;background:#000;">
-          <div id="sig-image-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.8);flex-direction:column;align-items:center;justify-content:center;">
-            <div style="width:36px;height:36px;border:3px solid #22e58f;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
-            <span style="color:#22e58f;font-weight:700;font-size:14px;">AI is reading chart...</span>
-          </div>
-        </div>
+            const pf = grossLoss > 0 ? (grossWin / grossLoss).toFixed(1) : (grossWin > 0 ? '∞' : '0.0');
+            const pfEl = document.getElementById('ui-pf');
+            if (pfEl) pfEl.innerText = pf;
 
-        <button type="button" id="retry-ai-btn" onclick="retryAIAnalysis()" style="display:none; width:100%; margin-top:10px; padding:10px; background:rgba(34,229,143,0.1); border:1px solid #22e58f; border-radius:8px; color:#22e58f; font-weight:bold; font-size:14px; cursor:pointer;">
-          ↻ Retry / Find Different Confluence
-        </button>
-      </div>
+            // Ensure the modal works natively with the overlay style
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                if(!m.classList.contains('active')) m.style.display = 'none';
+            });
+        }
 
-      <!-- Manual Fields -->
-      <div id="manual-fields" style="display:none;flex-direction:column;gap:20px;">
-        <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
+        // Override toggleModal to use the new overlay classes
+        const originalToggleSignalModal = window.toggleSignalModal;
+        window.toggleSignalModal = function() {
+            const modal = document.getElementById('signal-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                if(originalToggleSignalModal) originalToggleSignalModal();
+            }
+        };
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Asset</label>
-            <input type="text" id="sig-asset" placeholder="XAUUSD" required style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;outline:none;">
-          </div>
-          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Category</label>
-            <select id="sig-cat" style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;outline:none;">
-              <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
-            </select>
-          </div>
-        </div>
+        const originalToggleAdminSettings = window.toggleAdminSettings;
+        window.toggleAdminSettings = function() {
+            const modal = document.getElementById('admin-settings-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                if(originalToggleAdminSettings) originalToggleAdminSettings();
+            }
+        };
 
-        <div style="display:flex;gap:10px;background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:14px;padding:6px;">
-          <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" style="flex:1;padding:14px;border-radius:10px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.15s;border:2px solid #22e58f;background:rgba(34,229,143,0.2);color:#22e58f;box-shadow:0 0 15px rgba(34,229,143,0.2);">BUY</button>
-          <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" style="flex:1;padding:14px;border-radius:10px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.15s;border:2px solid rgba(255,77,77,0.3);background:rgba(255,77,77,0.05);color:#8e9bb3;">SELL</button>
-          <input type="hidden" id="sig-direction" value="BUY">
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">Entry</label>
-            <input type="number" id="sig-entry-display" step="any" style="width:100%;background:transparent;border:none;color:#fff;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-entry').value=this.value">
-          </div>
-          <div style="background:#0f1627;border:1px solid rgba(255,77,77,0.3);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:#ff4d4d;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">SL</label>
-            <input type="number" id="sig-sl-display" step="any" style="width:100%;background:transparent;border:none;color:#ff4d4d;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-sl').value=this.value">
-          </div>
-          <div style="background:#0f1627;border:1px solid rgba(34,229,143,0.3);border-radius:12px;padding:12px;">
-            <label style="display:block;font-size:10px;color:#22e58f;text-transform:uppercase;text-align:center;margin-bottom:6px;font-weight:700;">TP</label>
-            <input type="number" id="sig-tp-display" step="any" style="width:100%;background:transparent;border:none;color:#22e58f;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;text-align:center;outline:none;" oninput="document.getElementById('sig-tp').value=this.value">
-          </div>
-        </div>
-
-        <div style="background:#0f1627;border:1px solid rgba(120,150,200,0.16);border-radius:12px;padding:12px;">
-          <label style="display:block;font-size:10px;color:#8e9bb3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:700;">Analysis</label>
-          <textarea id="sig-notes" rows="4" style="width:100%;background:transparent;border:none;color:#fff;outline:none;resize:none;font-family:inherit;font-size:14px;line-height:1.5;"></textarea>
-        </div>
-      </div>
-
-      <button type="submit" id="submit-btn" style="width:100%;padding:16px;background:#22e58f;color:#000;font-weight:800;font-size:16px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 0 25px rgba(34,229,143,0.4);transition:transform 0.15s;">Publish Signal</button>
-    </form>
-  </div>
-</div>
-
-  <script src="app3.js"></script>
-
-  <!-- Admin Settings Modal -->
-  <div id="admin-settings-modal" class="hidden fixed inset-0 bg-black/80 z-[999999] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div class="bg-[#0c1220] border border-white/10 p-6 rounded-2xl w-full max-w-sm">
-          <h2 class="text-xl font-bold mb-4 text-white">Admin Settings</h2>
-          <label class="text-xs text-gray-400">Telegram Bot Token</label>
-          <input type="text" id="tg-token" placeholder="123456:ABC-DEF..." class="w-full bg-[#0f1627] border border-white/10 rounded-lg p-2 text-white outline-none mb-3 focus:border-cyan-400">
-          <label class="text-xs text-gray-400">Telegram Chat ID</label>
-          <input type="text" id="tg-chat-id" placeholder="-100123456789" class="w-full bg-[#0f1627] border border-white/10 rounded-lg p-2 text-white outline-none mb-4 focus:border-cyan-400">
-          <div class="flex gap-2">
-              <button onclick="toggleAdminSettings()" class="flex-1 py-2 bg-gray-800 text-white rounded-lg font-bold">Cancel</button>
-              <button onclick="saveAdminSettings()" class="flex-1 py-2 bg-cyan-500 text-black rounded-lg font-bold">Save</button>
-          </div>
-      </div>
-  </div>
-
+        // Initialize
+        setTimeout(updateOverviewData, 1000);
+    </script>
 </body>
 </html>
