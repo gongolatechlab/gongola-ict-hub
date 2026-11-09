@@ -25,7 +25,7 @@
                 <label class="form-label">Password</label>
                 <input type="password" id="auth-password" class="form-input">
             </div>
-            <button id="btn-login" onclick="handleLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button id="btn-login" onclick="bulletproofLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
         </div>
     </div>
 
@@ -213,6 +213,57 @@
             }
         }, 500);
     </script>
+
+
+<script>
+    // BULLETPROOF INLINE LOGIN
+    async function waitForSupabase(maxWait = 15000) {
+        const start = Date.now();
+        while (!window.supabase && Date.now() - start < maxWait) {
+            await new Promise(r => setTimeout(r, 100));
+        }
+        if (!window.supabase) throw new Error('Supabase CDN failed to load.');
+        return window.supabase;
+    }
+    
+    async function bulletproofLogin() {
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const btn = document.getElementById('btn-login');
+        
+        if (!email || !password) {
+            alert('Please enter email and password');
+            return;
+        }
+        
+        btn.innerText = 'Loading Supabase...';
+        btn.disabled = true;
+        
+        try {
+            const sb = await waitForSupabase();
+            btn.innerText = 'Authenticating...';
+            
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) throw new Error(error.message);
+            
+            btn.innerText = 'Success! Reloading...';
+            setTimeout(() => location.reload(), 800);
+        } catch (err) {
+            console.error('[Login] Error:', err);
+            alert('Login error: ' + err.message);
+            btn.innerText = 'Login';
+            btn.disabled = false;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('btn-login');
+        if (btn) {
+            btn.style.border = '2px solid #10B981';
+            console.log('[Login] Inline handler ready');
+        }
+    });
+</script>
 
 </body>
 </html>
