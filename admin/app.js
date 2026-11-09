@@ -11,36 +11,81 @@ let currentUser = null;
 let signalsData = [];
 
 // --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[Gongola] DOM ready, initializing...');
+async function initializeApp() {
+    console.log('[Gongola] Initializing app...');
     
-    // 1. WAIT FOR SUPABASE CDN TO LOAD
-    let attempts = 0;
-    while (!window.supabase && attempts < 50) {
-        await new Promise(r => setTimeout(r, 100));
-        attempts++;
+    // Show diagnostic banner
+    const diag = document.createElement('div');
+    diag.id = 'gongola-diag';
+    diag.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.9);color:#0F0;padding:8px 12px;font-size:11px;font-family:monospace;border-radius:8px;z-index:9999;border:1px solid #0F0;max-width:200px;';
+    diag.innerText = 'INIT...';
+    document.body.appendChild(diag);
+    
+    const updateDiag = (msg, color = '#0F0') => {
+        diag.innerText = msg;
+        diag.style.color = color;
+        diag.style.borderColor = color;
+    };
+    
+    try {
+        // 1. WAIT FOR SUPABASE
+        let attempts = 0;
+        while (!window.supabase && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+        
+        if (!window.supabase) {
+            updateDiag('ERROR: Supabase CDN failed', '#F00');
+            alert('Supabase library failed to load. Please refresh.');
+            return;
+        }
+        
+        // 2. CREATE CLIENT
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        updateDiag('DB OK, checking auth...');
+        
+        // 3. CHECK AUTH
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+            currentUser = session.user;
+            updateDiag('Logged in: ' + session.user.email.substring(0,15));
+            showApp();
+        } else {
+            updateDiag('Not logged in', '#FFA500');
+            document.getElementById('auth-screen').classList.add('active');
+        }
+        
+        // 4. SET UP LISTENERS
+        supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                currentUser = session.user;
+                showApp();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-screen').classList.add('active');
+                document.getElementById('app-shell').style.display = 'none';
+            }
+        });
+        
+        setupNavigation();
+        setupPostForm();
+        
+        setTimeout(() => diag.remove(), 3000);
+        
+    } catch (err) {
+        console.error('[Gongola] Init error:', err);
+        updateDiag('INIT ERROR: ' + err.message, '#F00');
     }
-    
-    if (!window.supabase) {
-        alert('Supabase library failed to load. Please check your internet and refresh.');
-        return;
-    }
-    
-    // 2. NOW CREATE THE CLIENT
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log('[Gongola] Supabase client initialized');
-    
-    // 3. ATTACH LOGIN BUTTON (as fallback if inline fails)
-    const loginBtn = document.getElementById('btn-login');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', handleLogin);
-    }
-    
-    // 4. RUN APP LOGIC
-    checkAuth();
-    setupNavigation();
-    setupPostForm();
-});
+}
+
+// Run immediately if DOM is ready, otherwise wait
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
 
 window.handleLogin = async function() {
     console.log('[Gongola] Login clicked');
