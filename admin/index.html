@@ -25,7 +25,7 @@
                 <label class="form-label">Password</label>
                 <input type="password" id="auth-password" class="form-input">
             </div>
-            <button id="btn-login" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button id="btn-login" onclick="handleLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
         </div>
     </div>
 
@@ -198,5 +198,21 @@
 
     <!-- Scripts -->
     <script src="app.js"></script>
+
+    <!-- GONGOLA_DIAGNOSTIC -->
+    <script>
+        setTimeout(() => {
+            const btn = document.getElementById('btn-login');
+            if (!btn) return;
+            if (typeof handleLogin === 'function') {
+                btn.style.border = '2px solid #10B981'; // Green border = app.js loaded
+                console.log('[Diagnostic] handleLogin is defined. Login should work.');
+            } else {
+                btn.style.border = '2px solid #EF4444'; // Red border = app.js failed
+                console.error('[Diagnostic] handleLogin is NOT defined. app.js failed to load or has an error.');
+            }
+        }, 500);
+    </script>
+
 </body>
 </html>

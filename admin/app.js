@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPostForm();
 });
 
-async function handleLogin() {
+window.handleLogin = async function() {
     console.log('[Gongola] Login clicked');
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-password').value;
