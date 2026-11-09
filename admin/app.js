@@ -4,25 +4,39 @@
 
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase = null;
 
 // State
 let currentUser = null;
 let signalsData = [];
 
 // --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Gongola] DOM ready, initializing...');
     
-    // Attach login button
+    // 1. WAIT FOR SUPABASE CDN TO LOAD
+    let attempts = 0;
+    while (!window.supabase && attempts < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+    }
+    
+    if (!window.supabase) {
+        alert('Supabase library failed to load. Please check your internet and refresh.');
+        return;
+    }
+    
+    // 2. NOW CREATE THE CLIENT
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('[Gongola] Supabase client initialized');
+    
+    // 3. ATTACH LOGIN BUTTON (as fallback if inline fails)
     const loginBtn = document.getElementById('btn-login');
     if (loginBtn) {
         loginBtn.addEventListener('click', handleLogin);
-        console.log('[Gongola] Login button attached');
-    } else {
-        console.error('[Gongola] Login button NOT FOUND');
     }
     
+    // 4. RUN APP LOGIC
     checkAuth();
     setupNavigation();
     setupPostForm();
