@@ -4,427 +4,199 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0B1220">
-    <title>Command Centre | Gongola ICT Hub</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin | Gongola ICT Hub</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        navy: '#0B1220',
-                        surface: '#111827',
-                        surface2: '#172033',
-                        elevated: '#1D293B',
-                        primary: '#3B82F6',
-                        accent: '#F59E0B',
-                        positive: '#16A34A',
-                        negative: '#EF4444',
-                        main: '#F8FAFC',
-                        muted: '#94A3B8',
-                        border: '#263449'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        body { background-color: #0B1220; color: #F8FAFC; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
-        .tabular-nums { font-variant-numeric: tabular-nums; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .view-section { display: none; animation: fadeIn 0.2s ease-in-out; }
-        .view-section.active { display: block; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Card styles for app3.js compatibility */
-        .card {
-            background: #111827;
-            border: 1px solid #263449;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 12px;
-        }
-        .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #94A3B8; }
-        .card.open::before { background: #16A34A; }
-        .card.pending::before { background: #F59E0B; }
-        .card.closed::before { background: #94A3B8; }
-        
-        .head { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #263449; cursor: pointer; }
-        .body { display: none; padding: 16px; background: #172033; border-top: 1px solid #263449; }
-        .card.exp .body { display: block; }
-        
-        .sig-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-        .sig-badge.buy { background: rgba(22,163,74,0.15); color: #16A34A; }
-        .sig-badge.sell { background: rgba(239,68,68,0.15); color: #EF4444; }
-        
-        /* Modal Overlay base */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
-        .modal-overlay.active { display: flex; }
-    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="h-[100dvh] flex flex-col md:flex-row overflow-hidden pb-safe">
+<body>
 
-    <!-- DESKTOP SIDEBAR -->
-    <nav class="hidden md:flex flex-col w-64 bg-surface border-r border-border h-full p-4 z-20">
-        <div class="flex items-center gap-3 mb-8 px-2">
-            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white shadow-lg shadow-primary/20">G</div>
-            <div>
-                <h1 class="font-bold text-sm tracking-tight leading-tight">Gongola ICT Hub</h1>
-                <p class="text-[10px] text-muted uppercase tracking-widest">Command Centre</p>
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen" class="modal-overlay active" style="z-index: 9999;">
+        <div class="modal-content" style="max-width: 400px; border-radius: 16px;">
+            <h2 style="margin-bottom: 20px; text-align: center;">Admin Login</h2>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="auth-email" class="form-input">
             </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="auth-password" class="form-input">
+            </div>
+            <button id="btn-login" class="btn btn-primary" style="width: 100%;">Login</button>
         </div>
-        
-        <div class="space-y-1 flex-1">
-            <button onclick="switchView('overview')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-primary bg-surface2" data-target="overview">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Overview
-            </button>
-            <button onclick="switchView('signals')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="signals">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> Signals
-            </button>
-            <button onclick="switchView('research')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="research">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg> Research
-            </button>
-            <button onclick="switchView('activity')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors nav-btn text-muted" data-target="activity">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Activity
-            </button>
-        </div>
-        
-        <div class="space-y-1 pt-4 border-t border-border">
-            <button onclick="toggleAdminSettings()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-surface2 transition-colors text-muted">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Settings
-            </button>
-        </div>
-    </nav>
-
-    <!-- MAIN CONTENT AREA -->
-    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-        
-        <!-- MOBILE HEADER -->
-        <header class="flex md:hidden items-center justify-between px-4 py-3 bg-navy/90 backdrop-blur-md border-b border-border z-30">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white text-sm">G</div>
-                <span class="font-bold text-sm">Command Centre</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleAdminSettings()" class="p-2 text-muted hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </button>
-                <button id="btnPost" onclick="toggleSignalModal()" class="px-3 py-1.5 bg-primary text-white font-bold text-xs rounded-lg shadow-lg shadow-primary/30 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post
-                </button>
-            </div>
-        </header>
-
-        <!-- DESKTOP HEADER ACTION -->
-        <header class="hidden md:flex items-center justify-between px-8 py-4 bg-surface border-b border-border">
-            <h2 id="desktop-view-title" class="text-xl font-bold text-white">Overview</h2>
-            <button onclick="toggleSignalModal()" class="px-4 py-2 bg-primary text-white font-bold text-sm rounded-lg shadow-lg shadow-primary/20 flex items-center gap-2 hover:brightness-110">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Post Signal
-            </button>
-        </header>
-
-        <!-- VIEWS CONTAINER -->
-        <main class="flex-1 overflow-y-auto hide-scrollbar p-4 pb-24 md:p-8 relative">
-            
-            <!-- 1. OVERVIEW VIEW -->
-            <div id="view-overview" class="view-section active max-w-5xl mx-auto space-y-6">
-                
-                <!-- Status Bar -->
-                <div class="flex items-center justify-between text-xs font-mono text-muted">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-positive animate-pulse"></span>
-                        Live · updated <span id="ui-upd">--:--</span>
-                    </div>
-                    <button onclick="syncLiveTrades()" class="text-primary hover:underline">Sync Now</button>
-                </div>
-
-                <!-- Metrics Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div class="bg-surface border border-border rounded-xl p-4">
-                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Balance</p>
-                        <p id="ui-balance" class="text-2xl font-bold font-mono text-white tabular-nums">$0.00</p>
-                    </div>
-                    <div class="bg-surface border border-border rounded-xl p-4">
-                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Total P/L</p>
-                        <p id="ui-total-pl" class="text-2xl font-bold font-mono text-positive tabular-nums">+$0.00</p>
-                    </div>
-                    <div class="bg-surface border border-border rounded-xl p-4">
-                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Win Rate</p>
-                        <p id="ui-winrate" class="text-2xl font-bold font-mono text-white tabular-nums">0%</p>
-                    </div>
-                    <div class="bg-surface border border-border rounded-xl p-4">
-                        <p class="text-[10px] text-muted uppercase tracking-wider mb-1">Profit Factor</p>
-                        <p id="ui-pf" class="text-2xl font-bold font-mono text-white tabular-nums">0.0</p>
-                    </div>
-                </div>
-
-                <!-- Signal Stats -->
-                <div class="grid grid-cols-4 gap-2 bg-surface2 border border-border rounded-xl p-2 text-center">
-                    <div class="p-2">
-                        <p class="text-[10px] text-muted uppercase">Total</p>
-                        <p id="ui-cnt-all" class="font-bold text-lg">0</p>
-                    </div>
-                    <div class="p-2 border-l border-border">
-                        <p class="text-[10px] text-positive uppercase">Open</p>
-                        <p id="ui-cnt-open" class="font-bold text-lg">0</p>
-                    </div>
-                    <div class="p-2 border-l border-border">
-                        <p class="text-[10px] text-accent uppercase">Waiting</p>
-                        <p id="ui-cnt-pending" class="font-bold text-lg">0</p>
-                    </div>
-                    <div class="p-2 border-l border-border">
-                        <p class="text-[10px] text-muted uppercase">Closed</p>
-                        <p id="ui-cnt-closed" class="font-bold text-lg">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. SIGNALS VIEW -->
-            <div id="view-signals" class="view-section max-w-5xl mx-auto">
-                <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-4" id="filters">
-                    <button class="chip on px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold whitespace-nowrap" data-f="all">All</button>
-                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="open">Open</button>
-                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="pending">Waiting</button>
-                    <button class="chip px-4 py-2 rounded-lg bg-surface border border-border text-muted text-sm font-bold whitespace-nowrap" data-f="closed">Closed</button>
-                </div>
-                <div id="signal-list" class="space-y-3"></div>
-            </div>
-
-            <!-- 3. RESEARCH VIEW -->
-            <div id="view-research" class="view-section max-w-5xl mx-auto">
-                <div class="text-center py-12 text-muted">
-                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                    <h2 class="text-xl font-bold text-white mb-2">Research Workspace</h2>
-                    <p class="text-sm">ICT observations, patterns, and confluence tracking will appear here.</p>
-                </div>
-            </div>
-
-            <!-- 4. ACTIVITY VIEW -->
-            <div id="view-activity" class="view-section max-w-5xl mx-auto">
-                <div class="text-center py-12 text-muted">
-                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <h2 class="text-xl font-bold text-white mb-2">Activity Audit Log</h2>
-                    <p class="text-sm">System events and admin actions will appear here.</p>
-                </div>
-            </div>
-
-        </main>
-
-        <!-- MOBILE BOTTOM NAV -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-surface border-t border-border pb-safe pt-2 px-2 z-50">
-            <button onclick="switchView('overview')" class="flex flex-col items-center justify-center gap-1 text-primary nav-btn active" data-target="overview">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                <span class="text-[10px] font-bold">Overview</span>
-            </button>
-            <button onclick="switchView('signals')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="signals">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                <span class="text-[10px] font-bold">Signals</span>
-            </button>
-            <button onclick="switchView('research')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="research">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                <span class="text-[10px] font-bold">Research</span>
-            </button>
-            <button onclick="switchView('activity')" class="flex flex-col items-center justify-center gap-1 text-muted nav-btn" data-target="activity">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span class="text-[10px] font-bold">Activity</span>
-            </button>
-        </nav>
     </div>
 
-    <!-- MODALS (Preserved from app3.js) -->
-    <div id="signal-modal" class="modal-overlay">
-        <div class="bg-surface border border-border rounded-t-2xl md:rounded-2xl w-full max-w-lg md:max-w-2xl p-6 max-h-[90vh] overflow-y-auto mt-auto md:mt-0 animate-slide-up md:animate-fade-in">
-            <form id="signal-form" class="flex flex-col gap-5">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-white">Post Signal</h2>
-                    <button type="button" onclick="toggleSignalModal()" class="text-muted hover:text-white bg-surface2 p-2 rounded-full">✕</button>
-                </div>
-                
+    <!-- MAIN APP (Hidden until login) -->
+    <div id="app-shell" style="display: none; width: 100%; height: 100%;">
+        
+        <!-- Desktop Sidebar -->
+        <nav class="sidebar">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <div style="width: 32px; height: 32px; background: var(--gold); color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold;">G</div>
                 <div>
-                    <label class="block text-[10px] font-bold text-muted uppercase mb-2">Upload Chart</label>
-                    <div class="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors bg-surface2/50" onclick="document.getElementById('sig-image-input').click()">
-                        <p class="text-sm font-bold text-white">Tap to upload chart</p>
-                        <input type="file" id="sig-image-input" accept="image/*" class="hidden">
-                    </div>
-                    <div id="sig-image-preview-container" class="hidden mt-3 relative rounded-xl overflow-hidden border border-border">
-                        <img id="sig-image-preview" class="w-full max-h-48 object-contain bg-black">
-                        <div id="sig-image-loading" class="hidden absolute inset-0 bg-black/80 flex-col items-center justify-center">
-                            <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
-                            <span class="text-sm font-bold text-primary">AI Reading...</span>
+                    <div style="font-weight: 700; font-size: 14px;">Gongola ICT</div>
+                    <div style="font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Command Centre</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+                <button class="side-nav-item active" onclick="switchView('overview')" data-target="overview">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Overview
+                </button>
+                <button class="side-nav-item" onclick="switchView('signals')" data-target="signals">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg> Signals
+                </button>
+            </div>
+            
+            <button class="side-nav-item" onclick="handleLogout()" style="color: var(--red);">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg> Logout
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Mobile Header -->
+            <header style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); background: var(--surface);">
+                <div style="font-weight: 700;">Command Centre</div>
+                <button onclick="openModal('post-signal-modal')" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">+ Post</button>
+            </header>
+
+            <div class="scroll-area">
+                
+                <!-- VIEW: OVERVIEW -->
+                <div id="view-overview" class="view active">
+                    <div class="metric-grid">
+                        <div class="card" style="margin: 0;">
+                            <div class="metric-label">Balance</div>
+                            <div class="metric-value" id="stat-balance">$0.00</div>
+                        </div>
+                        <div class="card" style="margin: 0;">
+                            <div class="metric-label">Net P&L</div>
+                            <div class="metric-value text-green" id="stat-pnl">+$0.00</div>
+                        </div>
+                        <div class="card" style="margin: 0;">
+                            <div class="metric-label">Win Rate</div>
+                            <div class="metric-value" id="stat-winrate">0%</div>
+                        </div>
+                        <div class="card" style="margin: 0;">
+                            <div class="metric-label">Profit Factor</div>
+                            <div class="metric-value" id="stat-pf">0.0</div>
                         </div>
                     </div>
-                    <button type="button" id="retry-ai-btn" onclick="retryAIAnalysis()" class="hidden w-full mt-2 py-2 bg-primary/10 border border-primary text-primary font-bold text-sm rounded-lg">↻ Retry Confluence</button>
+
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                            <h3 class="text-sm">Equity Curve</h3>
+                            <span class="text-xs text-muted">Last 30 Days</span>
+                        </div>
+                        <svg width="100%" height="120" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="var(--gold)" stop-opacity="0.3" />
+                                    <stop offset="100%" stop-color="var(--gold)" stop-opacity="0" />
+                                </linearGradient>
+                            </defs>
+                            <path id="equity-area" fill="url(#chartGrad)" d="" />
+                            <polyline id="equity-line" fill="none" stroke="var(--gold)" stroke-width="2" vector-effect="non-scaling-stroke" points="" />
+                        </svg>
+                    </div>
                 </div>
 
-                <div id="manual-fields" class="hidden flex flex-col gap-4">
-                    <input type="hidden" id="sig-entry"><input type="hidden" id="sig-sl"><input type="hidden" id="sig-tp">
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-surface2 border border-border rounded-xl p-3">
-                            <label class="block text-[10px] text-muted uppercase mb-1">Asset</label>
-                            <input type="text" id="sig-asset" placeholder="XAUUSD" required class="w-full bg-transparent border-none text-white font-mono font-bold outline-none">
-                        </div>
-                        <div class="bg-surface2 border border-border rounded-xl p-3">
-                            <label class="block text-[10px] text-muted uppercase mb-1">Category</label>
-                            <select id="sig-cat" class="w-full bg-transparent border-none text-white font-mono font-bold outline-none">
-                                <option>Forex</option><option>Crypto</option><option>Indices</option><option>Commodities</option>
-                            </select>
-                        </div>
+                <!-- VIEW: SIGNALS -->
+                <div id="view-signals" class="view">
+                    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 12px;">
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">All</button>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Open</button>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Waiting</button>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Closed</button>
                     </div>
-
-                    <div class="flex gap-2 bg-surface2 border border-border rounded-xl p-1">
-                        <button type="button" onclick="setSigDir('BUY')" id="sig-btn-buy" class="flex-1 py-3 rounded-lg font-bold text-sm bg-positive text-white">BUY</button>
-                        <button type="button" onclick="setSigDir('SELL')" id="sig-btn-sell" class="flex-1 py-3 rounded-lg font-bold text-sm text-muted">SELL</button>
-                        <input type="hidden" id="sig-direction" value="BUY">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="bg-surface2 border border-border rounded-xl p-2">
-                            <label class="block text-[10px] text-muted text-center mb-1">Entry</label>
-                            <input type="number" id="sig-entry-display" step="any" class="w-full bg-transparent text-white font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-entry').value=this.value">
-                        </div>
-                        <div class="bg-surface2 border border-negative/30 rounded-xl p-2">
-                            <label class="block text-[10px] text-negative text-center mb-1">SL</label>
-                            <input type="number" id="sig-sl-display" step="any" class="w-full bg-transparent text-negative font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-sl').value=this.value">
-                        </div>
-                        <div class="bg-surface2 border border-positive/30 rounded-xl p-2">
-                            <label class="block text-[10px] text-positive text-center mb-1">TP</label>
-                            <input type="number" id="sig-tp-display" step="any" class="w-full bg-transparent text-positive font-mono font-bold text-center outline-none" oninput="document.getElementById('sig-tp').value=this.value">
-                        </div>
-                    </div>
-
-                    <div class="bg-surface2 border border-border rounded-xl p-3">
-                        <label class="block text-[10px] text-muted uppercase mb-1">Analysis</label>
-                        <textarea id="sig-notes" rows="3" class="w-full bg-transparent text-white text-sm outline-none resize-none"></textarea>
+                    <div id="signals-list">
+                        <!-- Signal cards injected here -->
                     </div>
                 </div>
 
-                <button type="submit" id="submit-btn" class="w-full py-4 bg-primary text-white font-bold text-lg rounded-xl shadow-lg shadow-primary/20">Publish Signal</button>
+            </div>
+        </main>
+
+        <!-- Mobile Bottom Nav -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchView('overview')" data-target="overview">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Overview
+            </button>
+            <button class="nav-item" onclick="switchView('signals')" data-target="signals">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                Signals
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- MODAL: POST SIGNAL -->
+    <div id="post-signal-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="text-lg">Post New Signal</h2>
+                <button class="btn-icon" onclick="closeModal('post-signal-modal')">✕</button>
+            </div>
+            
+            <form id="post-form">
+                <div class="form-group">
+                    <label class="form-label">Upload Chart</label>
+                    <input type="file" id="chart-upload" accept="image/*" style="color: var(--muted); font-size: 12px;">
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Asset</label>
+                        <input type="text" id="post-asset" class="form-input" placeholder="XAUUSD">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Direction</label>
+                        <select id="post-direction" class="form-input">
+                            <option value="BUY">BUY</option>
+                            <option value="SELL">SELL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Entry Price</label>
+                        <input type="number" id="post-entry" class="form-input" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stop Loss</label>
+                        <input type="number" id="post-sl" class="form-input" step="any">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Take Profit</label>
+                        <input type="number" id="post-tp" class="form-input" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Risk/Reward</label>
+                        <div id="rr-preview" class="form-input" style="border-color: transparent; background: transparent; font-weight: bold; color: var(--gold);">--</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Analysis Notes</label>
+                    <textarea id="post-analysis" class="form-input" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Publish Signal</button>
             </form>
         </div>
     </div>
 
-    <div id="admin-settings-modal" class="modal-overlay">
-        <div class="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm">
-            <h2 class="text-xl font-bold mb-4 text-white">Admin Settings</h2>
-            <label class="text-xs text-muted mb-1 block">Telegram Bot Token</label>
-            <input type="text" id="tg-token" placeholder="123456:ABC..." class="w-full bg-surface2 border border-border rounded-lg p-3 text-white outline-none mb-3">
-            <label class="text-xs text-muted mb-1 block">Telegram Chat ID</label>
-            <input type="text" id="tg-chat-id" placeholder="-100..." class="w-full bg-surface2 border border-border rounded-lg p-3 text-white outline-none mb-4">
-            <div class="flex gap-2">
-                <button onclick="toggleAdminSettings()" class="flex-1 py-3 bg-surface2 text-white font-bold rounded-lg">Cancel</button>
-                <button onclick="saveAdminSettings()" class="flex-1 py-3 bg-primary text-white font-bold rounded-lg">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Keep app3.js logic intact -->
-    <script src="app3.js"></script>
-    
-    <!-- Add UI hooks for Navigation and Overview stats -->
-    <script>
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-' + viewId).classList.add('active');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                if(b.dataset.target === viewId) {
-                    b.classList.add('active');
-                    if (b.classList.contains('flex-col')) {
-                        b.classList.add('text-primary');
-                        b.classList.remove('text-muted');
-                    } else {
-                        b.classList.add('text-primary', 'bg-surface2');
-                        b.classList.remove('text-muted');
-                    }
-                } else {
-                    b.classList.remove('active');
-                    if (b.classList.contains('flex-col')) {
-                        b.classList.remove('text-primary');
-                        b.classList.add('text-muted');
-                    } else {
-                        b.classList.remove('text-primary', 'bg-surface2');
-                        b.classList.add('text-muted');
-                    }
-                }
-            });
-
-            const titles = { overview: 'Overview', signals: 'Signals Management', research: 'Research Workspace', activity: 'Activity Log' };
-            const titleEl = document.getElementById('desktop-view-title');
-            if(titleEl) titleEl.innerText = titles[viewId] || 'Command Centre';
-        }
-
-        // Hook into app3.js rendering to calculate extra stats
-        const originalRenderSignals = window.renderSignals;
-        window.renderSignals = function() {
-            if(originalRenderSignals) originalRenderSignals();
-            updateOverviewData();
-        };
-
-        function updateOverviewData() {
-            if (!window.signalsData) return;
-            
-            const signals = window.signalsData;
-            let closed = signals.filter(s => s.result === 'win' || s.result === 'loss');
-            let wins = closed.filter(s => s.result === 'win');
-            let losses = closed.filter(s => s.result === 'loss');
-            
-            let grossWin = 0, grossLoss = 0;
-            closed.forEach(s => {
-                const entry = parseFloat(s.entry), tp = parseFloat(s.tp), sl = parseFloat(s.sl);
-                const risk = Math.abs(entry - sl);
-                const reward = Math.abs(tp - entry);
-                if (s.result === 'win') grossWin += reward;
-                else grossLoss += risk;
-            });
-
-            const pf = grossLoss > 0 ? (grossWin / grossLoss).toFixed(1) : (grossWin > 0 ? '∞' : '0.0');
-            const pfEl = document.getElementById('ui-pf');
-            if (pfEl) pfEl.innerText = pf;
-
-            // Ensure the modal works natively with the overlay style
-            document.querySelectorAll('.modal-overlay').forEach(m => {
-                if(!m.classList.contains('active')) m.style.display = 'none';
-            });
-        }
-
-        // Override toggleModal to use the new overlay classes
-        const originalToggleSignalModal = window.toggleSignalModal;
-        window.toggleSignalModal = function() {
-            const modal = document.getElementById('signal-modal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
-            } else {
-                modal.style.display = 'flex';
-                if(originalToggleSignalModal) originalToggleSignalModal();
-            }
-        };
-
-        const originalToggleAdminSettings = window.toggleAdminSettings;
-        window.toggleAdminSettings = function() {
-            const modal = document.getElementById('admin-settings-modal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
-            } else {
-                modal.style.display = 'flex';
-                if(originalToggleAdminSettings) originalToggleAdminSettings();
-            }
-        };
-
-        // Initialize
-        setTimeout(updateOverviewData, 1000);
-    </script>
+    <!-- Scripts -->
+    <script src="app.js"></script>
 </body>
 </html>
