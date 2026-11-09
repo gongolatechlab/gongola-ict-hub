@@ -12,10 +12,53 @@ let signalsData = [];
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[Gongola] DOM ready, initializing...');
+    
+    // Attach login button
+    const loginBtn = document.getElementById('btn-login');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', handleLogin);
+        console.log('[Gongola] Login button attached');
+    } else {
+        console.error('[Gongola] Login button NOT FOUND');
+    }
+    
     checkAuth();
     setupNavigation();
     setupPostForm();
 });
+
+async function handleLogin() {
+    console.log('[Gongola] Login clicked');
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const btn = document.getElementById('btn-login');
+    
+    if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+    }
+    
+    btn.innerText = 'Authenticating...';
+    btn.disabled = true;
+    
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        console.log('[Gongola] Auth response:', { data, error });
+        
+        if (error) {
+            alert('Login Failed: ' + error.message);
+            btn.innerText = 'Login';
+            btn.disabled = false;
+        }
+        // On success, onAuthStateChange will fire and show the app
+    } catch (err) {
+        console.error('[Gongola] Auth exception:', err);
+        alert('Connection error: ' + err.message);
+        btn.innerText = 'Login';
+        btn.disabled = false;
+    }
+}
 
 // --- AUTHENTICATION ---
 async function checkAuth() {
@@ -39,19 +82,7 @@ async function checkAuth() {
     });
 }
 
-document.getElementById('btn-login')?.addEventListener('click', async () => {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const btn = document.getElementById('btn-login');
-    
-    btn.innerText = 'Authenticating...';
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        alert('Login Failed: ' + error.message);
-        btn.innerText = 'Login';
-    }
-});
+// Login handler is attached inside DOMContentLoaded below
 
 async function handleLogout() {
     await supabase.auth.signOut();
