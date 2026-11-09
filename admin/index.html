@@ -74,7 +74,7 @@
     </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden pb-safe">
+<body class="h-[100dvh] flex flex-col md:flex-row overflow-hidden pb-safe">
 
     <!-- DESKTOP SIDEBAR -->
     <nav class="hidden md:flex flex-col w-64 bg-surface border-r border-border h-full p-4 z-20">
@@ -136,7 +136,7 @@
         </header>
 
         <!-- VIEWS CONTAINER -->
-        <main class="flex-1 overflow-y-auto hide-scrollbar p-4 md:p-8 relative">
+        <main class="flex-1 overflow-y-auto hide-scrollbar p-4 pb-24 md:p-8 relative">
             
             <!-- 1. OVERVIEW VIEW -->
             <div id="view-overview" class="view-section active max-w-5xl mx-auto space-y-6">
@@ -147,7 +147,7 @@
                         <span class="w-2 h-2 rounded-full bg-positive animate-pulse"></span>
                         Live · updated <span id="ui-upd">--:--</span>
                     </div>
-                    <button onclick="forceSync()" class="text-primary hover:underline">Sync Now</button>
+                    <button onclick="syncLiveTrades()" class="text-primary hover:underline">Sync Now</button>
                 </div>
 
                 <!-- Metrics Grid -->
@@ -223,7 +223,7 @@
         </main>
 
         <!-- MOBILE BOTTOM NAV -->
-        <nav class="md:hidden flex items-center justify-around bg-surface border-t border-border pb-safe pt-2 px-2 z-30">
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 flex items-center justify-around bg-surface border-t border-border pb-safe pt-2 px-2 z-50">
             <button onclick="switchView('overview')" class="flex flex-col items-center justify-center gap-1 text-primary nav-btn active" data-target="overview">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                 <span class="text-[10px] font-bold">Overview</span>
