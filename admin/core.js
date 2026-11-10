@@ -275,8 +275,12 @@ function setupImageUpload() {
         if (!file) return;
 
         statusEl.style.display = 'block';
-        statusEl.innerText = '🤖 AI is analyzing the chart...';
+        statusEl.innerText = '🤖 AI is analyzing the chart... (this takes 10-20 seconds)';
         statusEl.style.color = 'var(--gold)';
+        statusEl.style.background = 'rgba(245, 158, 11, 0.1)';
+        statusEl.style.border = '1px solid var(--gold)';
+        statusEl.style.padding = '10px';
+        statusEl.style.borderRadius = '8px';
 
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -290,11 +294,16 @@ function setupImageUpload() {
                 const base64Data = canvas.toDataURL('image/jpeg', 0.7);
                 
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+                    
                     const res = await fetch(APPS_SCRIPT_URL, { 
                         method: 'POST', 
                         headers: { 'Content-Type': 'text/plain' }, 
-                        body: JSON.stringify({ action: 'analyze_chart', image: base64Data }) 
+                        body: JSON.stringify({ action: 'analyze_chart', image: base64Data }),
+                        signal: controller.signal
                     });
+                    clearTimeout(timeoutId);
                     
                     const text = await res.text(); 
                     let data; 
@@ -310,14 +319,18 @@ function setupImageUpload() {
                     if (data.tp) document.getElementById('post-tp').value = data.tp;
                     if (data.analysis) document.getElementById('post-analysis').value = data.analysis.replace(/\*/g, '');
                     
-                    statusEl.innerText = '✅ AI complete. Review fields.';
+                    statusEl.innerText = '✅ AI complete. Review fields below.';
                     statusEl.style.color = 'var(--green)';
+                    statusEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                    statusEl.style.border = '1px solid var(--green)';
                     document.getElementById('post-entry').dispatchEvent(new Event('input'));
                     
                 } catch (err) {
-                    statusEl.innerText = '❌ AI Error: ' + err.message;
+                    statusEl.innerText = '❌ AI Error: ' + err.message + ' — Enter data manually.';
                     statusEl.style.color = 'var(--red)';
-                    alert('AI Error: ' + err.message);
+                    statusEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                    statusEl.style.border = '1px solid var(--red)';
+                    console.error('AI Error:', err);
                 }
             };
             img.src = event.target.result;
@@ -358,7 +371,7 @@ function setupPostForm() {
         const btn = e.target.querySelector('button[type="submit"]');
         btn.innerText = 'Publishing...'; btn.disabled = true;
 
-        const asset = document.getElementById('post-asset').value.toUpperCase();
+        const asset = document.getElementById('post-asset').value.trim().toUpperCase();
         const category = document.getElementById('post-category').value;
         const direction = dirInput.value;
         const entry = parseFloat(entryInput.value);
@@ -366,6 +379,19 @@ function setupPostForm() {
         const tp = parseFloat(tpInput.value);
         const analysis = document.getElementById('post-analysis').value;
         const fileInput = document.getElementById('chart-upload');
+
+        // VALIDATION - catch empty fields before hitting the database
+        const missing = [];
+        if (!asset) missing.push('Asset');
+        if (isNaN(entry)) missing.push('Entry');
+        if (isNaN(sl)) missing.push('SL');
+        if (isNaN(tp)) missing.push('TP');
+
+        if (missing.length > 0) {
+            alert('Please fill in: ' + missing.join(', ') + '\n\nTip: Upload a chart and let the AI fill these automatically.');
+            btn.innerText = 'Publish Signal'; btn.disabled = false;
+            return;
+        }
 
         let imageUrl = null;
 
