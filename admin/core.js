@@ -5,7 +5,7 @@
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
 
-let supabase = null;
+let sb = null;
 let currentUser = null;
 let signalsData = [];
 
@@ -25,7 +25,7 @@ async function initializeApp() {
     }
 
     // 2. Create Client
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log('[Gongola] Client created');
 
     // 3. Attach Login Handler
@@ -38,7 +38,7 @@ async function initializeApp() {
 
     // 5. Check Session (Robust)
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await sb.auth.getSession();
         if (session) {
             currentUser = session.user;
             showApp();
@@ -57,7 +57,7 @@ async function initializeApp() {
     }
 
     // 6. Listen for Auth Changes
-    supabase.auth.onAuthStateChange((_event, session) => {
+    sb.auth.onAuthStateChange((_event, session) => {
         if (session) {
             currentUser = session.user;
             showApp();
@@ -77,7 +77,7 @@ if (document.readyState === 'loading') {
 
 
 async function handleLogout() {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
 }
 
 function showApp() {
@@ -112,7 +112,7 @@ function setupNavigation() {
 
 // --- DATA FETCHING & METRICS ---
 async function fetchDashboardData() {
-    const { data, error } = await supabase.from('signals').select('*').order('created_at', { ascending: false });
+    const { data, error } = await sb.from('signals').select('*').order('created_at', { ascending: false });
     if (error) return console.error('Error fetching signals:', error);
     
     signalsData = data || [];
@@ -305,14 +305,14 @@ function setupPostForm() {
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const fileName = `${Date.now()}.${file.name.split('.').pop()}`;
-                const { error: uploadError } = await supabase.storage.from('charts').upload(fileName, file);
+                const { error: uploadError } = await sb.storage.from('charts').upload(fileName, file);
                 if (uploadError) throw uploadError;
-                const { data: publicUrlData } = supabase.storage.from('charts').getPublicUrl(fileName); 
+                const { data: publicUrlData } = sb.storage.from('charts').getPublicUrl(fileName); 
                 imageUrl = publicUrlData.publicUrl;
             }
 
             // 2. Insert Signal
-            const { error } = await supabase.from('signals').insert([{
+            const { error } = await sb.from('signals').insert([{
                 asset, direction, entry, sl, tp, analysis, 
                 image_url: imageUrl,
                 status: 'waiting',
