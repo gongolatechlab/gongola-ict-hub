@@ -33,7 +33,7 @@ async function initializeApp() {
     // Login handled by inline script in HTML
 
     // 4. Setup Listeners
-    setupNavigation();
+    // Navigation handled by global switchView
     setupPostForm();
 
     // 5. Check Session (Robust)
@@ -94,21 +94,23 @@ function showLogin() {
 // --- REST OF THE FILE (navigation, data, metrics) ---
 
 // --- NAVIGATION ---
-function setupNavigation() {
-    const navBtns = document.querySelectorAll('.nav-item, .side-nav-item');
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const target = e.currentTarget.dataset.target;
-            if(!target) return;
-            
-            navBtns.forEach(b => b.classList.remove('active'));
-            document.querySelectorAll(`[data-target="${target}"]`).forEach(b => b.classList.add('active'));
-            
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-' + target).classList.add('active');
-        });
+window.switchView = function(viewId) {
+    // Hide all views
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    
+    // Show target view
+    const target = document.getElementById('view-' + viewId);
+    if (target) target.classList.add('active');
+
+    // Update bottom nav and sidebar active states
+    document.querySelectorAll('.nav-item, .side-nav-item').forEach(b => {
+        if(b.dataset.target === viewId) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
     });
-}
+};
 
 // --- DATA FETCHING & METRICS ---
 async function fetchDashboardData() {
