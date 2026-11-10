@@ -36,12 +36,23 @@ async function initializeApp() {
     setupNavigation();
     setupPostForm();
 
-    // 5. Check Session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        currentUser = session.user;
-        showApp();
-    } else {
+    // 5. Check Session (Robust)
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            currentUser = session.user;
+            showApp();
+        } else {
+            // Fallback: Check localStorage directly for auth token
+            const hasToken = Object.keys(localStorage).some(k => k.includes('auth-token'));
+            if (hasToken) {
+                showApp();
+            } else {
+                showLogin();
+            }
+        }
+    } catch (err) {
+        console.error('Session check failed:', err);
         showLogin();
     }
 

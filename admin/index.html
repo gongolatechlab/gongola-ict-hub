@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- GLOBAL_ERROR_HANDLER -->
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            const errDiv = document.createElement('div');
+            errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;padding:15px;z-index:999999;font-family:monospace;font-size:12px;font-weight:bold;';
+            errDiv.innerText = 'CORE.JS ERROR: ' + msg + ' (Line ' + line + ')';
+            document.body.appendChild(errDiv);
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function(e) {
+            const errDiv = document.createElement('div');
+            errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;padding:15px;z-index:999999;font-family:monospace;font-size:12px;font-weight:bold;';
+            errDiv.innerText = 'PROMISE ERROR: ' + (e.reason ? e.reason.message || e.reason : 'Unknown');
+            document.body.appendChild(errDiv);
+        });
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0B1220">
