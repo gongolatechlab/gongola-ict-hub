@@ -1,3 +1,5 @@
+alert('APP.JS STARTED');
+
 
 /* =========================================================
    GONGOLA ICT HUB - ADMIN CORE LOGIC (CLEAN PHASE 1)
@@ -31,7 +33,12 @@ async function initializeApp() {
 
     // 3. Attach Login Handler
     const loginBtn = document.getElementById('btn-login');
-    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (loginBtn) {
+        loginBtn.addEventListener('click', handleLogin);
+        alert('LOGIN ATTACHED');
+    } else {
+        alert('LOGIN BUTTON MISSING');
+    }
 
     // 4. Setup Listeners
     setupNavigation();
