@@ -315,35 +315,55 @@ async function processAIImage(file) {
     statusEl.innerText = '🤖 AI is analyzing the chart...';
     statusEl.style.color = 'var(--gold)';
 
+    // Compress image using canvas before sending
     const reader = new FileReader();
-    reader.onload = async (e) => {
-        const base64 = e.target.result;
-        try {
-            const res = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST', headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({ action: 'analyze_chart', image: base64 })
-            });
-            const data = await res.json();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const scale = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scale;
             
-            if (data.error) throw new Error(data.error);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            // Auto-fill the form
-            if (data.asset) document.getElementById('post-asset').value = data.asset.toUpperCase();
-            if (data.direction) document.getElementById('post-direction').value = data.direction.toUpperCase();
-            if (data.entry) document.getElementById('post-entry').value = data.entry;
-            if (data.sl) document.getElementById('post-sl').value = data.sl;
-            if (data.tp) document.getElementById('post-tp').value = data.tp;
-            if (data.analysis) document.getElementById('post-analysis').value = data.analysis;
+            // Get base64 (quality 0.7 to reduce size)
+            const base64 = canvas.toDataURL('image/jpeg', 0.7);
             
-            statusEl.innerText = '✅ AI complete. Review fields below.';
-            statusEl.style.color = 'var(--green)';
-            
-            // Trigger RR calculation
-            document.getElementById('post-entry').dispatchEvent(new Event('input'));
-        } catch (err) {
-            statusEl.innerText = '❌ AI Error: ' + err.message;
-            statusEl.style.color = 'var(--red)';
-        }
+            try {
+                const res = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: 'analyze_chart', image: base64 })
+                });
+                
+                if (!res.ok) throw new Error("Server error: " + res.status);
+                const text = await res.text();
+                let data;
+                try { data = JSON.parse(text); } catch { throw new Error("Invalid JSON from AI"); }
+                
+                if (data.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+                
+                // Auto-fill
+                if (data.asset) document.getElementById('post-asset').value = data.asset.toUpperCase();
+                if (data.category) document.getElementById('post-category').value = data.category.charAt(0).toUpperCase() + data.category.slice(1).toLowerCase();
+                if (data.direction) document.getElementById('post-direction').value = data.direction.toUpperCase();
+                if (data.entry) document.getElementById('post-entry').value = data.entry;
+                if (data.sl) document.getElementById('post-sl').value = data.sl;
+                if (data.tp) document.getElementById('post-tp').value = data.tp;
+                if (data.analysis) document.getElementById('post-analysis').value = data.analysis;
+                
+                statusEl.innerText = '✅ AI complete. Review fields.';
+                statusEl.style.color = 'var(--green)';
+                document.getElementById('post-entry').dispatchEvent(new Event('input'));
+            } catch (err) {
+                statusEl.innerText = '❌ AI Error: ' + err.message;
+                statusEl.style.color = 'var(--red)';
+                alert('AI Error: ' + err.message);
+            }
+        };
+        img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
@@ -395,6 +415,7 @@ function setupPostForm() {
         btn.innerText = 'Publishing...'; btn.disabled = true;
 
         const asset = document.getElementById('post-asset').value.toUpperCase();
+        const category = document.getElementById('post-category').value;
         const direction = dirInput.value;
         const entry = parseFloat(entryInput.value);
         const sl = parseFloat(slInput.value);
@@ -417,7 +438,7 @@ function setupPostForm() {
 
             // 2. Insert Signal
             const { error } = await sb.from('signals').insert([{
-                asset, direction, entry, sl, tp, analysis, 
+                asset, category, direction, entry, sl, tp, analysis, 
                 image_url: imageUrl,
                 status: 'waiting',
                 result: 'pending' // Legacy compatibility
