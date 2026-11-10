@@ -10,7 +10,7 @@ let supabase = null;
 let currentUser = null;
 let signalsData = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initializeApp() {
     console.log('[Gongola] Initializing...');
     
     // 1. Wait for Supabase CDN
@@ -56,7 +56,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             showLogin();
         }
     });
-});
+}
+
+// Run initialization (handles both cases)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
 
 async function handleLogin() {
     const email = document.getElementById('auth-email').value;
