@@ -25,7 +25,7 @@
                 <label class="form-label">Password</label>
                 <input type="password" id="auth-password" class="form-input">
             </div>
-            <button id="btn-login" onclick="bulletproofLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button id="btn-login" onclick="handleLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
         </div>
     </div>
 
@@ -202,137 +202,10 @@
     
 
 
-<script>
-    // BULLETPROOF INLINE LOGIN
-    async function waitForSupabase(maxWait = 15000) {
-        const start = Date.now();
-        while (!window.supabase && Date.now() - start < maxWait) {
-            await new Promise(r => setTimeout(r, 100));
-        }
-        if (!window.supabase) throw new Error('Supabase CDN failed to load.');
-        return window.supabase;
-    }
-    
-    async function bulletproofLogin() {
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        const btn = document.getElementById('btn-login');
-        
-        if (!email || !password) {
-            alert('Please enter email and password');
-            return;
-        }
-        
-        btn.innerText = 'Loading Supabase...';
-        btn.disabled = true;
-        
-        try {
-            const sbLib = await waitForSupabase();
-            btn.innerText = 'Authenticating...';
-            
-            // CRITICAL: Create the client first, then sign in
-            const client = sbLib.createClient(
-                'https://usayycqwgdyklfzrinvc.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w'
-            );
-            
-            const { error } = await client.auth.signInWithPassword({ email, password });
-            if (error) throw new Error(error.message);
-            
-            btn.innerText = 'Success! Reloading...';
-            setTimeout(() => location.reload(), 800);
-        } catch (err) {
-            console.error('[Login] Error:', err);
-            alert('Login error: ' + err.message);
-            btn.innerText = 'Login';
-            btn.disabled = false;
-        }
-    }
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('btn-login');
-        if (btn) {
-            btn.style.border = '2px solid #10B981';
-            console.log('[Login] Inline handler ready');
-        }
-    });
-</script>
 
 
-<!-- PERSISTENT DIAGNOSTIC PANEL -->
-<script>
-    (function() {
-        // Create diagnostic panel after DOM ready
-        function createDiagPanel() {
-            if (document.getElementById('diag-panel')) return;
-            
-            const panel = document.createElement('div');
-            panel.id = 'diag-panel';
-            panel.style.cssText = 'position:fixed;bottom:10px;left:10px;right:10px;background:rgba(0,0,0,0.95);color:#0F0;padding:12px;font-family:monospace;font-size:11px;border-radius:12px;z-index:999999;border:2px solid #0F0;max-height:50vh;overflow:auto;';
-            panel.innerHTML = `
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                    <strong style="color:#0F0;">DIAGNOSTIC PANEL</strong>
-                    <button onclick="document.getElementById('diag-panel').remove()" style="background:#F00;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-size:10px;">CLOSE</button>
-                </div>
-                <div id="diag-content">Initializing...</div>
-                <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;">
-                    <button onclick="diagForceShow()" style="background:#00F;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:10px;">Force Show Dashboard</button>
-                    <button onclick="diagRefresh()" style="background:#F80;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:10px;">Refresh</button>
-                    <button onclick="diagLogout()" style="background:#F00;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:10px;">Logout</button>
-                </div>
-            `;
-            document.body.appendChild(panel);
-        }
-        
-        // Wait a moment for things to load, then create panel
-        setTimeout(createDiagPanel, 500);
-        
-        // Update content every second
-        setInterval(() => {
-            const content = document.getElementById('diag-content');
-            if (!content) return;
-            
-            const authScreen = document.getElementById('auth-screen');
-            const appShell = document.getElementById('app-shell');
-            const loginBtn = document.getElementById('btn-login');
-            
-            let sessionInfo = 'Checking...';
-            try {
-                const keys = Object.keys(localStorage);
-                const supabaseKeys = keys.filter(k => k.includes('supabase'));
-                sessionInfo = supabaseKeys.length > 0 ? `${supabaseKeys.length} session key(s) found` : 'No session keys';
-            } catch(e) { sessionInfo = 'Error: ' + e.message; }
-            
-            content.innerHTML = `
-                <div>Supabase CDN: <span style="color:${window.supabase ? '#0F0' : '#F00'}">${window.supabase ? 'LOADED' : 'NOT LOADED'}</span></div>
-                <div>Auth Screen: <span style="color:${authScreen && authScreen.classList.contains('active') ? '#0F0' : '#888'}">${authScreen && authScreen.classList.contains('active') ? 'VISIBLE' : 'HIDDEN'}</span></div>
-                <div>App Shell: <span style="color:${appShell && appShell.style.display === 'block' ? '#0F0' : '#888'}">${appShell && appShell.style.display === 'block' ? 'VISIBLE' : 'HIDDEN'}</span></div>
-                <div>Login Btn: <span style="color:${loginBtn ? '#0F0' : '#F00'}">${loginBtn ? 'EXISTS' : 'MISSING'}</span></div>
-                <div>Session: <span style="color:#FF0">${sessionInfo}</span></div>
-            `;
-        }, 1000);
-        
-        // Force show dashboard
-        window.diagForceShow = function() {
-            document.getElementById('auth-screen').classList.remove('active');
-            document.getElementById('app-shell').style.display = 'block';
-            document.getElementById('diag-content').innerHTML = '<div style="color:#0F0">Dashboard forced visible. Check if it looks right.</div>';
-        };
-        
-        // Refresh page
-        window.diagRefresh = function() {
-            location.reload();
-        };
-        
-        // Logout
-        window.diagLogout = function() {
-            Object.keys(localStorage).forEach(k => {
-                if (k.includes('supabase')) localStorage.removeItem(k);
-            });
-            location.reload();
-        };
-    })();
-</script>
+
+
 
 </body>
 </html>

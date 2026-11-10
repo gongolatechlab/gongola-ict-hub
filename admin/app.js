@@ -1,147 +1,82 @@
+
 /* =========================================================
-   GONGOLA ICT HUB - ADMIN CORE LOGIC (PHASE 1)
+   GONGOLA ICT HUB - ADMIN CORE LOGIC (CLEAN PHASE 1)
    ========================================================= */
 
 const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
-let supabase = null;
 
-// State
+let supabase = null;
 let currentUser = null;
 let signalsData = [];
 
-// --- INITIALIZATION ---
-async function initializeApp() {
-    console.log('[Gongola] Initializing app...');
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('[Gongola] Initializing...');
     
-    // Show diagnostic banner
-    const diag = document.createElement('div');
-    diag.id = 'gongola-diag';
-    diag.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(0,0,0,0.9);color:#0F0;padding:8px 12px;font-size:11px;font-family:monospace;border-radius:8px;z-index:9999;border:1px solid #0F0;max-width:200px;';
-    diag.innerText = 'INIT...';
-    document.body.appendChild(diag);
-    
-    const updateDiag = (msg, color = '#0F0') => {
-        diag.innerText = msg;
-        diag.style.color = color;
-        diag.style.borderColor = color;
-    };
-    
-    try {
-        // 1. WAIT FOR SUPABASE
-        let attempts = 0;
-        while (!window.supabase && attempts < 50) {
-            await new Promise(r => setTimeout(r, 100));
-            attempts++;
-        }
-        
-        if (!window.supabase) {
-            updateDiag('ERROR: Supabase CDN failed', '#F00');
-            alert('Supabase library failed to load. Please refresh.');
-            return;
-        }
-        
-        // 2. CREATE CLIENT
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        updateDiag('DB OK, checking auth...');
-        
-        // 3. CHECK AUTH
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-            currentUser = session.user;
-            updateDiag('Logged in: ' + session.user.email.substring(0,15));
-            showApp();
-        } else {
-            updateDiag('Not logged in', '#FFA500');
-            document.getElementById('auth-screen').classList.add('active');
-        }
-        
-        // 4. SET UP LISTENERS
-        supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) {
-                currentUser = session.user;
-                showApp();
-            } else {
-                currentUser = null;
-                document.getElementById('auth-screen').classList.add('active');
-                document.getElementById('app-shell').style.display = 'none';
-            }
-        });
-        
-        setupNavigation();
-        setupPostForm();
-        
-        setTimeout(() => diag.remove(), 3000);
-        
-    } catch (err) {
-        console.error('[Gongola] Init error:', err);
-        updateDiag('INIT ERROR: ' + err.message, '#F00');
+    // 1. Wait for Supabase CDN
+    let attempts = 0;
+    while (!window.supabase && attempts < 50) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
     }
-}
-
-// Run immediately if DOM is ready, otherwise wait
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
-}
-
-window.handleLogin = async function() {
-    console.log('[Gongola] Login clicked');
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const btn = document.getElementById('btn-login');
     
-    if (!email || !password) {
-        alert('Please enter email and password');
+    if (!window.supabase) {
+        alert('Supabase library failed to load. Please check your internet and refresh.');
         return;
     }
-    
-    btn.innerText = 'Authenticating...';
-    btn.disabled = true;
-    
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        console.log('[Gongola] Auth response:', { data, error });
-        
-        if (error) {
-            alert('Login Failed: ' + error.message);
-            btn.innerText = 'Login';
-            btn.disabled = false;
-        }
-        // On success, onAuthStateChange will fire and show the app
-    } catch (err) {
-        console.error('[Gongola] Auth exception:', err);
-        alert('Connection error: ' + err.message);
-        btn.innerText = 'Login';
-        btn.disabled = false;
-    }
-}
 
-// --- AUTHENTICATION ---
-async function checkAuth() {
+    // 2. Create Client
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('[Gongola] Client created');
+
+    // 3. Attach Login Handler
+    const loginBtn = document.getElementById('btn-login');
+    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+
+    // 4. Setup Listeners
+    setupNavigation();
+    setupPostForm();
+
+    // 5. Check Session
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
         currentUser = session.user;
         showApp();
     } else {
-        document.getElementById('auth-screen').classList.add('active');
+        showLogin();
     }
 
+    // 6. Listen for Auth Changes
     supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
             currentUser = session.user;
             showApp();
         } else {
             currentUser = null;
-            document.getElementById('auth-screen').classList.add('active');
-            document.getElementById('app-shell').style.display = 'none';
+            showLogin();
         }
     });
-}
+});
 
-// Login handler is attached inside DOMContentLoaded below
+async function handleLogin() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const btn = document.getElementById('btn-login');
+    
+    if (!email || !password) return alert('Please enter email and password');
+    
+    btn.innerText = 'Authenticating...';
+    btn.disabled = true;
+    
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+        alert('Login Failed: ' + error.message);
+        btn.innerText = 'Login';
+        btn.disabled = false;
+    }
+    // On success, onAuthStateChange will trigger showApp()
+}
 
 async function handleLogout() {
     await supabase.auth.signOut();
@@ -152,6 +87,13 @@ function showApp() {
     document.getElementById('app-shell').style.display = 'block';
     fetchDashboardData();
 }
+
+function showLogin() {
+    document.getElementById('auth-screen').classList.add('active');
+    document.getElementById('app-shell').style.display = 'none';
+}
+
+// --- REST OF THE FILE (navigation, data, metrics) ---
 
 // --- NAVIGATION ---
 function setupNavigation() {
