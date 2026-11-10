@@ -6,6 +6,7 @@ const SUPABASE_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
 
 let sb = null;
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfp3lOPcooUDUULMR6VOAy2_SNsWfzBWljHrKQ2Get8ddEfXByg62gwJlM9EreOTvVaQ/exec';
 let currentUser = null;
 let signalsData = [];
 
@@ -84,6 +85,8 @@ function showApp() {
     document.getElementById('auth-screen').classList.remove('active');
     document.getElementById('app-shell').style.display = 'block';
     fetchDashboardData();
+    syncBrokerData();
+    fetchActivityLog();
 }
 
 function showLogin() {
@@ -252,6 +255,100 @@ function renderSignals() {
     });
 }
 
+
+// --- BROKER SYNC ---
+async function syncBrokerData() {
+    try {
+        const res = await fetch(APPS_SCRIPT_URL, { 
+            method: 'POST', headers: { 'Content-Type': 'text/plain' }, 
+            body: JSON.stringify({ action: 'get_account' }) 
+        });
+        const data = await res.json();
+        if (data.accounts && data.accounts.length > 0) {
+            const bal = data.accounts[0].balance.balance;
+            document.getElementById('stat-balance').innerText = '$' + parseFloat(bal).toFixed(2);
+        }
+    } catch(e) { console.warn('Broker sync failed (check Apps Script URL)'); }
+}
+
+// --- AUDIT LOG ---
+async function logActivity(action, details = {}) {
+    if (!currentUser) return;
+    try {
+        await sb.from('audit_log').insert([{ user_id: currentUser.id, action, details }]);
+        fetchActivityLog(); // Refresh the UI if on Activity tab
+    } catch(e) { console.error('Audit log failed', e); }
+}
+
+async function fetchActivityLog() {
+    const container = document.getElementById('activity-list');
+    if (!container) return;
+    
+    const { data, error } = await sb.from('audit_log').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error || !data) return;
+
+    if (data.length === 0) {
+        container.innerHTML = '<p class="text-muted text-sm text-center">No activity yet.</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(log => {
+        const time = new Date(log.created_at).toLocaleString();
+        return `
+            <div class="card" style="padding: 12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span class="text-gold font-bold text-sm">${log.action}</span>
+                    <span class="text-xs text-muted">${time}</span>
+                </div>
+                <div class="text-xs text-muted font-mono">${JSON.stringify(log.details)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// --- AI CHART READING ---
+async function processAIImage(file) {
+    const statusEl = document.getElementById('ai-status');
+    if (!statusEl) return;
+    
+    statusEl.style.display = 'block';
+    statusEl.innerText = '🤖 AI is analyzing the chart...';
+    statusEl.style.color = 'var(--gold)';
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST', headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ action: 'analyze_chart', image: base64 })
+            });
+            const data = await res.json();
+            
+            if (data.error) throw new Error(data.error);
+            
+            // Auto-fill the form
+            if (data.asset) document.getElementById('post-asset').value = data.asset.toUpperCase();
+            if (data.direction) document.getElementById('post-direction').value = data.direction.toUpperCase();
+            if (data.entry) document.getElementById('post-entry').value = data.entry;
+            if (data.sl) document.getElementById('post-sl').value = data.sl;
+            if (data.tp) document.getElementById('post-tp').value = data.tp;
+            if (data.analysis) document.getElementById('post-analysis').value = data.analysis;
+            
+            statusEl.innerText = '✅ AI complete. Review fields below.';
+            statusEl.style.color = 'var(--green)';
+            
+            // Trigger RR calculation
+            document.getElementById('post-entry').dispatchEvent(new Event('input'));
+        } catch (err) {
+            statusEl.innerText = '❌ AI Error: ' + err.message;
+            statusEl.style.color = 'var(--red)';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+
 // --- POST SIGNAL LOGIC ---
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
@@ -286,6 +383,11 @@ function setupPostForm() {
     slInput.addEventListener('input', calculateRR);
     tpInput.addEventListener('input', calculateRR);
     dirInput.addEventListener('change', calculateRR);
+
+    // Hook up chart upload
+    document.getElementById('chart-upload').addEventListener('change', (e) => {
+        if (e.target.files.length > 0) processAIImage(e.target.files[0]);
+    });
 
     document.getElementById('post-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -324,9 +426,11 @@ function setupPostForm() {
             if (error) throw error;
 
             alert('Signal Published!');
+            logActivity('SIGNAL_PUBLISHED', { asset, direction, entry });
             closeModal('post-signal-modal');
             e.target.reset();
             rrPreview.innerText = '--';
+            document.getElementById('ai-status').style.display = 'none';
             fetchDashboardData();
         } catch (err) {
             alert('Failed: ' + err.message);
