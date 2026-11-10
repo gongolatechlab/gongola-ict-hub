@@ -25,7 +25,7 @@
                 <label class="form-label">Password</label>
                 <input type="password" id="auth-password" class="form-input">
             </div>
-            <button id="btn-login" onclick="handleLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
+            <button id="btn-login" onclick="doLogin()" class="btn btn-primary" style="width: 100%;">Login</button>
         </div>
     </div>
 
@@ -197,7 +197,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="app.js"></script>
+    <script src="core.js"></script>
 
     
 
@@ -206,6 +206,48 @@
 
 
 
+
+
+<!-- INLINE LOGIN (100% independent of core.js) -->
+<script>
+    const SB_URL = 'https://usayycqwgdyklfzrinvc.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzYXl5Y3F3Z2R5a2xmenJpbnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MTg5NjYsImV4cCI6MjEwOTE5NDk2Nn0.jgEo3bvyKK_ak1yMRILX-32tCrg8BKSlzDvu-ccDq3w';
+    
+    async function doLogin() {
+        const email = document.getElementById('auth-email').value;
+        const password = document.getElementById('auth-password').value;
+        const btn = document.getElementById('btn-login');
+        
+        if (!email || !password) return alert('Please enter email and password');
+        
+        btn.innerText = 'Authenticating...';
+        btn.disabled = true;
+        
+        try {
+            // Wait for Supabase CDN
+            let attempts = 0;
+            while (!window.supabase && attempts < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            if (!window.supabase) throw new Error('Supabase CDN failed to load');
+            
+            const client = window.supabase.createClient(SB_URL, SB_KEY);
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
+            
+            if (error) throw error;
+            
+            btn.innerText = 'Success! Loading...';
+            // Reload so core.js picks up the session
+            setTimeout(() => location.reload(), 500);
+            
+        } catch (err) {
+            alert('Login error: ' + err.message);
+            btn.innerText = 'Login';
+            btn.disabled = false;
+        }
+    }
+</script>
 
 </body>
 </html>

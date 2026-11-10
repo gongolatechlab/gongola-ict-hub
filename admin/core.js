@@ -1,6 +1,3 @@
-alert('APP.JS STARTED');
-
-
 /* =========================================================
    GONGOLA ICT HUB - ADMIN CORE LOGIC (CLEAN PHASE 1)
    ========================================================= */
@@ -33,12 +30,7 @@ async function initializeApp() {
 
     // 3. Attach Login Handler
     const loginBtn = document.getElementById('btn-login');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', handleLogin);
-        alert('LOGIN ATTACHED');
-    } else {
-        alert('LOGIN BUTTON MISSING');
-    }
+    // Login handled by inline script in HTML
 
     // 4. Setup Listeners
     setupNavigation();
@@ -72,25 +64,6 @@ if (document.readyState === 'loading') {
     initializeApp();
 }
 
-async function handleLogin() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const btn = document.getElementById('btn-login');
-    
-    if (!email || !password) return alert('Please enter email and password');
-    
-    btn.innerText = 'Authenticating...';
-    btn.disabled = true;
-    
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        alert('Login Failed: ' + error.message);
-        btn.innerText = 'Login';
-        btn.disabled = false;
-    }
-    // On success, onAuthStateChange will trigger showApp()
-}
 
 async function handleLogout() {
     await supabase.auth.signOut();
