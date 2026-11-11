@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gongola ICT Hub - AI Analyzer</title>
+    <style>
+        :root { --bg: #0b0f19; --card-bg: #151b2b; --text: #e2e8f0; --accent: #3b82f6; --bull: #10b981; --bear: #ef4444; --border: #2d3748; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 600px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; }
+        .header p { color: #94a3b8; margin: 0; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px; background: rgba(255,255,255,0.02); }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+        .upload-zone.active { border-color: var(--bull); background: rgba(16, 185, 129, 0.05); }
+        input[type="file"] { display: none; }
+        .upload-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: 0.3s; }
+        button:hover { background: #2563eb; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader { display: none; text-align: center; margin-top: 20px; color: var(--accent); font-weight: bold; }
+        .result-box { margin-top: 25px; padding: 20px; border-radius: 8px; background: #1e293b; border-left: 5px solid var(--accent); display: none; }
+        .result-row { margin-bottom: 12px; font-size: 15px; line-height: 1.5; }
+        .result-row strong { color: #94a3b8; display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+        .verdict-row { margin-top: 20px; padding: 15px; background: #0f172a; border-radius: 6px; border: 1px solid var(--border); }
+        .verdict-row strong { color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Gongola ICT Machine</h1>
+            <p>AI Chart Analyst (Powered by Groq)</p>
+        </div>
+
+        <div class="card">
+            <label for="chart-upload" class="upload-zone" id="drop-zone">
+                <span class="upload-icon">📸</span>
+                <span id="file-name" style="font-weight: bold;">Click to upload TradingView chart</span>
+            </label>
+            <input type="file" id="chart-upload" accept="image/*">
+            
+            <button onclick="analyzeChart()" id="analyze-btn">Analyze Chart</button>
+            
+            <div class="loader" id="loader">🧠 Groq AI is analyzing the chart...</div>
+            
+            <div class="result-box" id="result-box">
+                <h3 style="color: var(--accent); margin-top: 0; margin-bottom: 20px;">AI Analysis</h3>
+                <div class="result-row"><strong>Bias</strong> <span id="res-bias"></span></div>
+                <div class="result-row"><strong>Order Blocks</strong> <span id="res-ob"></span></div>
+                <div class="result-row"><strong>Fair Value Gaps</strong> <span id="res-fvg"></span></div>
+                <div class="result-row"><strong>Turtle Soup</strong> <span id="res-ts"></span></div>
+                <div class="verdict-row result-row"><strong>Verdict</strong> <span id="res-verdict" style="color: #f59e0b; font-weight: bold;"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // YOUR GOOGLE APPS SCRIPT URL
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfp3lOPcooUDUULMR6VOAy2_SNsWfzBWljHrKQ2Get8ddEfXByg62gwJlM9EreOTvVaQ/exec";
+
+        const fileInput = document.getElementById('chart-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const dropZone = document.getElementById('drop-zone');
+        let currentFile = null;
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                currentFile = e.target.files[0];
+                fileNameDisplay.textContent = currentFile.name;
+                dropZone.classList.add('active');
+            }
+        });
+
+        async function analyzeChart() {
+            if (!currentFile) {
+                alert("Please select an image first.");
+                return;
+            }
+            
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('result-box').style.display = 'none';
+            document.getElementById('analyze-btn').disabled = true;
+            
+            // Convert image to Base64
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const base64String = event.target.result.split(',')[1];
+                
+                try {
+                    // Send to Google Apps Script (using text/plain to bypass CORS preflight)
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ imageBase64: base64String })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if(result.error) {
+                        alert("AI Error: " + result.error);
+                    } else {
+                        // Populate results
+                        document.getElementById('res-bias').textContent = result.detected_bias || "N/A";
+                        document.getElementById('res-ob').textContent = result.order_blocks || "None detected";
+                        document.getElementById('res-fvg').textContent = result.fvg || "None detected";
+                        document.getElementById('res-ts').textContent = result.turtle_soup || "None detected";
+                        document.getElementById('res-verdict').textContent = result.verdict || "Wait";
+                        
+                        document.getElementById('result-box').style.display = 'block';
+                    }
+                } catch (error) {
+                    alert("Network Error: Could not reach the AI server.");
+                    console.error(error);
+                } finally {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('analyze-btn').disabled = false;
+                }
+            };
+            reader.readAsDataURL(currentFile);
+        }
+    </script>
+</body>
+</html>
